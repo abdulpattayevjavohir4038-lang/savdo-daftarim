@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: write
+  id-token: write   # imzo kalitini serverdan olish uchun (GitHub OIDC)
 
 concurrency:
   group: apk
@@ -36,27 +37,50 @@ jobs:
         working-directory: app
         run: npm run sync
 
-      - name: Imzo kaliti (agar sozlangan boʻlsa)
+      # Har bir APK bitta doimiy kalit bilan imzolanadi — telefon yangi versiyani «yangilanish» deb qabul qiladi.
+      # Kalit: GitHub secrets'da bo'lsa o'shandan, bo'lmasa serverdan (faqat shu repozitoriyning main shoxiga beriladi).
+      - name: Imzo kaliti
         env:
           KS: ${{ secrets.KEYSTORE_BASE64 }}
+          KS_PW: ${{ secrets.KEYSTORE_PASSWORD }}
+          KS_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KS_KEYPW: ${{ secrets.KEY_PASSWORD }}
         run: |
+          set -e
           if [ -n "$KS" ]; then
             echo "$KS" | base64 -d > "$RUNNER_TEMP/release.jks"
-            echo "KEYSTORE_FILE=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
+            PW="$KS_PW"; KA="$KS_ALIAS"; KP="$KS_KEYPW"
+          else
+            OIDC=$(curl -sS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=savdo-daftarim-apk" | jq -r .value)
+            RES=$(curl -sS -X POST "https://fgwqodeqfqbagimauulc.supabase.co/functions/v1/apk-key" \
+              -H "apikey: sb_publishable_sYxQqC2eOvkeiX39MCNVxQ_epqjABBR" -H "x-github-oidc: $OIDC")
+            PW=$(echo "$RES" | jq -r '.storePassword // empty'); KP=$(echo "$RES" | jq -r '.keyPassword // empty'); KA=$(echo "$RES" | jq -r '.keyAlias // empty')
+            if [ -z "$PW" ]; then echo "::error::Imzo kaliti olinmadi: $(echo "$RES" | jq -r '.error // "nomaʼlum"')"; exit 1; fi
+            echo "::add-mask::$PW"; echo "::add-mask::$KP"
+            echo "$RES" | jq -r .keystore | base64 -d > "$RUNNER_TEMP/release.jks"
           fi
+          {
+            echo "KEYSTORE_FILE=$RUNNER_TEMP/release.jks"
+            echo "KEYSTORE_PASSWORD=$PW"
+            echo "KEY_PASSWORD=$KP"
+            echo "KEY_ALIAS=$KA"
+          } >> "$GITHUB_ENV"
 
       - name: APK yigʻish
         working-directory: app/android
         env:
           VERSION_CODE: ${{ github.run_number }}
           VERSION_NAME: 1.${{ github.run_number }}
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           chmod +x gradlew
           ./gradlew assembleRelease --no-daemon --stacktrace
           cp app/build/outputs/apk/release/app-release.apk "$GITHUB_WORKSPACE/minimarket-pos.apk"
+
+      - name: Imzoni tekshirish
+        run: |
+          AS=$(ls -d "$ANDROID_HOME"/build-tools/*/ | sort -V | tail -1)apksigner
+          "$AS" verify --print-certs minimarket-pos.apk | tee signers.txt
+          if grep -q "Android Debug" signers.txt; then echo "::error::APK vaqtinchalik (debug) kalit bilan imzolangan"; exit 1; fi
 
       - uses: actions/upload-artifact@v4
         with:
