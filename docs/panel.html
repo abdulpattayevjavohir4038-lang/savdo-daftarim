@@ -328,8 +328,11 @@ const saveAuth = () => { try { if (AUTH) localStorage.setItem(AUTH_KEY, JSON.str
 const H = (tok) => Object.assign({ 'Content-Type': 'application/json', apikey: CFG.key }, tok ? { Authorization: 'Bearer ' + tok } : {});
 async function http(path, body, tok) {
   let r;
-  try { r = await fetch(CFG.url + path, { method: 'POST', headers: H(tok), body: JSON.stringify(body || {}) }); }
+  const ctl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  const tm = ctl ? setTimeout(() => ctl.abort(), 20000) : 0;
+  try { r = await fetch(CFG.url + path, Object.assign({ method: 'POST', headers: H(tok), body: JSON.stringify(body || {}) }, ctl ? { signal: ctl.signal } : {})); }
   catch (e) { throw { net: true }; }
+  finally { clearTimeout(tm); }
   const t = await r.text(); let d = null; try { d = t ? JSON.parse(t) : null; } catch (e) { d = t; }
   return { ok: r.ok, status: r.status, data: d };
 }
@@ -578,31 +581,73 @@ function renderSettings() {
 }
 
 /* ---------- kirish ---------- */
+const NET_MSG = 'Serverga ulanib boʻlmadi. Internet borligini tekshiring. Agar fayl Claude ilovasi ichida ochilgan boʻlsa, u yerda internet yopiq — yuqoridagi ⋮ menyusi orqali faylni Chrome brauzerida oching.';
+const STORE_OK = (() => { try { localStorage.setItem('__p', '1'); localStorage.removeItem('__p'); return true; } catch (e) { return false; } })();
+const pDigits = (v) => { let d = String(v || '').replace(/\D/g, ''); if (d.length === 12 && d.startsWith('998')) d = d.slice(3); return d.slice(0, 9); };
+const pFmt = (v) => { const d = pDigits(v); return [d.slice(0, 2), d.slice(2, 5), d.slice(5, 7), d.slice(7, 9)].filter(Boolean).join(' '); };
 function showLogin(msg) {
   $('#hdr').classList.add('hidden'); UI.data = null;
-  $('#main').innerHTML = '<div class="min-h-[80vh] grid place-items-center"><form id="l-f" class="w-full max-w-sm" novalidate>' +
+  const phone = (label, id) => '<label class="label mt-3" for="' + id + '">' + label + '</label><div class="flex items-stretch rounded-xl border border-line-strong bg-surface overflow-hidden"><span class="px-3 grid place-items-center text-muted font-semibold num bg-subtle border-r border-line">+998</span><input id="' + id + '" type="tel" inputmode="numeric" class="flex-1 min-w-0 bg-transparent px-3 py-3 text-base text-ink num outline-none" placeholder="90 123 45 67"></div>';
+  $('#main').innerHTML = '<div class="min-h-[80vh] grid place-items-center"><div class="w-full max-w-sm">' +
     '<div class="flex items-center gap-3 mb-6"><div class="w-12 h-12 rounded-2xl bg-primary text-primary-on grid place-items-center font-extrabold text-xl" aria-hidden="true">M</div><div><div class="font-extrabold text-xl text-ink">Sotuvchi paneli</div><div class="text-sm text-faint">Minimarket POS obunalari</div></div></div>' +
-    '<div class="card p-5">' + (msg ? '<div class="mb-3 rounded-xl border border-warn/40 bg-warn-soft text-warn text-sm px-3 py-2.5">' + esc(msg) + '</div>' : '') +
-    '<label class="label" for="l-p">Telefon raqam</label><div class="flex items-stretch rounded-xl border border-line-strong bg-surface overflow-hidden"><span class="px-3 grid place-items-center text-muted font-semibold num bg-subtle border-r border-line">+998</span><input id="l-p" type="tel" inputmode="numeric" class="flex-1 min-w-0 bg-transparent px-3 py-3 text-base text-ink num outline-none" placeholder="90 123 45 67"></div>' +
+    (STORE_OK ? '' : '<div class="mb-3 rounded-xl border border-neg/40 bg-neg-soft text-neg text-sm px-3 py-2.5">Bu oynada brauzer xotirasi yopiq (Claude ilovasi ichida ochilgan boʻlishi mumkin). Faylni <b>Chrome</b> brauzerida oching.</div>') +
+    '<div class="card p-5"><div class="seg w-full" role="tablist"><button data-lm="in" aria-pressed="true">Kirish</button><button data-lm="up" aria-pressed="false">Birinchi marta</button></div>' +
+    '<div id="l-err" class="' + (msg ? '' : 'hidden ') + 'mt-4 rounded-xl border border-neg/40 bg-neg-soft text-neg text-sm px-3 py-2.5" role="alert">' + esc(msg || '') + '</div>' +
+    '<form id="l-f" novalidate>' + phone('Telefon raqam', 'l-p') +
     '<label class="label mt-3" for="l-w">Parol</label><input id="l-w" type="password" class="input" autocomplete="current-password">' +
     '<button id="l-go" type="submit" class="btn btn-primary w-full mt-5 min-h-[48px]">Kirish</button>' +
-    '<p class="hint mt-3">Ilovaga qaysi raqam va parol bilan kirsangiz, shu bilan kiring (faqat sotuvchi hisobi).</p></div></form></div>';
+    '<p class="hint mt-3">Hali hisob ochmagan boʻlsangiz, «Birinchi marta» boʻlimidan sotuvchi kodi bilan roʻyxatdan oʻting.</p></form>' +
+    '<form id="r-f" class="hidden" novalidate>' +
+    '<label class="label mt-3" for="r-c">Sotuvchi kodi</label><input id="r-c" class="input font-mono tracking-widest uppercase text-base" placeholder="XXXX-XXXX" autocapitalize="characters" spellcheck="false" maxlength="12">' +
+    '<label class="label mt-3" for="r-n">Doʻkoningiz nomi</label><input id="r-n" class="input" placeholder="Masalan: Javohir market" maxlength="60">' + phone('Telefon raqamingiz', 'r-p') +
+    '<label class="label mt-3" for="r-w">Oʻzingizga parol qoʻying (kamida 6 belgi)</label><input id="r-w" type="password" class="input" autocomplete="new-password">' +
+    '<label class="label mt-3" for="r-w2">Parolni takrorlang</label><input id="r-w2" type="password" class="input" autocomplete="new-password">' +
+    '<button id="r-go" type="submit" class="btn btn-primary w-full mt-5 min-h-[48px]">Roʻyxatdan oʻtish</button>' +
+    '<p class="hint mt-3">Shu raqam va parol bilan ham panelga, ham ilovaga (oʻz doʻkoningizga) kirasiz.</p></form></div></div></div>';
+  const err = (m) => { const e = $('#l-err'); e.textContent = m; e.classList.toggle('hidden', !m); if (m) e.scrollIntoView({ block: 'nearest' }); };
+  $$('[data-lm]').forEach((b) => b.onclick = () => {
+    $$('[data-lm]').forEach((x) => x.setAttribute('aria-pressed', x === b ? 'true' : 'false'));
+    $('#l-f').classList.toggle('hidden', b.dataset.lm !== 'in'); $('#r-f').classList.toggle('hidden', b.dataset.lm !== 'up'); err('');
+  });
+  $$('input[type=tel]').forEach((inp) => inp.addEventListener('input', () => { const end = inp.selectionStart === inp.value.length; inp.value = pFmt(inp.value); if (end) inp.selectionStart = inp.selectionEnd = inp.value.length; }));
+  $('#r-c').addEventListener('input', (e) => { const v = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8); e.target.value = v.length > 4 ? v.slice(0, 4) + '-' + v.slice(4) : v; });
+  const busy = (btn, on, label) => { btn.disabled = on; btn.textContent = on ? label : btn.dataset.l || btn.textContent; };
+  $('#l-go').dataset.l = 'Kirish'; $('#r-go').dataset.l = 'Roʻyxatdan oʻtish';
+  async function signIn(d, pw) {
+    const r = await http('/auth/v1/token?grant_type=password', { email: '998' + d + '@' + DOMAIN, password: pw });
+    if (!r.ok) throw { code: r.status === 400 ? 'BAD_LOGIN' : 'HTTP ' + r.status };
+    AUTH = { phone: d }; take(r.data);
+    const me = await rpc('my_shop', {});
+    if (!me.admin) { AUTH = null; saveAuth(); throw { code: 'NOT_SELLER' }; }
+    start();
+  }
+  const why = (er) => er && er.net ? NET_MSG : er && er.code === 'BAD_LOGIN' ? 'Telefon raqam yoki parol notoʻgʻri. Hali roʻyxatdan oʻtmagan boʻlsangiz — «Birinchi marta» boʻlimiga oʻting.' :
+    er && er.code === 'NOT_SELLER' ? 'Bu hisob doʻkon hisobi, sotuvchi hisobi emas. Sotuvchi kodi bilan ochilgan raqamingiz bilan kiring.' :
+    er && er.code === 'INVITE_INVALID' ? 'Sotuvchi kodi notoʻgʻri, muddati oʻtgan yoki allaqachon ishlatilgan.' :
+    er && er.code === 'PHONE_TAKEN' ? 'Bu raqam bilan hisob allaqachon bor — «Kirish» boʻlimidan foydalaning.' : 'Xato: ' + ((er && er.code) || 'nomaʼlum');
   $('#l-f').onsubmit = async (e) => {
-    e.preventDefault();
-    const d = $('#l-p').value.replace(/\D/g, '').replace(/^998/, '').slice(0, 9), pw = $('#l-w').value;
-    if (d.length !== 9 || !pw) { toast('Telefon va parolni kiriting', 'warn'); return; }
-    $('#l-go').disabled = true; $('#l-go').textContent = 'Kirilmoqda…';
+    e.preventDefault(); err('');
+    const d = pDigits($('#l-p').value), pw = $('#l-w').value;
+    if (d.length !== 9) { err('Telefon raqamni toʻliq kiriting (9 ta raqam).'); return; }
+    if (!pw) { err('Parolni kiriting.'); return; }
+    busy($('#l-go'), true, 'Kirilmoqda…');
+    try { await signIn(d, pw); } catch (er) { busy($('#l-go'), false); err(why(er)); }
+  };
+  $('#r-f').onsubmit = async (e) => {
+    e.preventDefault(); err('');
+    const code = $('#r-c').value.trim(), name = $('#r-n').value.trim(), d = pDigits($('#r-p').value), pw = $('#r-w').value;
+    if (code.replace(/[^A-Za-z0-9]/g, '').length !== 8) { err('Sotuvchi kodini toʻliq kiriting (8 ta belgi).'); return; }
+    if (name.length < 2) { err('Doʻkon nomini kiriting.'); return; }
+    if (d.length !== 9) { err('Telefon raqamni toʻliq kiriting (9 ta raqam).'); return; }
+    if (pw.length < 6) { err('Parol kamida 6 belgidan iborat boʻlsin.'); return; }
+    if (pw !== $('#r-w2').value) { err('Parollar bir xil emas.'); return; }
+    busy($('#r-go'), true, 'Roʻyxatdan oʻtilmoqda…');
     try {
-      const r = await http('/auth/v1/token?grant_type=password', { email: '998' + d + '@' + DOMAIN, password: pw });
-      if (!r.ok) throw { code: r.status === 400 ? 'BAD_LOGIN' : 'HTTP ' + r.status };
-      AUTH = { phone: d }; take(r.data);
-      const me = await rpc('my_shop', {});
-      if (!me.admin) { AUTH = null; saveAuth(); throw { code: 'NOT_SELLER' }; }
-      start();
-    } catch (er) {
-      $('#l-go').disabled = false; $('#l-go').textContent = 'Kirish';
-      toast(er && er.net ? 'Internet yoʻq' : er && er.code === 'BAD_LOGIN' ? 'Telefon yoki parol notoʻgʻri' : er && er.code === 'NOT_SELLER' ? 'Bu hisob sotuvchi hisobi emas' : errText(er), 'err');
-    }
+      const r = await http('/functions/v1/register', { code, name, phone: '998' + d, password: pw });
+      if (!r.ok) throw { code: (r.data && r.data.error) || 'HTTP ' + r.status };
+      await signIn(d, pw);
+      toast('Hisob ochildi. Endi shu raqam va parol bilan kirasiz.');
+    } catch (er) { busy($('#r-go'), false); err(why(er)); }
   };
 }
 function start() { $('#hdr').classList.remove('hidden'); setTab(UI.tab); load(true); }

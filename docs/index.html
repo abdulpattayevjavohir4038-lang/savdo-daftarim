@@ -1885,6 +1885,7 @@ function clShowAuth(msg) {
     '<div class="card p-5">' +
     '<div class="seg w-full" role="tablist"><button data-am="in" aria-pressed="true">Kirish</button><button data-am="up" aria-pressed="false">Yangi hisob</button></div>' +
     (msg ? '<div class="mt-4 rounded-xl border border-warn/40 bg-warn-soft text-warn text-sm px-3 py-2.5">' + esc(msg) + '</div>' : '') +
+    '<div id="am-err" class="hidden mt-4 rounded-xl border border-neg/40 bg-neg-soft text-neg text-sm px-3 py-2.5" role="alert"></div>' +
     '<form id="am-in" class="mt-1" novalidate>' + phoneField('in-phone') + clPwField('in-pw', 'Parol', 'current-password') +
     '<button id="in-go" type="submit" class="btn btn-primary w-full mt-5 min-h-[48px]">Kirish</button>' +
     '<p class="hint mt-3">Parolni unutgan boʻlsangiz, sotuvchiga murojaat qiling — u yangi parol beradi.</p></form>' +
@@ -1928,6 +1929,8 @@ function clBusy(on, title, sub) {
   if (title) $('#am-busy-t').textContent = title;
   $('#am-busy-s').textContent = sub || '';
 }
+const CL_NET = 'Serverga ulanib boʻlmadi. Internet borligini tekshiring. Agar fayl Claude ilovasi ichida ochilgan boʻlsa, u yerda internet yopiq — yuqoridagi ⋮ menyusi orqali Chrome brauzerida oching.';
+function clErr(m) { const e = $('#am-err'); if (!e) { if (m) toast(m, 'err'); return; } e.textContent = m || ''; e.classList.toggle('hidden', !m); if (m) e.scrollIntoView({ block: 'nearest' }); }
 const CL_ERR = {
   INVITE_INVALID: 'Taklif kodi notoʻgʻri, muddati oʻtgan yoki allaqachon ishlatilgan.',
   PHONE_TAKEN: 'Bu raqam bilan hisob allaqachon ochilgan — «Kirish» boʻlimidan foydalaning.',
@@ -1938,27 +1941,29 @@ const CL_ERR = {
 };
 async function clDoLogin() {
   const d9 = clPhoneDigits($('#in-phone').value), pw = $('#in-pw').value;
-  if (d9.length !== 9) { toast(CL_ERR.BAD_PHONE, 'warn'); $('#in-phone').focus(); return; }
-  if (!pw) { toast('Parolni kiriting', 'warn'); $('#in-pw').focus(); return; }
+  clErr('');
+  if (d9.length !== 9) { clErr(CL_ERR.BAD_PHONE); $('#in-phone').focus(); return; }
+  if (!pw) { clErr('Parolni kiriting.'); $('#in-pw').focus(); return; }
   clBusy(true, 'Kirilmoqda…');
   try { await clSignIn(d9, pw); }
   catch (e) {
     clBusy(false);
-    toast(e && e.net ? 'Internet yoʻq. Birinchi kirish uchun internet kerak.' : e && e.auth && e.code === 'invalid_credentials' ? 'Telefon raqam yoki parol notoʻgʻri' : CL_ERR[e && e.code] || 'Kirib boʻlmadi, qayta urinib koʻring', 'err');
+    clErr(e && e.net ? CL_NET : e && e.auth && e.code === 'invalid_credentials' ? 'Telefon raqam yoki parol notoʻgʻri. Hali hisob ochmagan boʻlsangiz — «Yangi hisob» boʻlimiga oʻting.' : CL_ERR[e && e.code] || 'Kirib boʻlmadi, qayta urinib koʻring.');
   }
 }
 async function clDoRegister() {
   const code = $('#up-code').value.trim(), name = $('#up-name').value.trim(), d9 = clPhoneDigits($('#up-phone').value), pw = $('#up-pw').value, pw2 = $('#up-pw2').value;
-  if (code.replace(/[^A-Za-z0-9]/g, '').length !== 8) { toast('Taklif kodini toʻliq kiriting (8 ta belgi)', 'warn'); $('#up-code').focus(); return; }
-  if (name.length < 2) { toast(CL_ERR.BAD_NAME, 'warn'); $('#up-name').focus(); return; }
-  if (d9.length !== 9) { toast(CL_ERR.BAD_PHONE, 'warn'); $('#up-phone').focus(); return; }
-  if (pw.length < 6) { toast(CL_ERR.BAD_PASSWORD, 'warn'); $('#up-pw').focus(); return; }
-  if (pw !== pw2) { toast('Parollar bir xil emas', 'warn'); $('#up-pw2').focus(); return; }
+  clErr('');
+  if (code.replace(/[^A-Za-z0-9]/g, '').length !== 8) { clErr('Taklif kodini toʻliq kiriting (8 ta belgi).'); $('#up-code').focus(); return; }
+  if (name.length < 2) { clErr(CL_ERR.BAD_NAME); $('#up-name').focus(); return; }
+  if (d9.length !== 9) { clErr(CL_ERR.BAD_PHONE); $('#up-phone').focus(); return; }
+  if (pw.length < 6) { clErr(CL_ERR.BAD_PASSWORD); $('#up-pw').focus(); return; }
+  if (pw !== pw2) { clErr('Parollar bir xil emas.'); $('#up-pw2').focus(); return; }
   clBusy(true, 'Hisob ochilmoqda…');
   try { await clFn('register', { code, name, phone: '998' + d9, password: pw }, false); }
-  catch (e) { clBusy(false); toast(e && e.net ? 'Internet yoʻq — hisob ochish uchun internet kerak' : CL_ERR[e && e.code] || 'Hisob ochib boʻlmadi, qayta urinib koʻring', 'err'); return; }
+  catch (e) { clBusy(false); clErr(e && e.net ? CL_NET : CL_ERR[e && e.code] || 'Hisob ochib boʻlmadi, qayta urinib koʻring.'); return; }
   try { await clSignIn(d9, pw); toast('Hisob ochildi! Endi bu raqam va parol bilan istalgan qurilmadan kirasiz.'); }
-  catch (e) { clBusy(false); toast('Hisob ochildi, lekin kirib boʻlmadi — «Kirish»dan urinib koʻring', 'warn'); }
+  catch (e) { clBusy(false); clErr('Hisob ochildi, lekin kirib boʻlmadi — «Kirish» boʻlimidan urinib koʻring.'); }
 }
 async function clSignIn(d9, pw) {
   const ses = await clAuthToken('password', { email: clEmail(d9), password: pw });
