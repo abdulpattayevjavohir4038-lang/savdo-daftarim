@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Minimarket POS</string>
+    <string name="title_activity_main">Minimarket POS</string>
+    <string name="package_name">uz.savdodaftarim.pos</string>
+    <string name="custom_url_scheme">uz.savdodaftarim.pos</string>
+</resources>

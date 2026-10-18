@@ -1,0 +1,7 @@
+{
+  "appId": "uz.savdodaftarim.pos",
+  "appName": "Minimarket POS",
+  "webDir": "www",
+  "server": { "androidScheme": "https" },
+  "android": { "allowMixedContent": false, "captureInput": true }
+}
