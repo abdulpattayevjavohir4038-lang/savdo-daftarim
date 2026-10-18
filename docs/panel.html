@@ -569,7 +569,7 @@ function renderSettings() {
     '<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3">' + PLANS.map((p) => '<div><label class="label" for="c-' + p[0] + '">' + p[1] + ' (soʻm)</label><input id="c-' + p[0] + '" type="number" inputmode="numeric" class="input num" value="' + (pr[p[0]] || '') + '"></div>').join('') + '</div>' +
     '<button id="c-save" class="btn btn-primary mt-4">' + ic('check') + 'Saqlash</button></section>' +
     (CFG.appUrl ? '<section class="card p-4 mt-4"><h2 class="sect-t">Ilova havolasi</h2><div class="mt-2 flex gap-2"><input readonly class="input" value="' + esc(CFG.appUrl) + '"><button id="c-copy" class="btn btn-ghost">' + ic('copy', 'w-4 h-4') + '</button></div><p class="hint">Mijozlar shu havola orqali kiradi (telefon, kompyuter, planshet).</p></section>' : '') +
-    '<section class="card p-4 mt-4"><h2 class="sect-t">Hisob</h2><p class="text-sm text-muted mt-1">Kirgan: <b class="text-ink num">' + esc(phoneFmt(AUTH && AUTH.phone)) + '</b></p><button id="c-out" class="btn btn-dghost mt-3">' + ic('logout', 'w-4 h-4') + 'Paneldan chiqish</button></section>';
+    '<section class="card p-4 mt-4"><h2 class="sect-t">Hisob</h2><p class="text-sm text-muted mt-1">Kirgan: <b class="text-ink num">' + esc(phoneFmt(AUTH && AUTH.phone)) + '</b></p><div class="flex flex-wrap gap-2 mt-3"><button id="c-pw" class="btn btn-ghost">' + ic('key', 'w-4 h-4') + 'Parolni almashtirish</button><button id="c-out" class="btn btn-dghost">' + ic('logout', 'w-4 h-4') + 'Paneldan chiqish</button></div></section>';
   $('#c-save').onclick = async () => {
     const v = { seller: { name: $('#c-n').value.trim(), phone: $('#c-p').value.trim(), tg: $('#c-t').value.trim(), card: $('#c-card').value.replace(/\D/g, '').slice(0, 19), cardName: $('#c-cn').value.trim().toUpperCase() }, prices: {} };
     PLANS.forEach((p) => { const x = Math.round(num($('#c-' + p[0]).value)); if (x > 0) v.prices[p[0]] = x; });
@@ -578,6 +578,31 @@ function renderSettings() {
   if ($('#c-copy')) $('#c-copy').onclick = () => copyText(CFG.appUrl, 'Havola nusxalandi');
   $('#c-card').addEventListener('input', (e) => { const el = e.target, end = el.selectionStart === el.value.length; el.value = fmtCard(el.value); if (end) el.selectionStart = el.selectionEnd = el.value.length; });
   $('#c-out').onclick = () => { AUTH = null; saveAuth(); showLogin(); };
+  $('#c-pw').onclick = () => openModal('Parolni almashtirish',
+    '<p class="text-sm text-muted">Yangi parol bilan panelga ham, ilovadagi doʻkoningizga ham kirasiz. Boshqa qurilmalar hisobdan chiqadi.</p>' +
+    '<label class="label mt-3" for="cp-o">Hozirgi parol</label><input id="cp-o" type="password" class="input" autocomplete="current-password">' +
+    '<label class="label mt-3" for="cp-n">Yangi parol (kamida 6 belgi)</label><input id="cp-n" type="password" class="input" autocomplete="new-password">' +
+    '<label class="label mt-3" for="cp-n2">Yangi parolni takrorlang</label><input id="cp-n2" type="password" class="input" autocomplete="new-password">' +
+    '<div id="cp-err" class="hidden mt-3 rounded-xl border border-neg/40 bg-neg-soft text-neg text-sm px-3 py-2.5"></div>',
+    '<button data-close class="btn btn-ghost">Bekor qilish</button><button id="cp-ok" class="btn btn-primary">' + ic('check') + 'Almashtirish</button>', () => {
+      const err = (m) => { const e = $('#cp-err'); e.textContent = m; e.classList.toggle('hidden', !m); };
+      $('#cp-ok').onclick = async () => {
+        const o = $('#cp-o').value, n = $('#cp-n').value;
+        if (n.length < 6) { err('Yangi parol kamida 6 belgidan iborat boʻlsin.'); return; }
+        if (n !== $('#cp-n2').value) { err('Yangi parollar bir xil emas.'); return; }
+        $('#cp-ok').disabled = true; err('');
+        try {
+          const r = await http('/functions/v1/account', { action: 'password', old: o, password: n }, await token(false));
+          if (!r.ok) throw { code: (r.data && r.data.error) || 'HTTP ' + r.status };
+          const s2 = await http('/auth/v1/token?grant_type=password', { email: '998' + AUTH.phone + '@' + DOMAIN, password: n });
+          if (s2.ok) take(s2.data);
+          closeModal(); toast('Parol almashtirildi');
+        } catch (er) {
+          $('#cp-ok').disabled = false;
+          err(er && er.net ? NET_MSG : er && er.code === 'WRONG_PASSWORD' ? 'Hozirgi parol notoʻgʻri.' : 'Xato: ' + ((er && er.code) || 'nomaʼlum'));
+        }
+      };
+    });
 }
 
 /* ---------- kirish ---------- */
