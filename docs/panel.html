@@ -624,7 +624,8 @@ function showLogin(msg) {
   const why = (er) => er && er.net ? NET_MSG : er && er.code === 'BAD_LOGIN' ? 'Telefon raqam yoki parol notoʻgʻri. Hali roʻyxatdan oʻtmagan boʻlsangiz — «Birinchi marta» boʻlimiga oʻting.' :
     er && er.code === 'NOT_SELLER' ? 'Bu hisob doʻkon hisobi, sotuvchi hisobi emas. Sotuvchi kodi bilan ochilgan raqamingiz bilan kiring.' :
     er && er.code === 'INVITE_INVALID' ? 'Sotuvchi kodi notoʻgʻri, muddati oʻtgan yoki allaqachon ishlatilgan.' :
-    er && er.code === 'PHONE_TAKEN' ? 'Bu raqam bilan hisob allaqachon bor — «Kirish» boʻlimidan foydalaning.' : 'Xato: ' + ((er && er.code) || 'nomaʼlum');
+    er && er.code === 'PHONE_TAKEN' ? 'Bu raqam bilan hisob allaqachon bor — «Kirish» boʻlimidan foydalaning.' :
+    er && er.code === 'PHONE_TAKEN_PW' ? 'Bu raqam bilan hisob allaqachon ochilgan. Sotuvchi kodini shu hisobga qoʻshish uchun parol maydoniga oʻsha hisobning parolini yozing.' : 'Xato: ' + ((er && er.code) || 'nomaʼlum');
   $('#l-f').onsubmit = async (e) => {
     e.preventDefault(); err('');
     const d = pDigits($('#l-p').value), pw = $('#l-w').value;
