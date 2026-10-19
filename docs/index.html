@@ -939,7 +939,8 @@ function openModal(title, body, footer, opts = {}) {
   modalOnClose = opts.onClose || null;
   modalOpenedAt = Date.now();
   const first = $('#modal-root [autofocus]');
-  if (first) setTimeout(() => { if (first.isConnected) first.focus(); }, 30);
+  // darhol fokus (skaner oynani ochishi bilan yoza boshlasa ham harflar yo'qolmaydi); keyin faqat oyna ichida fokus bo'lmasa qayta urinadi
+  if (first) { try { first.focus({ preventScroll: true }); } catch (e) { /* ignore */ } setTimeout(() => { if (first.isConnected && !$('#modal-root').contains(document.activeElement)) first.focus(); }, 30); }
   if (opts.onMount) opts.onMount($('#modal-root'));
 }
 function closeModal(replacing) {
