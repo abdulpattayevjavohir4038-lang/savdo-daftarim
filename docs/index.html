@@ -207,6 +207,13 @@
   .tile:hover { border-color: rgb(var(--primary) / .6); box-shadow: 0 4px 14px -6px rgb(var(--shadow) / .25); }
   .tile:active { transform: scale(.98); }
   .tile.in-cart { border-color: rgb(var(--primary)); box-shadow: 0 0 0 1px rgb(var(--primary)); }
+  .tile.fav { background: linear-gradient(180deg, rgb(var(--warn-soft) / .55), rgb(var(--surface)) 70%); }
+  .tile.fav::after { content: '★'; position: absolute; right: 10px; bottom: 8px; font-size: 12px; color: rgb(var(--warn)); }
+  .ctab { position: relative; display: flex; align-items: center; justify-content: center; gap: 4px; min-height: 40px; border-radius: 10px; border: 1px solid rgb(var(--line)); background: rgb(var(--subtle)); color: rgb(var(--muted)); font-size: .875rem; }
+  .ctab:hover { color: rgb(var(--ink)); }
+  .ctab.on { background: rgb(var(--primary)); border-color: rgb(var(--primary)); color: rgb(var(--on-primary)); }
+  .ctab.busy:not(.on) { border-color: rgb(var(--warn) / .6); color: rgb(var(--ink)); }
+  .ctab .count { position: absolute; top: -6px; right: -4px; background: rgb(var(--warn)); color: rgb(var(--on-warn)); }
   .stepper { display: inline-flex; align-items: center; border: 1px solid rgb(var(--line-strong)); border-radius: 12px; overflow: hidden; background: rgb(var(--surface)); }
   .stepper > button { width: 38px; height: 38px; font-size: 1.125rem; color: rgb(var(--ink)); background: rgb(var(--subtle)); }
   .stepper > button:hover { background: rgb(var(--line)); }
@@ -239,7 +246,7 @@
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 </style>
 <style id="tw-css">/* Tailwind CSS 3.4.17 (oldindan yig'ilgan — internetsiz ishlaydi) */
-*,:after,:before{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgba(59,130,246,.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgba(59,130,246,.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/*! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com*/*,:after,:before{box-sizing:border-box;border:0 solid #e5e7eb}:after,:before{--tw-content:""}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;-o-tab-size:4;tab-size:4;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0}fieldset,legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::-moz-placeholder,textarea::-moz-placeholder{opacity:1;color:#9ca3af}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0}.pointer-events-none{pointer-events:none}.pointer-events-auto{pointer-events:auto}.visible{visibility:visible}.fixed{position:fixed}.absolute{position:absolute}.relative{position:relative}.sticky{position:sticky}.inset-0{inset:0}.bottom-6{bottom:1.5rem}.bottom-\[84px\]{bottom:84px}.left-0{left:0}.left-3{left:.75rem}.right-0{right:0}.right-1{right:.25rem}.right-1\.5{right:.375rem}.right-3{right:.75rem}.top-0{top:0}.top-1\/2{top:50%}.top-full{top:100%}.z-10{z-index:10}.z-30{z-index:30}.z-50{z-index:50}.z-\[60\]{z-index:60}.z-\[70\]{z-index:70}.col-span-full{grid-column:1/-1}.mx-auto{margin-left:auto;margin-right:auto}.-mb-1{margin-bottom:-.25rem}.-mr-1{margin-right:-.25rem}.-mr-2{margin-right:-.5rem}.mb-0\.5{margin-bottom:.125rem}.mb-1{margin-bottom:.25rem}.mb-2{margin-bottom:.5rem}.mb-3{margin-bottom:.75rem}.mb-4{margin-bottom:1rem}.mb-6{margin-bottom:1.5rem}.ml-auto{margin-left:auto}.mr-1\.5{margin-right:.375rem}.mt-0\.5{margin-top:.125rem}.mt-1{margin-top:.25rem}.mt-1\.5{margin-top:.375rem}.mt-10{margin-top:2.5rem}.mt-2{margin-top:.5rem}.mt-3{margin-top:.75rem}.mt-4{margin-top:1rem}.mt-5{margin-top:1.25rem}.mt-auto{margin-top:auto}.block{display:block}.flex{display:flex}.inline-flex{display:inline-flex}.table{display:table}.grid{display:grid}.hidden{display:none}.h-1\.5{height:.375rem}.h-10{height:2.5rem}.h-11{height:2.75rem}.h-12{height:3rem}.h-16{height:4rem}.h-3\.5{height:.875rem}.h-4{height:1rem}.h-5{height:1.25rem}.h-6{height:1.5rem}.h-7{height:1.75rem}.h-8{height:2rem}.h-9{height:2.25rem}.h-\[18px\]{height:18px}.h-\[22px\]{height:22px}.h-fit{height:-moz-fit-content;height:fit-content}.h-full{height:100%}.max-h-60{max-height:15rem}.max-h-\[92\%\]{max-height:92%}.max-h-\[92vh\]{max-height:92vh}.min-h-\[120px\]{min-height:120px}.min-h-\[32px\]{min-height:32px}.min-h-\[38px\]{min-height:38px}.min-h-\[48px\]{min-height:48px}.min-h-\[50px\]{min-height:50px}.min-h-\[52px\]{min-height:52px}.min-h-\[54px\]{min-height:54px}.min-h-\[80vh\]{min-height:80vh}.min-h-full{min-height:100%}.w-10{width:2.5rem}.w-11{width:2.75rem}.w-12{width:3rem}.w-16{width:4rem}.w-20{width:5rem}.w-24{width:6rem}.w-28{width:7rem}.w-3\.5{width:.875rem}.w-4{width:1rem}.w-5{width:1.25rem}.w-6{width:1.5rem}.w-64{width:16rem}.w-7{width:1.75rem}.w-8{width:2rem}.w-9{width:2.25rem}.w-\[18px\]{width:18px}.w-\[22px\]{width:22px}.w-auto{width:auto}.w-full{width:100%}.min-w-0{min-width:0}.min-w-\[200px\]{min-width:200px}.min-w-\[440px\]{min-width:440px}.min-w-\[560px\]{min-width:560px}.min-w-\[640px\]{min-width:640px}.min-w-\[760px\]{min-width:760px}.min-w-\[880px\]{min-width:880px}.min-w-\[940px\]{min-width:940px}.max-w-5xl{max-width:64rem}.max-w-\[1440px\]{max-width:1440px}.max-w-\[260px\]{max-width:260px}.max-w-\[280px\]{max-width:280px}.max-w-sm{max-width:24rem}.max-w-xs{max-width:20rem}.flex-1{flex:1 1 0%}.flex-shrink{flex-shrink:1}.shrink-0{flex-shrink:0}.border-collapse{border-collapse:collapse}.-translate-y-1\/2{--tw-translate-y:-50%}.-translate-y-1\/2,.transform{transform:translate(var(--tw-translate-x),var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}@keyframes spin{to{transform:rotate(1turn)}}.animate-spin{animation:spin 1s linear infinite}.cursor-pointer{cursor:pointer}.select-all{-webkit-user-select:all;-moz-user-select:all;user-select:all}.resize{resize:both}.scroll-mt-3{scroll-margin-top:.75rem}.list-decimal{list-style-type:decimal}.grid-cols-1{grid-template-columns:repeat(1,minmax(0,1fr))}.grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}.grid-cols-5{grid-template-columns:repeat(5,minmax(0,1fr))}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.place-items-center{place-items:center}.items-start{align-items:flex-start}.items-end{align-items:flex-end}.items-center{align-items:center}.items-baseline{align-items:baseline}.items-stretch{align-items:stretch}.justify-start{justify-content:flex-start}.justify-end{justify-content:flex-end}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-1{gap:.25rem}.gap-1\.5{gap:.375rem}.gap-2{gap:.5rem}.gap-2\.5{gap:.625rem}.gap-3{gap:.75rem}.gap-4{gap:1rem}.gap-x-4{-moz-column-gap:1rem;column-gap:1rem}.gap-y-1{row-gap:.25rem}.space-y-1>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(.25rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.25rem*var(--tw-space-y-reverse))}.space-y-1\.5>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(.375rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.375rem*var(--tw-space-y-reverse))}.space-y-2>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(.5rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.5rem*var(--tw-space-y-reverse))}.space-y-3>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(.75rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.75rem*var(--tw-space-y-reverse))}.space-y-3\.5>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(.875rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.875rem*var(--tw-space-y-reverse))}.divide-y>:not([hidden])~:not([hidden]){--tw-divide-y-reverse:0;border-top-width:calc(1px*(1 - var(--tw-divide-y-reverse)));border-bottom-width:calc(1px*var(--tw-divide-y-reverse))}.divide-line>:not([hidden])~:not([hidden]){--tw-divide-opacity:1;border-color:rgb(var(--line)/var(--tw-divide-opacity,1))}.self-start{align-self:flex-start}.overflow-hidden{overflow:hidden}.overflow-x-auto{overflow-x:auto}.overflow-y-auto{overflow-y:auto}.truncate{overflow:hidden;text-overflow:ellipsis}.truncate,.whitespace-nowrap{white-space:nowrap}.break-words{overflow-wrap:break-word}.rounded-2xl{border-radius:1rem}.rounded-full{border-radius:9999px}.rounded-xl{border-radius:.75rem}.rounded-t-3xl{border-top-left-radius:1.5rem;border-top-right-radius:1.5rem}.border{border-width:1px}.border-b{border-bottom-width:1px}.border-r{border-right-width:1px}.border-t{border-top-width:1px}.border-faint{--tw-border-opacity:1;border-color:rgb(var(--faint)/var(--tw-border-opacity,1))}.border-ink{--tw-border-opacity:1;border-color:rgb(var(--ink)/var(--tw-border-opacity,1))}.border-line{--tw-border-opacity:1;border-color:rgb(var(--line)/var(--tw-border-opacity,1))}.border-line-strong{--tw-border-opacity:1;border-color:rgb(var(--line-strong)/var(--tw-border-opacity,1))}.border-muted{--tw-border-opacity:1;border-color:rgb(var(--muted)/var(--tw-border-opacity,1))}.border-neg{--tw-border-opacity:1;border-color:rgb(var(--neg)/var(--tw-border-opacity,1))}.border-neg-on{--tw-border-opacity:1;border-color:rgb(var(--on-neg)/var(--tw-border-opacity,1))}.border-neg-soft{--tw-border-opacity:1;border-color:rgb(var(--neg-soft)/var(--tw-border-opacity,1))}.border-neg\/40{border-color:rgb(var(--neg)/.4)}.border-neg\/50{border-color:rgb(var(--neg)/.5)}.border-pos{--tw-border-opacity:1;border-color:rgb(var(--pos)/var(--tw-border-opacity,1))}.border-pos-on{--tw-border-opacity:1;border-color:rgb(var(--on-pos)/var(--tw-border-opacity,1))}.border-pos-soft{--tw-border-opacity:1;border-color:rgb(var(--pos-soft)/var(--tw-border-opacity,1))}.border-pos\/30{border-color:rgb(var(--pos)/.3)}.border-primary{--tw-border-opacity:1;border-color:rgb(var(--primary)/var(--tw-border-opacity,1))}.border-primary-on{--tw-border-opacity:1;border-color:rgb(var(--on-primary)/var(--tw-border-opacity,1))}.border-primary-soft{--tw-border-opacity:1;border-color:rgb(var(--primary-soft)/var(--tw-border-opacity,1))}.border-primary\/30{border-color:rgb(var(--primary)/.3)}.border-primary\/40{border-color:rgb(var(--primary)/.4)}.border-warn{--tw-border-opacity:1;border-color:rgb(var(--warn)/var(--tw-border-opacity,1))}.border-warn-on{--tw-border-opacity:1;border-color:rgb(var(--on-warn)/var(--tw-border-opacity,1))}.border-warn-soft{--tw-border-opacity:1;border-color:rgb(var(--warn-soft)/var(--tw-border-opacity,1))}.border-warn\/30{border-color:rgb(var(--warn)/.3)}.border-warn\/40{border-color:rgb(var(--warn)/.4)}.bg-bg{--tw-bg-opacity:1;background-color:rgb(var(--bg)/var(--tw-bg-opacity,1))}.bg-black\/50{background-color:rgba(0,0,0,.5)}.bg-faint{--tw-bg-opacity:1;background-color:rgb(var(--faint)/var(--tw-bg-opacity,1))}.bg-ink{--tw-bg-opacity:1;background-color:rgb(var(--ink)/var(--tw-bg-opacity,1))}.bg-line-strong{--tw-bg-opacity:1;background-color:rgb(var(--line-strong)/var(--tw-bg-opacity,1))}.bg-muted{--tw-bg-opacity:1;background-color:rgb(var(--muted)/var(--tw-bg-opacity,1))}.bg-neg{--tw-bg-opacity:1;background-color:rgb(var(--neg)/var(--tw-bg-opacity,1))}.bg-neg-on{--tw-bg-opacity:1;background-color:rgb(var(--on-neg)/var(--tw-bg-opacity,1))}.bg-neg-soft{--tw-bg-opacity:1;background-color:rgb(var(--neg-soft)/var(--tw-bg-opacity,1))}.bg-pos{--tw-bg-opacity:1;background-color:rgb(var(--pos)/var(--tw-bg-opacity,1))}.bg-pos-on{--tw-bg-opacity:1;background-color:rgb(var(--on-pos)/var(--tw-bg-opacity,1))}.bg-pos-soft{--tw-bg-opacity:1;background-color:rgb(var(--pos-soft)/var(--tw-bg-opacity,1))}.bg-primary{--tw-bg-opacity:1;background-color:rgb(var(--primary)/var(--tw-bg-opacity,1))}.bg-primary-on{--tw-bg-opacity:1;background-color:rgb(var(--on-primary)/var(--tw-bg-opacity,1))}.bg-primary-soft{--tw-bg-opacity:1;background-color:rgb(var(--primary-soft)/var(--tw-bg-opacity,1))}.bg-subtle{--tw-bg-opacity:1;background-color:rgb(var(--subtle)/var(--tw-bg-opacity,1))}.bg-surface{--tw-bg-opacity:1;background-color:rgb(var(--surface)/var(--tw-bg-opacity,1))}.bg-surface\/95{background-color:rgb(var(--surface)/.95)}.bg-transparent{background-color:transparent}.bg-warn{--tw-bg-opacity:1;background-color:rgb(var(--warn)/var(--tw-bg-opacity,1))}.bg-warn-on{--tw-bg-opacity:1;background-color:rgb(var(--on-warn)/var(--tw-bg-opacity,1))}.bg-warn-soft{--tw-bg-opacity:1;background-color:rgb(var(--warn-soft)/var(--tw-bg-opacity,1))}.p-2\.5{padding:.625rem}.p-3{padding:.75rem}.p-4{padding:1rem}.p-5{padding:1.25rem}.p-6{padding:1.5rem}.p-8{padding:2rem}.px-1{padding-left:.25rem;padding-right:.25rem}.px-2{padding-left:.5rem;padding-right:.5rem}.px-2\.5{padding-left:.625rem;padding-right:.625rem}.px-3{padding-left:.75rem;padding-right:.75rem}.px-4{padding-left:1rem;padding-right:1rem}.px-5{padding-left:1.25rem;padding-right:1.25rem}.py-1\.5{padding-top:.375rem;padding-bottom:.375rem}.py-10{padding-top:2.5rem;padding-bottom:2.5rem}.py-16{padding-top:4rem;padding-bottom:4rem}.py-2{padding-top:.5rem;padding-bottom:.5rem}.py-2\.5{padding-top:.625rem;padding-bottom:.625rem}.py-3{padding-top:.75rem;padding-bottom:.75rem}.py-4{padding-top:1rem;padding-bottom:1rem}.py-8{padding-top:2rem;padding-bottom:2rem}.pb-1{padding-bottom:.25rem}.pb-16{padding-bottom:4rem}.pb-3{padding-bottom:.75rem}.pb-4{padding-bottom:1rem}.pl-10{padding-left:2.5rem}.pl-4{padding-left:1rem}.pl-5{padding-left:1.25rem}.pl-9{padding-left:2.25rem}.pr-11{padding-right:2.75rem}.pr-14{padding-right:3.5rem}.pr-9{padding-right:2.25rem}.pt-1\.5{padding-top:.375rem}.pt-2{padding-top:.5rem}.pt-3{padding-top:.75rem}.pt-4{padding-top:1rem}.pt-5{padding-top:1.25rem}.text-left{text-align:left}.text-center{text-align:center}.text-right{text-align:right}.font-mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,monospace}.text-2xl{font-size:1.5rem;line-height:2rem}.text-3xl{font-size:1.875rem;line-height:2.25rem}.text-\[11px\]{font-size:11px}.text-\[17px\]{font-size:17px}.text-base{font-size:1rem;line-height:1.5rem}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:.75rem;line-height:1rem}.font-bold{font-weight:700}.font-extrabold{font-weight:800}.font-medium{font-weight:500}.font-normal{font-weight:400}.font-semibold{font-weight:600}.uppercase{text-transform:uppercase}.italic{font-style:italic}.leading-relaxed{line-height:1.625}.leading-snug{line-height:1.375}.leading-tight{line-height:1.25}.tracking-\[\.2em\]{letter-spacing:.2em}.tracking-tight{letter-spacing:-.025em}.tracking-wide{letter-spacing:.025em}.tracking-wider{letter-spacing:.05em}.tracking-widest{letter-spacing:.1em}.text-faint{--tw-text-opacity:1;color:rgb(var(--faint)/var(--tw-text-opacity,1))}.text-ink{--tw-text-opacity:1;color:rgb(var(--ink)/var(--tw-text-opacity,1))}.text-muted{--tw-text-opacity:1;color:rgb(var(--muted)/var(--tw-text-opacity,1))}.text-neg{--tw-text-opacity:1;color:rgb(var(--neg)/var(--tw-text-opacity,1))}.text-neg-on{--tw-text-opacity:1;color:rgb(var(--on-neg)/var(--tw-text-opacity,1))}.text-neg-soft{--tw-text-opacity:1;color:rgb(var(--neg-soft)/var(--tw-text-opacity,1))}.text-pos{--tw-text-opacity:1;color:rgb(var(--pos)/var(--tw-text-opacity,1))}.text-pos-on{--tw-text-opacity:1;color:rgb(var(--on-pos)/var(--tw-text-opacity,1))}.text-pos-soft{--tw-text-opacity:1;color:rgb(var(--pos-soft)/var(--tw-text-opacity,1))}.text-primary{--tw-text-opacity:1;color:rgb(var(--primary)/var(--tw-text-opacity,1))}.text-primary-on{--tw-text-opacity:1;color:rgb(var(--on-primary)/var(--tw-text-opacity,1))}.text-primary-soft{--tw-text-opacity:1;color:rgb(var(--primary-soft)/var(--tw-text-opacity,1))}.text-surface{--tw-text-opacity:1;color:rgb(var(--surface)/var(--tw-text-opacity,1))}.text-warn{--tw-text-opacity:1;color:rgb(var(--warn)/var(--tw-text-opacity,1))}.text-warn-on{--tw-text-opacity:1;color:rgb(var(--on-warn)/var(--tw-text-opacity,1))}.text-warn-soft{--tw-text-opacity:1;color:rgb(var(--warn-soft)/var(--tw-text-opacity,1))}.antialiased{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}.accent-current{accent-color:currentColor}.opacity-0{opacity:0}.opacity-70{opacity:.7}.opacity-80{opacity:.8}.opacity-90{opacity:.9}.shadow-card{--tw-shadow:0 1px 2px rgb(var(--shadow)/0.05),0 1px 3px rgb(var(--shadow)/0.04);--tw-shadow-colored:0 1px 2px var(--tw-shadow-color),0 1px 3px var(--tw-shadow-color)}.shadow-card,.shadow-none{box-shadow:var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),var(--tw-shadow)}.shadow-none{--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000}.shadow-pop{--tw-shadow:0 18px 48px -12px rgb(var(--shadow)/0.35);--tw-shadow-colored:0 18px 48px -12px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),var(--tw-shadow)}.outline-none{outline:2px solid transparent;outline-offset:2px}.outline{outline-style:solid}.ring{--tw-ring-offset-shadow:var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow:var(--tw-ring-inset) 0 0 0 calc(3px + var(--tw-ring-offset-width)) var(--tw-ring-color)}.ring,.ring-2{box-shadow:var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow,0 0 #0000)}.ring-2{--tw-ring-offset-shadow:var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow:var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color)}.ring-primary{--tw-ring-opacity:1;--tw-ring-color:rgb(var(--primary)/var(--tw-ring-opacity,1))}.blur{--tw-blur:blur(8px)}.blur,.filter{filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.backdrop-blur{--tw-backdrop-blur:blur(8px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.transition{transition-property:color,background-color,border-color,text-decoration-color,fill,stroke,opacity,box-shadow,transform,filter,-webkit-backdrop-filter;transition-property:color,background-color,border-color,text-decoration-color,fill,stroke,opacity,box-shadow,transform,filter,backdrop-filter;transition-property:color,background-color,border-color,text-decoration-color,fill,stroke,opacity,box-shadow,transform,filter,backdrop-filter,-webkit-backdrop-filter;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}.transition-colors{transition-property:color,background-color,border-color,text-decoration-color,fill,stroke;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}.transition-transform{transition-property:transform;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}.ease-in-out{transition-timing-function:cubic-bezier(.4,0,.2,1)}.focus-within\:ring-2:focus-within{--tw-ring-offset-shadow:var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow:var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);box-shadow:var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow,0 0 #0000)}.focus-within\:ring-primary\/40:focus-within{--tw-ring-color:rgb(var(--primary)/0.4)}.hover\:border-primary\/60:hover{border-color:rgb(var(--primary)/.6)}.hover\:bg-subtle:hover{--tw-bg-opacity:1;background-color:rgb(var(--subtle)/var(--tw-bg-opacity,1))}.hover\:text-primary:hover{--tw-text-opacity:1;color:rgb(var(--primary)/var(--tw-text-opacity,1))}.hover\:underline:hover{text-decoration-line:underline}.focus\:outline-none:focus{outline:2px solid transparent;outline-offset:2px}.group:hover .group-hover\:text-primary{--tw-text-opacity:1;color:rgb(var(--primary)/var(--tw-text-opacity,1))}@media (min-width:640px) and (min-height:521px),(min-width:640px) and (pointer:fine){.sm\:static{position:static}.sm\:col-span-2{grid-column:span 2/span 2}.sm\:inline{display:inline}.sm\:hidden{display:none}.sm\:h-auto{height:auto}.sm\:w-\[9\.5rem\]{width:9.5rem}.sm\:w-auto{width:auto}.sm\:max-w-2xl{max-width:42rem}.sm\:max-w-lg{max-width:32rem}.sm\:flex-none{flex:none}.sm\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.sm\:grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.sm\:grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}.sm\:grid-cols-\[1fr_auto\]{grid-template-columns:1fr auto}.sm\:grid-cols-\[minmax\(0\2c 1fr\)_200px\]{grid-template-columns:minmax(0,1fr) 200px}.sm\:items-center{align-items:center}.sm\:rounded-2xl{border-radius:1rem}.sm\:p-4{padding:1rem}.sm\:pt-4{padding-top:1rem}.sm\:text-lg{font-size:1.125rem;line-height:1.75rem}.sm\:text-sm{font-size:.875rem;line-height:1.25rem}.sm\:opacity-100{opacity:1}}@media (min-width:768px) and (min-height:521px),(min-width:768px) and (pointer:fine){.md\:ml-auto{margin-left:auto}.md\:grid-cols-\[minmax\(0\2c 1fr\)_200px_220px\]{grid-template-columns:minmax(0,1fr) 200px 220px}.md\:grid-cols-\[minmax\(0\2c 1fr\)_auto\]{grid-template-columns:minmax(0,1fr) auto}.md\:flex-row{flex-direction:row}.md\:items-center{align-items:center}}@media (min-width:1024px) and (min-height:521px),(min-width:1024px) and (pointer:fine){.lg\:sticky{position:sticky}.lg\:bottom-6{bottom:1.5rem}.lg\:left-auto{left:auto}.lg\:right-6{right:1.5rem}.lg\:top-0{top:0}.lg\:col-span-2{grid-column:span 2/span 2}.lg\:block{display:block}.lg\:inline{display:inline}.lg\:flex{display:flex}.lg\:hidden{display:none}.lg\:w-auto{width:auto}.lg\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.lg\:grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}.lg\:grid-cols-\[360px_minmax\(0\2c 1fr\)\]{grid-template-columns:360px minmax(0,1fr)}.lg\:grid-cols-\[auto_minmax\(0\2c 1fr\)_auto\]{grid-template-columns:auto minmax(0,1fr) auto}.lg\:grid-cols-\[minmax\(0\2c 1fr\)_auto_230px\]{grid-template-columns:minmax(0,1fr) auto 230px}.lg\:items-end{align-items:flex-end}.lg\:items-center{align-items:center}.lg\:px-6{padding-left:1.5rem;padding-right:1.5rem}.lg\:py-6{padding-top:1.5rem;padding-bottom:1.5rem}}@media (min-width:1280px) and (min-height:521px),(min-width:1280px) and (pointer:fine){.xl\:sticky{position:sticky}.xl\:top-0{top:0}.xl\:hidden{display:none}.xl\:max-h-\[calc\(100vh-1\.5rem\)\]{max-height:calc(100vh - 1.5rem)}.xl\:min-h-\[96px\]{min-height:96px}.xl\:flex-1{flex:1 1 0%}.xl\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.xl\:grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.xl\:grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}.xl\:grid-cols-\[minmax\(0\2c 1\.6fr\)_minmax\(0\2c 1fr\)\]{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)}.xl\:grid-cols-\[minmax\(0\2c 1fr\)_400px\]{grid-template-columns:minmax(0,1fr) 400px}.xl\:grid-cols-\[minmax\(0\2c 1fr\)_minmax\(0\2c 1fr\)\]{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.xl\:overflow-y-auto{overflow-y:auto}}@media (min-width:1536px) and (min-height:521px),(min-width:1536px) and (pointer:fine){.\32xl\:ml-auto{margin-left:auto}.\32xl\:grid-cols-5{grid-template-columns:repeat(5,minmax(0,1fr))}.\32xl\:grid-cols-\[minmax\(0\2c 1fr\)_440px\]{grid-template-columns:minmax(0,1fr) 440px}.\32xl\:flex-row{flex-direction:row}.\32xl\:items-center{align-items:center}}.\[\&\>\*\]\:flex-1>*{flex:1 1 0%}@media (min-width:640px) and (min-height:521px),(min-width:640px) and (pointer:fine){.sm\:\[\&\>\*\]\:flex-none>*{flex:none}}@media (min-width:1024px) and (min-height:521px),(min-width:1024px) and (pointer:fine){.lg\:\[\&\>\*\]\:flex-none>*{flex:none}}</style>
+*,:after,:before{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgba(59,130,246,.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgba(59,130,246,.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/*! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com*/*,:after,:before{box-sizing:border-box;border:0 solid #e5e7eb}:after,:before{--tw-content:""}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;-o-tab-size:4;tab-size:4;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0}fieldset,legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::-moz-placeholder,textarea::-moz-placeholder{opacity:1;color:#9ca3af}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border-width:0}.pointer-events-none{pointer-events:none}.pointer-events-auto{pointer-events:auto}.visible{visibility:visible}.static{position:static}.fixed{position:fixed}.absolute{position:absolute}.relative{position:relative}.sticky{position:sticky}.inset-0{inset:0}.inset-x-12{left:3rem;right:3rem}.inset-x-8{left:2rem;right:2rem}.bottom-6{bottom:1.5rem}.bottom-\[84px\]{bottom:84px}.left-0{left:0}.left-3{left:.75rem}.right-0{right:0}.right-1{right:.25rem}.right-1\.5{right:.375rem}.right-12{right:3rem}.right-3{right:.75rem}.top-0{top:0}.top-1\/2{top:50%}.top-full{top:100%}.z-10{z-index:10}.z-30{z-index:30}.z-50{z-index:50}.z-\[60\]{z-index:60}.z-\[70\]{z-index:70}.col-span-2{grid-column:span 2/span 2}.col-span-full{grid-column:1/-1}.mx-auto{margin-left:auto;margin-right:auto}.-mb-1{margin-bottom:-.25rem}.-mr-1{margin-right:-.25rem}.-mr-2{margin-right:-.5rem}.mb-0\.5{margin-bottom:.125rem}.mb-1{margin-bottom:.25rem}.mb-2{margin-bottom:.5rem}.mb-3{margin-bottom:.75rem}.mb-4{margin-bottom:1rem}.mb-6{margin-bottom:1.5rem}.ml-auto{margin-left:auto}.mr-1\.5{margin-right:.375rem}.mt-0\.5{margin-top:.125rem}.mt-1{margin-top:.25rem}.mt-1\.5{margin-top:.375rem}.mt-10{margin-top:2.5rem}.mt-2{margin-top:.5rem}.mt-3{margin-top:.75rem}.mt-4{margin-top:1rem}.mt-5{margin-top:1.25rem}.mt-auto{margin-top:auto}.block{display:block}.flex{display:flex}.inline-flex{display:inline-flex}.table{display:table}.grid{display:grid}.hidden{display:none}.aspect-\[4\/3\]{aspect-ratio:4/3}.h-0\.5{height:.125rem}.h-1\.5{height:.375rem}.h-10{height:2.5rem}.h-11{height:2.75rem}.h-12{height:3rem}.h-16{height:4rem}.h-24{height:6rem}.h-3\.5{height:.875rem}.h-4{height:1rem}.h-5{height:1.25rem}.h-6{height:1.5rem}.h-7{height:1.75rem}.h-8{height:2rem}.h-9{height:2.25rem}.h-\[18px\]{height:18px}.h-\[22px\]{height:22px}.h-fit{height:-moz-fit-content;height:fit-content}.h-full{height:100%}.max-h-60{max-height:15rem}.max-h-\[92\%\]{max-height:92%}.max-h-\[92vh\]{max-height:92vh}.min-h-\[120px\]{min-height:120px}.min-h-\[32px\]{min-height:32px}.min-h-\[38px\]{min-height:38px}.min-h-\[46px\]{min-height:46px}.min-h-\[48px\]{min-height:48px}.min-h-\[50px\]{min-height:50px}.min-h-\[52px\]{min-height:52px}.min-h-\[54px\]{min-height:54px}.min-h-\[80vh\]{min-height:80vh}.min-h-full{min-height:100%}.w-10{width:2.5rem}.w-11{width:2.75rem}.w-12{width:3rem}.w-16{width:4rem}.w-20{width:5rem}.w-24{width:6rem}.w-28{width:7rem}.w-3\.5{width:.875rem}.w-4{width:1rem}.w-5{width:1.25rem}.w-6{width:1.5rem}.w-64{width:16rem}.w-7{width:1.75rem}.w-8{width:2rem}.w-9{width:2.25rem}.w-\[18px\]{width:18px}.w-\[22px\]{width:22px}.w-auto{width:auto}.w-full{width:100%}.min-w-0{min-width:0}.min-w-\[200px\]{min-width:200px}.min-w-\[440px\]{min-width:440px}.min-w-\[560px\]{min-width:560px}.min-w-\[640px\]{min-width:640px}.min-w-\[760px\]{min-width:760px}.min-w-\[880px\]{min-width:880px}.min-w-\[940px\]{min-width:940px}.max-w-5xl{max-width:64rem}.max-w-\[1440px\]{max-width:1440px}.max-w-\[260px\]{max-width:260px}.max-w-\[280px\]{max-width:280px}.max-w-sm{max-width:24rem}.max-w-xs{max-width:20rem}.flex-1{flex:1 1 0%}.flex-shrink{flex-shrink:1}.shrink-0{flex-shrink:0}.border-collapse{border-collapse:collapse}.-translate-y-1\/2{--tw-translate-y:-50%}.-translate-y-1\/2,.transform{transform:translate(var(--tw-translate-x),var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}@keyframes spin{to{transform:rotate(1turn)}}.animate-spin{animation:spin 1s linear infinite}.cursor-pointer{cursor:pointer}.select-all{-webkit-user-select:all;-moz-user-select:all;user-select:all}.resize{resize:both}.scroll-mt-3{scroll-margin-top:.75rem}.list-decimal{list-style-type:decimal}.grid-cols-1{grid-template-columns:repeat(1,minmax(0,1fr))}.grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}.grid-cols-5{grid-template-columns:repeat(5,minmax(0,1fr))}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.place-items-center{place-items:center}.items-start{align-items:flex-start}.items-end{align-items:flex-end}.items-center{align-items:center}.items-baseline{align-items:baseline}.items-stretch{align-items:stretch}.justify-start{justify-content:flex-start}.justify-end{justify-content:flex-end}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-1{gap:.25rem}.gap-1\.5{gap:.375rem}.gap-2{gap:.5rem}.gap-2\.5{gap:.625rem}.gap-3{gap:.75rem}.gap-4{gap:1rem}.gap-x-4{-moz-column-gap:1rem;column-gap:1rem}.gap-y-1{row-gap:.25rem}.space-y-1>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(.25rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.25rem*var(--tw-space-y-reverse))}.space-y-1\.5>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(.375rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.375rem*var(--tw-space-y-reverse))}.space-y-2>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(.5rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.5rem*var(--tw-space-y-reverse))}.space-y-3>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(.75rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.75rem*var(--tw-space-y-reverse))}.space-y-3\.5>:not([hidden])~:not([hidden]){--tw-space-y-reverse:0;margin-top:calc(.875rem*(1 - var(--tw-space-y-reverse)));margin-bottom:calc(.875rem*var(--tw-space-y-reverse))}.divide-y>:not([hidden])~:not([hidden]){--tw-divide-y-reverse:0;border-top-width:calc(1px*(1 - var(--tw-divide-y-reverse)));border-bottom-width:calc(1px*var(--tw-divide-y-reverse))}.divide-line>:not([hidden])~:not([hidden]){--tw-divide-opacity:1;border-color:rgb(var(--line)/var(--tw-divide-opacity,1))}.self-start{align-self:flex-start}.self-end{align-self:flex-end}.overflow-hidden{overflow:hidden}.overflow-x-auto{overflow-x:auto}.overflow-y-auto{overflow-y:auto}.truncate{overflow:hidden;text-overflow:ellipsis}.truncate,.whitespace-nowrap{white-space:nowrap}.break-words{overflow-wrap:break-word}.rounded-2xl{border-radius:1rem}.rounded-full{border-radius:9999px}.rounded-xl{border-radius:.75rem}.rounded-t-3xl{border-top-left-radius:1.5rem;border-top-right-radius:1.5rem}.border{border-width:1px}.border-2{border-width:2px}.border-b{border-bottom-width:1px}.border-r{border-right-width:1px}.border-t{border-top-width:1px}.border-faint{--tw-border-opacity:1;border-color:rgb(var(--faint)/var(--tw-border-opacity,1))}.border-ink{--tw-border-opacity:1;border-color:rgb(var(--ink)/var(--tw-border-opacity,1))}.border-line{--tw-border-opacity:1;border-color:rgb(var(--line)/var(--tw-border-opacity,1))}.border-line-strong{--tw-border-opacity:1;border-color:rgb(var(--line-strong)/var(--tw-border-opacity,1))}.border-muted{--tw-border-opacity:1;border-color:rgb(var(--muted)/var(--tw-border-opacity,1))}.border-neg{--tw-border-opacity:1;border-color:rgb(var(--neg)/var(--tw-border-opacity,1))}.border-neg-on{--tw-border-opacity:1;border-color:rgb(var(--on-neg)/var(--tw-border-opacity,1))}.border-neg-soft{--tw-border-opacity:1;border-color:rgb(var(--neg-soft)/var(--tw-border-opacity,1))}.border-neg\/40{border-color:rgb(var(--neg)/.4)}.border-neg\/50{border-color:rgb(var(--neg)/.5)}.border-pos{--tw-border-opacity:1;border-color:rgb(var(--pos)/var(--tw-border-opacity,1))}.border-pos-on{--tw-border-opacity:1;border-color:rgb(var(--on-pos)/var(--tw-border-opacity,1))}.border-pos-soft{--tw-border-opacity:1;border-color:rgb(var(--pos-soft)/var(--tw-border-opacity,1))}.border-pos\/30{border-color:rgb(var(--pos)/.3)}.border-primary{--tw-border-opacity:1;border-color:rgb(var(--primary)/var(--tw-border-opacity,1))}.border-primary-on{--tw-border-opacity:1;border-color:rgb(var(--on-primary)/var(--tw-border-opacity,1))}.border-primary-soft{--tw-border-opacity:1;border-color:rgb(var(--primary-soft)/var(--tw-border-opacity,1))}.border-primary\/30{border-color:rgb(var(--primary)/.3)}.border-primary\/40{border-color:rgb(var(--primary)/.4)}.border-warn{--tw-border-opacity:1;border-color:rgb(var(--warn)/var(--tw-border-opacity,1))}.border-warn-on{--tw-border-opacity:1;border-color:rgb(var(--on-warn)/var(--tw-border-opacity,1))}.border-warn-soft{--tw-border-opacity:1;border-color:rgb(var(--warn-soft)/var(--tw-border-opacity,1))}.border-warn\/30{border-color:rgb(var(--warn)/.3)}.border-warn\/40{border-color:rgb(var(--warn)/.4)}.border-white\/80{border-color:hsla(0,0%,100%,.8)}.bg-bg{--tw-bg-opacity:1;background-color:rgb(var(--bg)/var(--tw-bg-opacity,1))}.bg-black{--tw-bg-opacity:1;background-color:rgb(0 0 0/var(--tw-bg-opacity,1))}.bg-black\/50{background-color:rgba(0,0,0,.5)}.bg-faint{--tw-bg-opacity:1;background-color:rgb(var(--faint)/var(--tw-bg-opacity,1))}.bg-ink{--tw-bg-opacity:1;background-color:rgb(var(--ink)/var(--tw-bg-opacity,1))}.bg-line-strong{--tw-bg-opacity:1;background-color:rgb(var(--line-strong)/var(--tw-bg-opacity,1))}.bg-muted{--tw-bg-opacity:1;background-color:rgb(var(--muted)/var(--tw-bg-opacity,1))}.bg-neg{--tw-bg-opacity:1;background-color:rgb(var(--neg)/var(--tw-bg-opacity,1))}.bg-neg-on{--tw-bg-opacity:1;background-color:rgb(var(--on-neg)/var(--tw-bg-opacity,1))}.bg-neg-soft{--tw-bg-opacity:1;background-color:rgb(var(--neg-soft)/var(--tw-bg-opacity,1))}.bg-neg\/80{background-color:rgb(var(--neg)/.8)}.bg-pos{--tw-bg-opacity:1;background-color:rgb(var(--pos)/var(--tw-bg-opacity,1))}.bg-pos-on{--tw-bg-opacity:1;background-color:rgb(var(--on-pos)/var(--tw-bg-opacity,1))}.bg-pos-soft{--tw-bg-opacity:1;background-color:rgb(var(--pos-soft)/var(--tw-bg-opacity,1))}.bg-primary{--tw-bg-opacity:1;background-color:rgb(var(--primary)/var(--tw-bg-opacity,1))}.bg-primary-on{--tw-bg-opacity:1;background-color:rgb(var(--on-primary)/var(--tw-bg-opacity,1))}.bg-primary-soft{--tw-bg-opacity:1;background-color:rgb(var(--primary-soft)/var(--tw-bg-opacity,1))}.bg-subtle{--tw-bg-opacity:1;background-color:rgb(var(--subtle)/var(--tw-bg-opacity,1))}.bg-surface{--tw-bg-opacity:1;background-color:rgb(var(--surface)/var(--tw-bg-opacity,1))}.bg-surface\/95{background-color:rgb(var(--surface)/.95)}.bg-transparent{background-color:transparent}.bg-warn{--tw-bg-opacity:1;background-color:rgb(var(--warn)/var(--tw-bg-opacity,1))}.bg-warn-on{--tw-bg-opacity:1;background-color:rgb(var(--on-warn)/var(--tw-bg-opacity,1))}.bg-warn-soft{--tw-bg-opacity:1;background-color:rgb(var(--warn-soft)/var(--tw-bg-opacity,1))}.object-cover{-o-object-fit:cover;object-fit:cover}.p-2\.5{padding:.625rem}.p-3{padding:.75rem}.p-4{padding:1rem}.p-5{padding:1.25rem}.p-6{padding:1.5rem}.p-8{padding:2rem}.px-1{padding-left:.25rem;padding-right:.25rem}.px-2{padding-left:.5rem;padding-right:.5rem}.px-2\.5{padding-left:.625rem;padding-right:.625rem}.px-3{padding-left:.75rem;padding-right:.75rem}.px-4{padding-left:1rem;padding-right:1rem}.px-5{padding-left:1.25rem;padding-right:1.25rem}.py-1\.5{padding-top:.375rem;padding-bottom:.375rem}.py-10{padding-top:2.5rem;padding-bottom:2.5rem}.py-16{padding-top:4rem;padding-bottom:4rem}.py-2{padding-top:.5rem;padding-bottom:.5rem}.py-2\.5{padding-top:.625rem;padding-bottom:.625rem}.py-3{padding-top:.75rem;padding-bottom:.75rem}.py-4{padding-top:1rem;padding-bottom:1rem}.py-8{padding-top:2rem;padding-bottom:2rem}.pb-1{padding-bottom:.25rem}.pb-16{padding-bottom:4rem}.pb-3{padding-bottom:.75rem}.pb-4{padding-bottom:1rem}.pl-10{padding-left:2.5rem}.pl-4{padding-left:1rem}.pl-5{padding-left:1.25rem}.pl-9{padding-left:2.25rem}.pr-11{padding-right:2.75rem}.pr-9{padding-right:2.25rem}.pr-\[5\.5rem\]{padding-right:5.5rem}.pt-1\.5{padding-top:.375rem}.pt-2{padding-top:.5rem}.pt-2\.5{padding-top:.625rem}.pt-3{padding-top:.75rem}.pt-4{padding-top:1rem}.pt-5{padding-top:1.25rem}.text-left{text-align:left}.text-center{text-align:center}.text-right{text-align:right}.font-mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,Liberation Mono,Courier New,monospace}.text-2xl{font-size:1.5rem;line-height:2rem}.text-3xl{font-size:1.875rem;line-height:2.25rem}.text-\[11px\]{font-size:11px}.text-\[17px\]{font-size:17px}.text-base{font-size:1rem;line-height:1.5rem}.text-lg{font-size:1.125rem;line-height:1.75rem}.text-sm{font-size:.875rem;line-height:1.25rem}.text-xl{font-size:1.25rem;line-height:1.75rem}.text-xs{font-size:.75rem;line-height:1rem}.font-bold{font-weight:700}.font-extrabold{font-weight:800}.font-medium{font-weight:500}.font-normal{font-weight:400}.font-semibold{font-weight:600}.uppercase{text-transform:uppercase}.italic{font-style:italic}.leading-relaxed{line-height:1.625}.leading-snug{line-height:1.375}.leading-tight{line-height:1.25}.tracking-\[\.2em\]{letter-spacing:.2em}.tracking-tight{letter-spacing:-.025em}.tracking-wide{letter-spacing:.025em}.tracking-wider{letter-spacing:.05em}.tracking-widest{letter-spacing:.1em}.text-faint{--tw-text-opacity:1;color:rgb(var(--faint)/var(--tw-text-opacity,1))}.text-ink{--tw-text-opacity:1;color:rgb(var(--ink)/var(--tw-text-opacity,1))}.text-muted{--tw-text-opacity:1;color:rgb(var(--muted)/var(--tw-text-opacity,1))}.text-neg{--tw-text-opacity:1;color:rgb(var(--neg)/var(--tw-text-opacity,1))}.text-neg-on{--tw-text-opacity:1;color:rgb(var(--on-neg)/var(--tw-text-opacity,1))}.text-neg-soft{--tw-text-opacity:1;color:rgb(var(--neg-soft)/var(--tw-text-opacity,1))}.text-pos{--tw-text-opacity:1;color:rgb(var(--pos)/var(--tw-text-opacity,1))}.text-pos-on{--tw-text-opacity:1;color:rgb(var(--on-pos)/var(--tw-text-opacity,1))}.text-pos-soft{--tw-text-opacity:1;color:rgb(var(--pos-soft)/var(--tw-text-opacity,1))}.text-primary{--tw-text-opacity:1;color:rgb(var(--primary)/var(--tw-text-opacity,1))}.text-primary-on{--tw-text-opacity:1;color:rgb(var(--on-primary)/var(--tw-text-opacity,1))}.text-primary-soft{--tw-text-opacity:1;color:rgb(var(--primary-soft)/var(--tw-text-opacity,1))}.text-surface{--tw-text-opacity:1;color:rgb(var(--surface)/var(--tw-text-opacity,1))}.text-warn{--tw-text-opacity:1;color:rgb(var(--warn)/var(--tw-text-opacity,1))}.text-warn-on{--tw-text-opacity:1;color:rgb(var(--on-warn)/var(--tw-text-opacity,1))}.text-warn-soft{--tw-text-opacity:1;color:rgb(var(--warn-soft)/var(--tw-text-opacity,1))}.underline{text-decoration-line:underline}.decoration-dotted{text-decoration-style:dotted}.underline-offset-2{text-underline-offset:2px}.antialiased{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}.accent-current{accent-color:currentColor}.opacity-0{opacity:0}.opacity-70{opacity:.7}.opacity-80{opacity:.8}.opacity-90{opacity:.9}.shadow-\[0_0_0_9999px_rgba\(0\2c 0\2c 0\2c \.35\)\]{--tw-shadow:0 0 0 9999px rgba(0,0,0,.35);--tw-shadow-colored:0 0 0 9999px var(--tw-shadow-color)}.shadow-\[0_0_0_9999px_rgba\(0\2c 0\2c 0\2c \.35\)\],.shadow-card{box-shadow:var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),var(--tw-shadow)}.shadow-card{--tw-shadow:0 1px 2px rgb(var(--shadow)/0.05),0 1px 3px rgb(var(--shadow)/0.04);--tw-shadow-colored:0 1px 2px var(--tw-shadow-color),0 1px 3px var(--tw-shadow-color)}.shadow-none{--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000}.shadow-none,.shadow-pop{box-shadow:var(--tw-ring-offset-shadow,0 0 #0000),var(--tw-ring-shadow,0 0 #0000),var(--tw-shadow)}.shadow-pop{--tw-shadow:0 18px 48px -12px rgb(var(--shadow)/0.35);--tw-shadow-colored:0 18px 48px -12px var(--tw-shadow-color)}.outline-none{outline:2px solid transparent;outline-offset:2px}.outline{outline-style:solid}.ring{--tw-ring-offset-shadow:var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow:var(--tw-ring-inset) 0 0 0 calc(3px + var(--tw-ring-offset-width)) var(--tw-ring-color)}.ring,.ring-2{box-shadow:var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow,0 0 #0000)}.ring-2{--tw-ring-offset-shadow:var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow:var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color)}.ring-primary{--tw-ring-opacity:1;--tw-ring-color:rgb(var(--primary)/var(--tw-ring-opacity,1))}.blur{--tw-blur:blur(8px)}.blur,.filter{filter:var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow)}.backdrop-blur{--tw-backdrop-blur:blur(8px);-webkit-backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia);backdrop-filter:var(--tw-backdrop-blur) var(--tw-backdrop-brightness) var(--tw-backdrop-contrast) var(--tw-backdrop-grayscale) var(--tw-backdrop-hue-rotate) var(--tw-backdrop-invert) var(--tw-backdrop-opacity) var(--tw-backdrop-saturate) var(--tw-backdrop-sepia)}.transition{transition-property:color,background-color,border-color,text-decoration-color,fill,stroke,opacity,box-shadow,transform,filter,-webkit-backdrop-filter;transition-property:color,background-color,border-color,text-decoration-color,fill,stroke,opacity,box-shadow,transform,filter,backdrop-filter;transition-property:color,background-color,border-color,text-decoration-color,fill,stroke,opacity,box-shadow,transform,filter,backdrop-filter,-webkit-backdrop-filter;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}.transition-colors{transition-property:color,background-color,border-color,text-decoration-color,fill,stroke;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}.transition-transform{transition-property:transform;transition-timing-function:cubic-bezier(.4,0,.2,1);transition-duration:.15s}.ease-in-out{transition-timing-function:cubic-bezier(.4,0,.2,1)}.focus-within\:ring-2:focus-within{--tw-ring-offset-shadow:var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);--tw-ring-shadow:var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);box-shadow:var(--tw-ring-offset-shadow),var(--tw-ring-shadow),var(--tw-shadow,0 0 #0000)}.focus-within\:ring-primary\/40:focus-within{--tw-ring-color:rgb(var(--primary)/0.4)}.hover\:border-primary\/60:hover{border-color:rgb(var(--primary)/.6)}.hover\:bg-subtle:hover{--tw-bg-opacity:1;background-color:rgb(var(--subtle)/var(--tw-bg-opacity,1))}.hover\:text-primary:hover{--tw-text-opacity:1;color:rgb(var(--primary)/var(--tw-text-opacity,1))}.hover\:underline:hover{text-decoration-line:underline}.focus\:outline-none:focus{outline:2px solid transparent;outline-offset:2px}.group:hover .group-hover\:text-primary{--tw-text-opacity:1;color:rgb(var(--primary)/var(--tw-text-opacity,1))}@media (min-width:640px) and (min-height:521px),(min-width:640px) and (pointer:fine){.sm\:static{position:static}.sm\:col-span-2{grid-column:span 2/span 2}.sm\:inline{display:inline}.sm\:hidden{display:none}.sm\:h-auto{height:auto}.sm\:w-\[9\.5rem\]{width:9.5rem}.sm\:w-auto{width:auto}.sm\:max-w-2xl{max-width:42rem}.sm\:max-w-lg{max-width:32rem}.sm\:flex-none{flex:none}.sm\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.sm\:grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.sm\:grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}.sm\:grid-cols-\[1fr_auto\]{grid-template-columns:1fr auto}.sm\:grid-cols-\[minmax\(0\2c 1fr\)_200px\]{grid-template-columns:minmax(0,1fr) 200px}.sm\:items-center{align-items:center}.sm\:rounded-2xl{border-radius:1rem}.sm\:p-4{padding:1rem}.sm\:pt-4{padding-top:1rem}.sm\:text-lg{font-size:1.125rem;line-height:1.75rem}.sm\:text-sm{font-size:.875rem;line-height:1.25rem}.sm\:opacity-100{opacity:1}}@media (min-width:768px) and (min-height:521px),(min-width:768px) and (pointer:fine){.md\:ml-auto{margin-left:auto}.md\:grid-cols-\[minmax\(0\2c 1fr\)_200px_220px\]{grid-template-columns:minmax(0,1fr) 200px 220px}.md\:grid-cols-\[minmax\(0\2c 1fr\)_auto\]{grid-template-columns:minmax(0,1fr) auto}.md\:flex-row{flex-direction:row}.md\:items-center{align-items:center}}@media (min-width:1024px) and (min-height:521px),(min-width:1024px) and (pointer:fine){.lg\:sticky{position:sticky}.lg\:bottom-6{bottom:1.5rem}.lg\:left-auto{left:auto}.lg\:right-6{right:1.5rem}.lg\:top-0{top:0}.lg\:col-span-2{grid-column:span 2/span 2}.lg\:block{display:block}.lg\:inline{display:inline}.lg\:flex{display:flex}.lg\:hidden{display:none}.lg\:w-auto{width:auto}.lg\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.lg\:grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}.lg\:grid-cols-\[360px_minmax\(0\2c 1fr\)\]{grid-template-columns:360px minmax(0,1fr)}.lg\:grid-cols-\[auto_minmax\(0\2c 1fr\)_auto\]{grid-template-columns:auto minmax(0,1fr) auto}.lg\:grid-cols-\[minmax\(0\2c 1fr\)_auto_230px\]{grid-template-columns:minmax(0,1fr) auto 230px}.lg\:items-end{align-items:flex-end}.lg\:items-center{align-items:center}.lg\:px-6{padding-left:1.5rem;padding-right:1.5rem}.lg\:py-6{padding-top:1.5rem;padding-bottom:1.5rem}}@media (min-width:1280px) and (min-height:521px),(min-width:1280px) and (pointer:fine){.xl\:sticky{position:sticky}.xl\:top-0{top:0}.xl\:hidden{display:none}.xl\:max-h-\[calc\(100vh-1\.5rem\)\]{max-height:calc(100vh - 1.5rem)}.xl\:min-h-\[96px\]{min-height:96px}.xl\:flex-1{flex:1 1 0%}.xl\:grid-cols-2{grid-template-columns:repeat(2,minmax(0,1fr))}.xl\:grid-cols-3{grid-template-columns:repeat(3,minmax(0,1fr))}.xl\:grid-cols-4{grid-template-columns:repeat(4,minmax(0,1fr))}.xl\:grid-cols-\[minmax\(0\2c 1\.6fr\)_minmax\(0\2c 1fr\)\]{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)}.xl\:grid-cols-\[minmax\(0\2c 1fr\)_400px\]{grid-template-columns:minmax(0,1fr) 400px}.xl\:grid-cols-\[minmax\(0\2c 1fr\)_minmax\(0\2c 1fr\)\]{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.xl\:overflow-y-auto{overflow-y:auto}}@media (min-width:1536px) and (min-height:521px),(min-width:1536px) and (pointer:fine){.\32xl\:ml-auto{margin-left:auto}.\32xl\:grid-cols-5{grid-template-columns:repeat(5,minmax(0,1fr))}.\32xl\:grid-cols-\[minmax\(0\2c 1fr\)_440px\]{grid-template-columns:minmax(0,1fr) 440px}.\32xl\:flex-row{flex-direction:row}.\32xl\:items-center{align-items:center}}.\[\&\>\*\]\:flex-1>*{flex:1 1 0%}@media (min-width:640px) and (min-height:521px),(min-width:640px) and (pointer:fine){.sm\:\[\&\>\*\]\:flex-none>*{flex:none}}@media (min-width:1024px) and (min-height:521px),(min-width:1024px) and (pointer:fine){.lg\:\[\&\>\*\]\:flex-none>*{flex:none}}</style>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="favicon.png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
@@ -418,10 +425,12 @@ function searchList(list, query, nameOf, extraOf) {
 }
 
 /* ===================== MA'LUMOTLAR BAZASI (LocalStorage) — tuzilma o'zgarmagan ===================== */
+// shifts — smenalar (har kassa o'zi), cashops — kassaga pul qo'shish/olish, returns — qaytarishlar (vozvrat)
+const DB_COLLS = ['products', 'customers', 'suppliers', 'sales', 'moves', 'expenses', 'ledger', 'shifts', 'cashops', 'returns'];
 // Brauzer xotirasi ishlayaptimi? (ba'zi ko'rish oynalarida yopiq bo'ladi — unda foydalanuvchini ogohlantiramiz)
 const STORAGE_OK = (() => { try { const k = '__mm_probe'; localStorage.setItem(k, '1'); const ok = localStorage.getItem(k) === '1'; localStorage.removeItem(k); return ok; } catch (e) { return false; } })();
 function emptyDB() {
-  return { v: 1, names: {}, settings: { shopName: 'Minimarket' }, products: [], customers: [], suppliers: [], sales: [], moves: [], expenses: [], ledger: [], seq: 1 };
+  return { v: 1, names: {}, settings: { shopName: 'Minimarket' }, products: [], customers: [], suppliers: [], sales: [], moves: [], expenses: [], ledger: [], shifts: [], cashops: [], returns: [], seq: 1 };
 }
 function demoDB() {
   const now = Date.now();
@@ -442,7 +451,7 @@ function demoDB() {
 function normalize(d) {
   const base = emptyDB();
   if (!d || typeof d !== 'object') return base;
-  for (const k of ['products', 'customers', 'suppliers', 'sales', 'moves', 'expenses', 'ledger']) base[k] = Array.isArray(d[k]) ? d[k] : [];
+  for (const k of DB_COLLS) base[k] = Array.isArray(d[k]) ? d[k] : [];
   base.settings = Object.assign(base.settings, d.settings || {});
   base.seq = +d.seq || (base.sales.length + 1);
   base.names = d.names && typeof d.names === 'object' ? d.names : {};
@@ -511,7 +520,8 @@ function report(b) {
   const exps = db.expenses.filter((e) => inRange(e.ts, b));
   const moves = db.moves.filter((m) => inRange(m.ts, b));
   const ledg = db.ledger.filter((l) => inRange(l.ts, b));
-  const r = { sales, count: sales.length, oborot: 0, cost: 0, disc: 0, naqd: 0, karta: 0, qarzga: 0, exp: 0, spis: 0, prixod: 0, prixodNaqd: 0, custPay: 0, supPay: 0, byCat: {}, byProd: {}, gsales: 0, noCost: 0, noCostSum: 0 };
+  const rets = (db.returns || []).filter((x) => inRange(x.ts, b));
+  const r = { sales, rets, count: sales.length, oborot: 0, cost: 0, disc: 0, naqd: 0, karta: 0, qarzga: 0, exp: 0, spis: 0, prixod: 0, prixodNaqd: 0, custPay: 0, supPay: 0, byCat: {}, byProd: {}, gsales: 0, noCost: 0, noCostSum: 0, ret: 0, retCost: 0, retN: rets.length };
   for (const s of sales) {
     r.oborot += s.total; r.cost += s.costTotal; r.disc += s.discount; r.naqd += s.cash; r.karta += s.card; r.qarzga += s.debt;
     r.gsales += s.subtotal != null ? s.subtotal : s.total;
@@ -523,10 +533,19 @@ function report(b) {
       if (!(it.cost > 0)) { r.noCost++; r.noCostSum += net; }
     }
   }
+  // qaytarishlar: tushum, tannarx va to'lov turlaridan ayriladi
+  for (const x of rets) {
+    r.ret += x.total; r.retCost += x.costTotal; r.naqd -= x.refund.cash || 0; r.karta -= x.refund.card || 0; r.qarzga -= x.refund.debt || 0;
+    for (const it of x.items) {
+      const row = r.byProd[it.pid || it.name] || (r.byProd[it.pid || it.name] = { name: it.name, unit: it.unit, qty: 0, sum: 0, profit: 0 });
+      row.qty = rq(row.qty - it.qty); row.sum -= it.sum; row.profit -= it.sum - rm(it.qty * it.cost);
+    }
+  }
+  r.oborot -= r.ret; r.cost -= r.retCost;
   for (const e of exps) { r.exp += e.amount; r.byCat[e.category] = (r.byCat[e.category] || 0) + e.amount; }
   for (const m of moves) {
     if (m.type === 'spisaniya') r.spis += m.total;
-    else { r.prixod += m.total; if (m.payMode !== 'qarz') r.prixodNaqd += m.total; }
+    else { r.prixod += m.total; r.prixodNaqd += movePaid(m); }
   }
   for (const l of ledg) if (l.kind === 'payment' && !l.adjust) { if (l.type === 'customer') r.custPay += l.amount; else r.supPay += l.amount; }
   r.gross = r.oborot - r.cost;
@@ -535,6 +554,8 @@ function report(b) {
   r.chiqim = r.prixodNaqd + r.supPay + r.exp;
   return r;
 }
+// kirimda darhol to'langan qism (qolgani ta'minotchiga qarz)
+const movePaid = (m) => (m.paid != null ? m.paid : m.payMode === 'qarz' ? 0 : m.total);
 function stockValue() {
   let cost = 0, sale = 0;
   for (const p of db.products) { const q = Math.max(0, p.stock); cost += q * p.cost; sale += q * p.price; }
@@ -876,7 +897,12 @@ const ICONS = {
   phone: '<path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/>',
   calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
   db: '<ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/>',
-  store: '<path d="M4 9h16l-1.5-5h-13z"/><path d="M5 9v11h14V9"/><path d="M9 20v-6h6v6"/>'
+  store: '<path d="M4 9h16l-1.5-5h-13z"/><path d="M5 9v11h14V9"/><path d="M9 20v-6h6v6"/>',
+  camera: '<path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="3.5"/>',
+  scan: '<path d="M4 8V5a1 1 0 0 1 1-1h3M16 4h3a1 1 0 0 1 1 1v3M20 16v3a1 1 0 0 1-1 1h-3M8 20H5a1 1 0 0 1-1-1v-3"/><path d="M8 9v6M11 9v6M14 9v6M17 9v6"/>',
+  star: '<path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>',
+  undo: '<path d="M9 14 4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/>',
+  lock: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>'
 };
 function ic(n, cls) { return '<svg class="' + (cls || 'w-5 h-5') + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICONS[n] || '') + '</svg>'; }
 
@@ -1153,7 +1179,7 @@ const TAB_TITLE = Object.fromEntries(NAV.map((n) => [n.id, n.label]));
 const MORE_TABS = ['xarajat', 'moliya', 'sozlama'];
 const S = {
   tab: 'bosh',
-  cart: [], disc: { type: 'sum', value: '' }, pay: 'naqd', given: '', mixCash: '', custId: '', paidNow: '',
+  cart: [], disc: { type: 'sum', value: '' }, pay: 'naqd', given: '', mixCash: '', custId: '', paidNow: '', carts: [], ci: 0,
   kq: '', kcat: '', salesView: 'kassa',
   hist: { mode: 'day', from: today(), to: today(), pay: '', cust: '', q: '', limit: 60 },
   oq: '', ocat: '', ostat: '', osort: 'stock', oview: 'list',
@@ -1228,6 +1254,9 @@ document.addEventListener('keydown', (e) => {
   const map = { 1: 'bosh', 2: 'kassa', 3: 'ombor', 4: 'qarz', 5: 'xarajat', 6: 'moliya', 7: 'sozlama' };
   if (e.altKey && map[e.key]) { e.preventDefault(); closeModal(true); setTab(map[e.key]); }
   if (e.key === 'F9' && !e.repeat && S.tab === 'kassa' && S.salesView === 'kassa' && !$('#modal-root').innerHTML) { e.preventDefault(); checkout(); }
+  // F1–F4: savatlar orasida o'tish (kassaga ham olib o'tadi)
+  const fk = /^F([1-4])$/.exec(e.key);
+  if (fk && !e.repeat && !$('#modal-root').innerHTML) { e.preventDefault(); const i = +fk[1] - 1; if (S.tab !== 'kassa' || S.salesView !== 'kassa') { S.salesView = 'kassa'; S.carts[S.ci] = packCart(); S.ci = i; unpackCart(S.carts[i]); setTab('kassa'); } else switchCart(i); }
 });
 function updateBadges() {
   const low = db.products.filter(isLow).length;
@@ -1421,8 +1450,8 @@ if (LICENSE_CFG || CLOUD_CFG) setInterval(() => { const prev = LIC.mode; licRefr
    - Har bir yuborish noyob raqamli: javob yo'qolib qayta yuborilsa, server ikki marta qo'llamaydi. */
 const CL_AUTH_KEY = 'minimarket_pos_auth', CL_META_KEY = 'minimarket_pos_sync', CL_PHONE_KEY = 'minimarket_pos_phone';
 const CL_DOMAIN = 'users.savdo-daftarim.app';
-const CL_COLLS = ['products', 'customers', 'suppliers', 'sales', 'moves', 'expenses', 'ledger'];
-const CL_LOCAL_SETTINGS = ['theme', 'autoFull', 'voiceLang']; // har bir qurilmaning o'ziniki — sinxronlanmaydi
+const CL_COLLS = DB_COLLS;
+const CL_LOCAL_SETTINGS = ['theme', 'autoFull', 'voiceLang', 'autoPrint']; // har bir qurilmaning o'ziniki — sinxronlanmaydi
 const CL = { auth: null, meta: null, busy: false, again: false, timer: 0, state: 'idle', err: '', dirty: false, lastOk: 0, applying: false, rerender: false, fails: 0, refreshing: null };
 
 function clGet(k) { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } }
@@ -1982,7 +2011,7 @@ async function clSignIn(d9, pw) {
   db = emptyDB(); Object.assign(db.settings, keep, { shopName: info.name || 'Minimarket' });
   CL.meta = { shop: info.id, rev: 0, snap: {}, outbox: null, shopInfo: null };
   clShopInfo(info);
-  clSaveDb(); resetCart();
+  clSaveDb(); clearAllCarts();
   clBusy(true, 'Maʼlumotlar yuklanmoqda…');
   await clPull((n) => clBusy(true, 'Maʼlumotlar yuklanmoqda…', n + ' ta yozuv'));
   await clEnter();
@@ -2007,7 +2036,7 @@ async function clLogout() {
     try { if (CL.auth) await clFetch('/auth/v1/logout?scope=local', { method: 'POST', headers: clHeaders(CL.auth.at) }, 8000); } catch (e) { /* ignore */ }
     const keep = {}; for (const k of CL_LOCAL_SETTINGS) if (db.settings[k] !== undefined) keep[k] = db.settings[k];
     CL.auth = null; CL.meta = null; clSet(CL_AUTH_KEY, null); clSet(CL_META_KEY, null);
-    db = emptyDB(); Object.assign(db.settings, keep); clSaveDb(); resetCart();
+    db = emptyDB(); Object.assign(db.settings, keep); clSaveDb(); clearAllCarts();
     closeModal(true); clStatus();
     clShowAuth();
   };
@@ -2168,20 +2197,24 @@ function renderKassa() {
   if (S.salesView === 'tarix') { renderTarix(); return; }
   const PAYS = [['naqd', 'cash'], ['karta', 'card'], ['aralash', 'split'], ['qarz', 'book']];
   $('#main').innerHTML = wrap(
-    pageHead('Savdo', 'Mahsulotni bosing yoki shtrix-kodni skanerlang · F9 — toʻlov', '') + salesSeg() +
+    pageHead('Savdo', 'Mahsulotni bosing yoki shtrix-kodni skanerlang · F9 — toʻlov · F1–F4 — savatlar',
+      '<button id="k-held" class="btn btn-ghost">' + ic('inbox', 'w-4 h-4') + 'Saqlangan cheklar <span id="k-heldn" class="num"></span></button>') + salesSeg() +
     '<div class="grid gap-4 xl:grid-cols-[minmax(0,1fr)_400px] 2xl:grid-cols-[minmax(0,1fr)_440px]">' +
     '<section class="min-w-0">' +
     '<div class="card p-3">' +
     '<div class="relative">' + ic('search', 'w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-faint pointer-events-none') +
-    '<input id="k-search" type="search" autocomplete="off" enterkeyhint="done" class="input pl-10 pr-14 text-base" aria-label="Mahsulot qidirish" placeholder="Nomi, bosh harflari yoki shtrix-kod" value="' + esc(S.kq) + '">' +
+    '<input id="k-search" type="search" autocomplete="off" enterkeyhint="done" class="input pl-10 pr-[5.5rem] text-base" aria-label="Mahsulot qidirish" placeholder="Nomi, bosh harflari yoki shtrix-kod" value="' + esc(S.kq) + '">' +
+    '<button id="k-cam" class="btn btn-ghost btn-icon btn-sm absolute right-12 top-1/2 -translate-y-1/2" aria-label="Kamera bilan skanerlash" title="Kamera bilan shtrix-kod skanerlash">' + ic('camera', 'w-[18px] h-[18px]') + '</button>' +
     '<button id="k-voice" class="btn btn-primary btn-icon btn-sm absolute right-1.5 top-1/2 -translate-y-1/2" aria-label="Ovoz bilan buyurtma" title="Ovoz bilan buyurtma: «ikki kilo shakar, bitta non»">' + ic('mic', 'w-[18px] h-[18px]') + '</button></div>' +
     '<div id="k-cats" class="flex gap-2 overflow-x-auto no-sb mt-3" role="group" aria-label="Kategoriyalar"></div>' +
     '</div>' +
     '<div id="k-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 gap-3 mt-3"></div>' +
     '</section>' +
     '<section id="k-cartsec" class="card flex flex-col xl:sticky xl:top-0 self-start w-full scroll-mt-3 xl:max-h-[calc(100vh-1.5rem)]" aria-label="Savat">' +
-    '<div class="card-h"><h2 class="sect-t flex items-center gap-2">' + ic('cart', 'w-5 h-5 text-faint') + 'Savat <span id="k-count" class="count bg-primary text-primary-on hidden"></span></h2>' +
-    '<button id="k-clear" class="btn btn-text btn-sm" title="Savatni tozalash">' + ic('trash', 'w-4 h-4') + 'Tozalash</button></div>' +
+    cartTabsHtml() +
+    '<div class="card-h"><h2 class="sect-t flex items-center gap-2">' + ic('cart', 'w-5 h-5 text-faint') + 'Savat ' + (S.ci + 1) + ' <span id="k-count" class="count bg-primary text-primary-on hidden"></span></h2>' +
+    '<div class="flex -mr-2"><button id="k-hold" class="btn btn-text btn-sm" title="Chekni saqlab turish (mijoz «hozir kelaman» desa)">' + ic('inbox', 'w-4 h-4') + 'Saqlash</button>' +
+    '<button id="k-clear" class="btn btn-text btn-sm" title="Savatni tozalash">' + ic('trash', 'w-4 h-4') + 'Tozalash</button></div></div>' +
     '<div id="k-cart" class="xl:overflow-y-auto scroll-thin px-4 min-h-[120px] xl:flex-1 xl:min-h-[96px]"></div>' +
     '<div class="px-4 py-3 border-t border-line space-y-3 shrink-0">' +
     '<div class="flex gap-2 items-center"><label for="k-disc" class="text-sm font-medium text-muted w-20 shrink-0">Chegirma</label>' +
@@ -2192,7 +2225,7 @@ function renderKassa() {
     PAYS.map((p) => '<button data-pay="' + p[0] + '" class="paybtn' + (p[0] === 'qarz' ? ' qarz' : '') + '" title="' + PAY_LABEL[p[0]] + '">' + ic(p[1], 'w-5 h-5') + '<span>' + PAY_SHORT[p[0]] + '</span></button>').join('') +
     '</div><div id="k-payx"></div>' +
     '<button id="k-checkout" class="btn btn-primary w-full min-h-[54px] text-lg">' + ic('check') + 'Toʻlovni yakunlash <span class="hidden lg:inline text-sm font-medium opacity-80">(F9)</span></button>' +
-    '</div></section></div>' +
+    '</div></section></div>' + shiftBarHtml() +
     '<section class="card mt-4"><div class="card-h"><h2 class="sect-t">Bugungi sotuvlar</h2><div class="flex items-center gap-2 min-w-0"><span id="k-todaysum" class="text-sm text-faint num truncate"></span>' +
     '<button data-sv="tarix" class="btn btn-text btn-sm shrink-0">Tarix' + ic('right', 'w-4 h-4') + '</button></div></div><div id="k-today"></div></section>'
   );
@@ -2204,13 +2237,18 @@ function renderKassa() {
     e.preventDefault();
     const q = search.value.trim();
     if (!q) return;
-    const byCode = db.products.find((p) => p.barcode && p.barcode === q);
-    const list = byCode ? [byCode] : filteredProducts();
+    // raqamli kod — shtrix-kod (skaner yoki qo'lda): bazada bo'lmasa ham savdo to'xtamaydi
+    if (/^\d{4,}$/.test(q) && (findByCode(q) || parseScale(q) || q.length >= 6)) { search.value = ''; S.kq = ''; drawGrid(); handleScan(q); return; }
+    const list = filteredProducts();
     if (!list.length) { toast('Topilmadi: ' + q + ' — pastdagi tugma bilan yangi mahsulot qoʻshing', 'warn'); return; }
-    pickProduct(list[0].id, !!byCode);
+    pickProduct(list[0].id, false);
     search.value = ''; S.kq = ''; drawGrid();
   });
   $('#k-voice').onclick = voiceModal;
+  $('#k-cam').onclick = () => cameraScan(handleScan, { multi: true, title: 'Skanerlash — savatga qoʻshish' });
+  $('#k-held').onclick = heldModal; updateHeldBtn();
+  $('#k-hold').onclick = holdCart;
+  bindCartTabs(); bindShiftBar();
   $('#k-disc').addEventListener('input', (e) => { S.disc.value = e.target.value; drawTotals(); drawPayInfo(); });
   $$('[data-dt]').forEach((b) => b.onclick = () => { S.disc.type = b.dataset.dt; drawDiscType(); drawTotals(); drawPayInfo(); });
   $$('[data-pay]').forEach((b) => b.onclick = () => { S.pay = b.dataset.pay; drawPays(); drawPayX(); });
@@ -2220,12 +2258,15 @@ function renderKassa() {
   if (appW() >= 1024) search.focus();
 }
 function filteredProducts() {
-  return searchList(db.products.filter((p) => !S.kcat || p.category === S.kcat), S.kq, (p) => p.name, (p) => p.barcode || '');
+  const list = searchList(db.products.filter((p) => !S.kcat || (S.kcat === '__fav' ? p.fav : p.category === S.kcat)), S.kq, (p) => p.name, (p) => p.barcode || '');
+  if (!S.kq.trim()) list.sort((a, b) => (b.fav ? 1 : 0) - (a.fav ? 1 : 0)); // tez tugmalar birinchi
+  return list;
 }
 function drawCats() {
   const cats = Array.from(new Set(db.products.map((p) => p.category).filter(Boolean)));
   const chip = (v, l) => '<button data-kc="' + esc(v) + '" class="chip"' + pressed(S.kcat === v) + '>' + esc(l) + '</button>';
-  $('#k-cats').innerHTML = chip('', 'Hammasi') + cats.map((c) => chip(c, c)).join('');
+  if (S.kcat === '__fav' && !db.products.some((p) => p.fav)) S.kcat = '';
+  $('#k-cats').innerHTML = chip('', 'Hammasi') + (db.products.some((p) => p.fav) ? chip('__fav', '★ Tez tugmalar') : '') + cats.map((c) => chip(c, c)).join('');
   $$('[data-kc]').forEach((b) => b.onclick = () => { S.kcat = b.dataset.kc; drawCats(); drawGrid(); });
 }
 const GRID_MAX = 240;
@@ -2245,7 +2286,7 @@ function drawGrid() {
   for (const it of S.cart) inCart[it.pid] = it.qty;
   el.innerHTML = list.slice(0, GRID_MAX).map((p) => {
     const low = isLow(p), out = isOut(p), q = inCart[p.id];
-    return '<button data-pid="' + p.id + '" class="tile' + (q ? ' in-cart' : '') + '" aria-label="' + esc(p.name + ', ' + fmt(p.price) + ' ' + SUM + ', qoldiq ' + fq(p.stock) + ' ' + p.unit) + '">' +
+    return '<button data-pid="' + p.id + '" class="tile' + (q ? ' in-cart' : '') + (p.fav ? ' fav' : '') + '" aria-label="' + esc(p.name + ', ' + fmt(p.price) + ' ' + SUM + ', qoldiq ' + fq(p.stock) + ' ' + p.unit) + '">' +
       '<span class="flex items-start justify-between gap-2"><span class="text-xs text-faint truncate">' + esc(p.category || '') + '</span>' + (q ? '<span class="count bg-primary text-primary-on num">' + fq(q) + '</span>' : '') + '</span>' +
       '<span class="font-semibold text-ink leading-snug clamp2">' + esc(p.name) + '</span>' +
       '<span class="mt-auto font-bold text-ink num">' + fmt(p.price) + ' <span class="text-xs font-medium text-faint">' + SUM + '/' + esc(p.unit) + '</span></span>' +
@@ -2266,7 +2307,7 @@ function addToCart(pid, qty) {
   if (ex) ex.qty = rq(ex.qty + qty);
   else S.cart.push({ pid, name: p.name, unit: p.unit, qty: rq(qty), price: p.price, cost: p.cost });
   const inCart = S.cart.find((x) => x.pid === pid).qty;
-  if (inCart > p.stock) toast(p.name + ': omborda faqat ' + fq(p.stock) + ' ' + p.unit + ' bor', 'warn');
+  if (inCart > p.stock && setOn('stockWarn', true)) toast(p.name + ': omborda ' + fq(p.stock) + ' ' + p.unit + ' — qoldiq minusga ketadi', 'warn');
   drawCart();
 }
 function weightModal(p) {
@@ -2308,7 +2349,7 @@ function drawCart() {
       const over = p && it.qty > p.stock;
       return '<div class="py-3 row-line">' +
         '<div class="flex items-start gap-2"><div class="flex-1 min-w-0"><div class="font-semibold text-ink leading-snug">' + esc(it.name) + '</div>' +
-        '<div class="text-xs text-faint num">' + money(it.price) + ' / ' + esc(it.unit) + (over ? ' · <span class="text-neg font-semibold">omborda ' + fq(p.stock) + '</span>' : '') + '</div></div>' +
+        '<button data-lp="' + i + '" class="text-xs num text-left ' + (it.manual ? 'text-warn font-semibold' : 'text-faint') + ' underline decoration-dotted underline-offset-2" title="Narxni oʻzgartirish (faqat shu savdo)">' + money(it.price) + ' / ' + esc(it.unit) + (it.manual ? ' · narx oʻzgartirilgan' : '') + '</button>' + (over ? '<div class="text-xs text-neg font-semibold num">omborda ' + fq(p.stock) + '</div>' : '') + '</div>' +
         '<button data-del="' + i + '" class="btn btn-text btn-icon btn-sm -mr-2" aria-label="' + esc(it.name) + ' — savatdan olib tashlash" title="Olib tashlash">' + ic('x', 'w-4 h-4') + '</button></div>' +
         '<div class="flex items-center gap-2 mt-2"><div class="stepper">' +
         '<button data-dec="' + i + '" data-step="' + step + '" aria-label="Kamaytirish" title="Kamaytirish">−</button>' +
@@ -2318,6 +2359,7 @@ function drawCart() {
         '<span data-line="' + i + '" class="ml-auto font-bold num text-ink">' + fmt(it.qty * it.price) + '</span></div></div>';
     }).join('');
     $$('[data-del]', box).forEach((b) => b.onclick = () => { S.cart.splice(+b.dataset.del, 1); drawCart(); });
+    $$('[data-lp]', box).forEach((b) => b.onclick = () => linePriceModal(+b.dataset.lp));
     $$('[data-inc],[data-dec]', box).forEach((b) => b.onclick = () => {
       const i = +(b.dataset.inc || b.dataset.dec), st = +b.dataset.step, it = S.cart[i];
       it.qty = rq(Math.max(0, it.qty + (b.dataset.inc != null ? st : -st)));
@@ -2336,6 +2378,8 @@ function drawCart() {
   }
   drawTotals(); drawPayInfo();
   drawGrid(); // plitkalarda "savatda" belgisini yangilash
+  const tabs = $('#k-ctabs'); if (tabs) { tabs.outerHTML = cartTabsHtml(); bindCartTabs(); }
+  persistCarts();
 }
 function drawDiscType() { $$('[data-dt]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.dt === S.disc.type ? 'true' : 'false')); }
 function drawCartBar() {
@@ -2402,6 +2446,7 @@ function drawPayInfo() {
 }
 function resetCart() {
   S.cart = []; S.disc = { type: S.disc.type, value: '' }; S.given = ''; S.mixCash = ''; S.paidNow = ''; S.custId = ''; S.pay = 'naqd';
+  persistCarts();
   if (S.tab === 'kassa') render(); else drawCartBar();
 }
 function checkout() {
@@ -2423,7 +2468,7 @@ function checkout() {
     debt = t.total - cash;
   }
   if (S.pay === 'naqd' && num(S.given) > 0 && num(S.given) < t.total) { toast('Mijoz bergan pul jamidan kam', 'warn'); return; }
-  const short = lines.filter((it) => { const p = prod(it.pid); return p && it.qty > p.stock; });
+  const short = setOn('askShort') ? lines.filter((it) => { const p = prod(it.pid); return p && it.qty > p.stock; }) : [];
   let done = false;
   const finish = () => {
     if (done) return; // bir xil chekni ikki marta yozmaslik uchun
@@ -2439,14 +2484,18 @@ function checkout() {
     const sale = {
       id: uid('s'), no: db.seq++, ts: Date.now(), items, subtotal: t.sub, discount: t.disc, total: t.total,
       costTotal, profit: t.total - costTotal, payType: S.pay, cash, card: cardSum, debt, customerId: S.pay === 'qarz' ? S.custId : null,
-      given: S.pay === 'naqd' ? rm(num(S.given)) : 0
+      given: S.pay === 'naqd' ? rm(num(S.given)) : 0, shiftId: curShiftId(), dev: DEV
     };
+    if (lines.some((it) => it.manual)) sale.manual = true;
     for (const it of items) { const p = prod(it.pid); if (p) p.stock = rq(p.stock - it.qty); }
     db.sales.push(sale);
     if (debt > 0) db.ledger.push({ id: uid('l'), ts: sale.ts, type: 'customer', partyId: sale.customerId, kind: 'debt', amount: debt, saleId: sale.id, note: 'Chek №' + sale.no });
     save();
     resetCart();
     receiptModal(sale, true);
+    if (setOn('autoPrint') && !NATIVE) { $('#print-area').innerHTML = receiptHtml(sale); setTimeout(() => window.print(), 60); }
+    const lim = +db.settings.suspPct || 0;
+    if (lim > 0 && sale.subtotal && sale.discount / sale.subtotal * 100 >= lim && typeof tgEvent === 'function') tgEvent('discount', { id: sale.id });
   };
   if (short.length) {
     confirmBox('Omborda yetarli emas', short.map((it) => '<b>' + esc(it.name) + '</b>: savatda ' + fq(it.qty) + ', omborda ' + fq(prod(it.pid).stock)).join('<br>') + '<br><br>Baribir sotilsinmi? Qoldiq minusga tushadi.', 'Ha, sotish', finish, false);
@@ -2481,20 +2530,23 @@ function receiptModal(s, fresh) {
 }
 function saleRowsHtml(list, opts = {}) {
   if (!list.length) return emptyState('receipt', opts.emptyTitle || 'Sotuv yoʻq', opts.emptyText || '');
+  const RS = {}; for (const r of db.returns) RS[r.saleId] = (RS[r.saleId] || 0) + r.total;
+  const retTag = (s) => (RS[s.id] ? ' <span class="badge b-neg">qaytarilgan ' + fmt(RS[s.id]) + '</span>' : '');
   const when = (s) => (opts.dates ? fdt(s.ts) : ftime(s.ts));
   const custName = (s) => { const c = s.customerId ? party('customer', s.customerId) : null; return c ? c.name : ''; };
   const acts = (s) => '<button data-rcpt="' + s.id + '" class="btn btn-text btn-sm" title="Chekni koʻrish">' + ic('receipt', 'w-4 h-4') + 'Chek</button>' +
-    '<button data-cancel="' + s.id + '" class="btn btn-text btn-sm text-neg" title="Sotuvni bekor qilish">' + ic('x', 'w-4 h-4') + 'Bekor</button>';
+    '<button data-ret="' + s.id + '" class="btn btn-text btn-sm" title="Tovar qaytarish (vozvrat)">' + ic('undo', 'w-4 h-4') + 'Qaytarish</button>' +
+    '<button data-cancel="' + s.id + '" class="btn btn-text btn-sm text-neg" title="Sotuvni butunlay bekor qilish">' + ic('x', 'w-4 h-4') + 'Bekor</button>';
   if (isWide()) {
     return '<div class="overflow-x-auto"><table class="tbl min-w-[760px]"><thead><tr><th>Chek</th><th>Vaqt</th><th>Mahsulotlar</th><th>Mijoz</th><th>Toʻlov</th><th class="r">Summa</th><th class="r">Foyda</th><th class="r">Amallar</th></tr></thead><tbody>' +
       list.map((s) => '<tr><td class="num font-semibold text-ink">№' + s.no + '</td><td class="num text-muted whitespace-nowrap">' + when(s) + '</td>' +
         '<td class="max-w-[280px]"><div class="truncate text-ink">' + esc(s.items.map((i) => i.name + ' ×' + fq(i.qty)).join(', ')) + '</div>' + (s.discount ? '<div class="text-xs text-faint num">chegirma ' + fmt(s.discount) + '</div>' : '') + '</td>' +
-        '<td class="text-muted">' + esc(custName(s) || '—') + '</td><td>' + payBadge(s.payType) + (s.debt ? ' <span class="text-xs text-warn num">qarz ' + fmt(s.debt) + '</span>' : '') + '</td>' +
+        '<td class="text-muted">' + esc(custName(s) || '—') + '</td><td>' + payBadge(s.payType) + (s.debt ? ' <span class="text-xs text-warn num">qarz ' + fmt(s.debt) + '</span>' : '') + retTag(s) + '</td>' +
         '<td class="r num font-semibold text-ink">' + fmt(s.total) + '</td><td class="r num ' + (s.profit < 0 ? 'text-neg' : 'text-pos') + '">' + fmt(s.profit) + '</td>' +
         '<td class="r whitespace-nowrap">' + acts(s) + '</td></tr>').join('') + '</tbody></table></div>';
   }
   return '<div>' + list.map((s) => '<div class="px-4 py-3 row-line">' +
-    '<div class="flex items-center justify-between gap-2"><div class="flex items-center gap-2 min-w-0"><span class="font-semibold text-ink num">№' + s.no + '</span><span class="text-xs text-faint num">' + when(s) + '</span>' + payBadge(s.payType) + '</div>' +
+    '<div class="flex items-center justify-between gap-2"><div class="flex items-center gap-2 min-w-0 flex-wrap"><span class="font-semibold text-ink num">№' + s.no + '</span><span class="text-xs text-faint num">' + when(s) + '</span>' + payBadge(s.payType) + retTag(s) + '</div>' +
     '<span class="font-bold num text-ink whitespace-nowrap">' + money(s.total) + '</span></div>' +
     '<div class="text-sm text-muted truncate mt-1">' + esc(s.items.map((i) => i.name + ' ×' + fq(i.qty)).join(', ')) + '</div>' +
     '<div class="flex items-center justify-between gap-2 mt-1"><span class="text-xs text-faint num truncate">' + (custName(s) ? esc(custName(s)) + ' · ' : '') + (s.debt ? 'qarz ' + fmt(s.debt) + ' · ' : '') + 'foyda ' + fmt(s.profit) + '</span>' +
@@ -2503,6 +2555,7 @@ function saleRowsHtml(list, opts = {}) {
 function bindSaleRows(el) {
   $$('[data-rcpt]', el).forEach((b) => b.onclick = () => receiptModal(db.sales.find((s) => s.id === b.dataset.rcpt), false));
   $$('[data-cancel]', el).forEach((b) => b.onclick = () => cancelSale(b.dataset.cancel));
+  $$('[data-ret]', el).forEach((b) => b.onclick = () => returnModal(b.dataset.ret));
 }
 function drawToday() {
   const el = $('#k-today');
@@ -2516,9 +2569,10 @@ function drawToday() {
   $$('[data-sv]', el).forEach((b) => b.onclick = () => { S.salesView = 'tarix'; render(); });
 }
 function cancelSale(id) {
-  if (!licGuard()) return;
+  if (!licGuard() || !adminGate('cancel', () => cancelSale(id))) return;
   const s = db.sales.find((x) => x.id === id);
   if (!s) return;
+  if (saleReturns(id).length) { toast('Bu chekda qaytarish bor — tovarlarni «Qaytarish» orqali qaytaring', 'warn'); return; }
   confirmBox('Chek №' + s.no + ' ni bekor qilish', 'Sotuv oʻchiriladi, mahsulotlar omborga qaytadi' + (s.debt ? ' va mijozning ' + money(s.debt) + ' qarzi ham oʻchiriladi' : '') + '.', 'Bekor qilish', () => {
     for (const it of s.items) { const p = prod(it.pid); if (p) p.stock = rq(p.stock + it.qty); }
     db.sales = db.sales.filter((x) => x.id !== id);
@@ -2553,7 +2607,8 @@ function renderTarix() {
     '<select id="sh-pay" class="input" aria-label="Toʻlov turi">' + opt('', 'Barcha toʻlov turlari', !H.pay) + ['naqd', 'karta', 'aralash', 'qarz'].map((p) => opt(p, PAY_LABEL[p], H.pay === p)).join('') + '</select>' +
     '<select id="sh-cust" class="input" aria-label="Mijoz">' + opt('', 'Barcha mijozlar', !H.cust) + custs.map((c) => opt(c.id, c.name, H.cust === c.id)).join('') + '</select></div>' +
     '<div id="sh-sum" class="grid grid-cols-2 xl:grid-cols-4 gap-3 mt-3"></div>' +
-    '<section class="card mt-3"><div id="sh-list"></div></section>'
+    '<section class="card mt-3"><div id="sh-list"></div></section>' +
+    '<section id="sh-rets" class="card mt-3 hidden"></section>'
   );
   bindSalesSeg();
   bindPeriodBar('sh', H, () => { H.limit = 60; renderTarix(); });
@@ -2570,11 +2625,14 @@ function drawTarix() {
     kpi('Tushum', tot.sum, { icon: 'cart', itone: 't-primary', id: 'sh-total', sub: tot.disc ? 'chegirma ' + fmt(tot.disc) : 'chegirmasiz' }) +
     kpi('Yalpi foyda', tot.profit, { icon: 'trend', itone: 't-pos', tone: tot.profit < 0 ? 'neg' : 'pos', id: 'sh-profit', sub: 'tushum − tannarx' }) +
     kpi('Qarzga sotilgan', tot.debt, { icon: 'book', itone: 't-warn', id: 'sh-debt', sub: 'naqd tushmagan qism' });
+  const rets = db.returns.filter((r) => inRange(r.ts, b)), retSum = rets.reduce((a, r) => a + r.total, 0);
+  if (retSum) { const st = $('#sh-total .text-xs'); if (st) st.textContent += ' · qaytarish −' + fmt(retSum); }
   const el = $('#sh-list');
   el.innerHTML = saleRowsHtml(list.slice(0, H.limit), { dates: b.from !== b.to, emptyTitle: 'Sotuv topilmadi', emptyText: 'Davr yoki filtrlarni oʻzgartirib koʻring' }) +
     (list.length > H.limit ? '<div class="px-4 py-3 border-t border-line text-center"><button id="sh-more" class="btn btn-ghost btn-sm">Yana koʻrsatish (' + (list.length - H.limit) + ' ta qoldi)</button></div>' : '');
   bindSaleRows(el);
   const more = $('#sh-more'); if (more) more.onclick = () => { H.limit += 60; drawTarix(); };
+  drawReturnsList($('#sh-rets'), db.returns.filter((r) => inRange(r.ts, b)));
 }
 
 /* ===================== OVOZLI BUYURTMA =====================
@@ -2919,17 +2977,626 @@ function voiceAdd() {
   const sec = $('#k-cartsec'); if (sec && appW() < 1280) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
+/* ===================== 1c. KASSA: SAVATLAR, SMENA, QAYTARISH, SKANER ===================== */
+/* Qurilma (kassa) belgisi: har bir telefon/kompyuter o'z kassasi (naqd pul qutisi) bilan ishlaydi */
+const DEV_KEY = 'minimarket_pos_dev', CARTS_KEY = 'minimarket_pos_carts', HELD_KEY = 'minimarket_pos_held';
+const DEV = (() => {
+  try { let d = localStorage.getItem(DEV_KEY); if (!d) { d = 'k' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); localStorage.setItem(DEV_KEY, d); } return d; }
+  catch (e) { return 'kmem'; }
+})();
+const lsGet = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k) || 'null'); return v == null ? d : v; } catch (e) { return d; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* ignore */ } };
+const setOn = (k, def) => (db.settings[k] === undefined ? !!def : !!db.settings[k]);
+
+/* ---------- 4 ta savat (F1–F4) ---------- */
+const CART_N = 4;
+const blankCart = () => ({ cart: [], disc: { type: 'sum', value: '' }, pay: 'naqd', given: '', mixCash: '', custId: '', paidNow: '' });
+const packCart = () => ({ cart: S.cart, disc: S.disc, pay: S.pay, given: S.given, mixCash: S.mixCash, custId: S.custId, paidNow: S.paidNow });
+function unpackCart(c) { c = Object.assign(blankCart(), c || {}); S.cart = Array.isArray(c.cart) ? c.cart : []; S.disc = c.disc && c.disc.type ? c.disc : { type: 'sum', value: '' }; S.pay = c.pay || 'naqd'; S.given = c.given || ''; S.mixCash = c.mixCash || ''; S.custId = c.custId || ''; S.paidNow = c.paidNow || ''; }
+let cartsT = 0;
+function persistCarts() {
+  clearTimeout(cartsT);
+  cartsT = setTimeout(() => { S.carts[S.ci] = packCart(); lsSet(CARTS_KEY, { ci: S.ci, carts: S.carts }); }, 250);
+}
+function loadCarts() {
+  const v = lsGet(CARTS_KEY, null);
+  S.carts = Array.from({ length: CART_N }, (_, i) => (v && v.carts && v.carts[i]) || blankCart());
+  S.ci = v && v.ci >= 0 && v.ci < CART_N ? v.ci : 0;
+  // o'chirilgan mahsulotlar savatdan olib tashlanadi
+  for (const c of S.carts) c.cart = (c.cart || []).filter((it) => it && (prod(it.pid) || it.free));
+  unpackCart(S.carts[S.ci]);
+}
+function switchCart(i) {
+  if (i === S.ci || i < 0 || i >= CART_N) return;
+  S.carts[S.ci] = packCart();
+  S.ci = i; unpackCart(S.carts[i]);
+  lsSet(CARTS_KEY, { ci: S.ci, carts: S.carts });
+  if (S.tab === 'kassa' && S.salesView === 'kassa') render(); else drawCartBar();
+}
+function cartTabsHtml() {
+  return '<div id="k-ctabs" class="grid grid-cols-4 gap-1.5 px-4 pt-3" role="tablist" aria-label="Savatlar">' + Array.from({ length: CART_N }, (_, i) => {
+    const c = i === S.ci ? packCart() : S.carts[i], n = (c.cart || []).length;
+    return '<button data-ct="' + i + '" role="tab" class="ctab' + (i === S.ci ? ' on' : '') + (n ? ' busy' : '') + '" title="Savat ' + (i + 1) + ' (F' + (i + 1) + ')"' + pressed(i === S.ci) + '>' +
+      ic('cart', 'w-4 h-4') + '<b class="num">' + (i + 1) + '</b>' + (n ? '<span class="count num">' + n + '</span>' : '') + '</button>';
+  }).join('') + '</div>';
+}
+function bindCartTabs() { $$('[data-ct]').forEach((b) => b.onclick = () => switchCart(+b.dataset.ct)); }
+
+/* ---------- Chekni saqlab turish («hozir kelaman» degan mijoz) ---------- */
+const heldList = () => lsGet(HELD_KEY, []);
+function holdCart() {
+  if (!S.cart.length) { toast('Savat boʻsh', 'warn'); return; }
+  const t = cartTotals();
+  openModal('Chekni saqlab turish',
+    '<p class="text-sm text-muted">Mijoz qaytib kelganda «Saqlangan cheklar»dan tiklaysiz. Hozircha keyingi mijozga xizmat qilaverasiz.</p>' +
+    '<label class="label mt-3" for="hd-n">Belgi (ixtiyoriy)</label><input id="hd-n" class="input" placeholder="masalan: qizil kurtkali ayol" autofocus>' +
+    '<p class="mt-3 rounded-xl bg-subtle px-3 py-2.5 text-sm num">' + S.cart.length + ' ta mahsulot · <b class="text-ink">' + money(t.total) + '</b></p>',
+    '<button data-close class="btn btn-ghost">Bekor qilish</button><button id="hd-ok" class="btn btn-primary">' + ic('inbox', 'w-4 h-4') + 'Saqlash</button>',
+    {
+      onMount: () => {
+        const ok = () => {
+          const L = heldList();
+          L.unshift(Object.assign(packCart(), { id: uid('t'), ts: Date.now(), label: $('#hd-n').value.trim(), total: t.total }));
+          lsSet(HELD_KEY, L.slice(0, 50));
+          closeModal(); resetCart(); toast('Chek saqlandi — «Saqlangan cheklar»da turibdi');
+        };
+        $('#hd-ok').onclick = ok; $('#hd-n').onkeydown = (e) => { if (e.key === 'Enter') ok(); };
+      }
+    });
+}
+function heldModal() {
+  const L = heldList();
+  openModal('Saqlangan cheklar',
+    L.length ? '<div class="border border-line rounded-xl overflow-hidden">' + L.map((h) => '<div class="p-3 row-line flex items-center gap-3">' +
+      '<div class="min-w-0 flex-1"><div class="font-semibold text-ink truncate">' + esc(h.label || 'Chek') + ' · <span class="num">' + money(h.total || 0) + '</span></div>' +
+      '<div class="text-xs text-faint num truncate">' + fdt(h.ts) + ' · ' + esc((h.cart || []).map((i) => i.name + ' ×' + fq(i.qty)).join(', ')) + '</div></div>' +
+      '<button data-hdel="' + h.id + '" class="btn btn-ghost btn-icon btn-sm text-neg" aria-label="Oʻchirish" title="Oʻchirish">' + ic('trash', 'w-4 h-4') + '</button>' +
+      '<button data-hres="' + h.id + '" class="btn btn-primary btn-sm">Tiklash</button></div>').join('') + '</div>'
+      : emptyState('inbox', 'Saqlangan chek yoʻq', 'Savatdagi «Saqlash» tugmasi bilan chekni keyinga qoldirasiz'),
+    '<button data-close class="btn btn-ghost">Yopish</button>',
+    {
+      onMount: () => {
+        $$('[data-hdel]').forEach((b) => b.onclick = () => { lsSet(HELD_KEY, heldList().filter((x) => x.id !== b.dataset.hdel)); heldModal(); updateHeldBtn(); });
+        $$('[data-hres]').forEach((b) => b.onclick = () => {
+          const h = heldList().find((x) => x.id === b.dataset.hres);
+          if (!h) return;
+          if (S.cart.length) { // band bo'lsa — bo'sh savatga
+            S.carts[S.ci] = packCart();
+            const free = S.carts.findIndex((c, i) => i !== S.ci && !(c.cart || []).length);
+            if (free < 0) { toast('Hamma savatlar band — avval bittasini yakunlang', 'warn'); return; }
+            S.ci = free;
+          }
+          unpackCart(h); S.cart = S.cart.filter((it) => prod(it.pid) || it.free);
+          lsSet(HELD_KEY, heldList().filter((x) => x.id !== h.id));
+          persistCarts(); closeModal(); S.salesView = 'kassa'; setTab('kassa'); toast('Chek tiklandi');
+        });
+      }
+    });
+}
+function updateHeldBtn() { const b = $('#k-held'); if (!b) return; const n = heldList().length; $('#k-heldn', b).textContent = n ? '(' + n + ')' : ''; }
+
+/* ---------- Savatda narxni o'zgartirish (faqat shu savdo uchun) ---------- */
+function linePriceModal(i) {
+  const it = S.cart[i];
+  if (!it) return;
+  const p = prod(it.pid);
+  openModal('Narx: ' + it.name,
+    '<label class="label" for="lp-v">Shu savdo uchun narx (1 ' + esc(it.unit) + ')</label><input id="lp-v" type="number" inputmode="numeric" min="0" class="input text-lg num" value="' + it.price + '" autofocus>' +
+    '<p class="hint">Doimiy narx «Mahsulotlar»da oʻzgartiriladi.' + (p ? ' Asl narx: ' + money(p.price) + '.' : '') + '</p>',
+    '<button data-close class="btn btn-ghost">Bekor qilish</button>' + (p && p.price !== it.price ? '<button id="lp-reset" class="btn btn-ghost">Asl narx</button>' : '') + '<button id="lp-ok" class="btn btn-primary">' + ic('check') + 'Qoʻllash</button>',
+    {
+      onMount: () => {
+        const ok = () => { const v = rm(num($('#lp-v').value)); if (v < 0) return; it.price = v; it.manual = p ? v !== p.price : true; closeModal(); drawCart(); };
+        $('#lp-ok').onclick = ok; $('#lp-v').onkeydown = (e) => { if (e.key === 'Enter') ok(); }; $('#lp-v').select();
+        if ($('#lp-reset')) $('#lp-reset').onclick = () => { it.price = p.price; delete it.manual; closeModal(); drawCart(); };
+      }
+    });
+}
+
+/* ---------- Shtrix-kod: skaner (USB, kamera), tarozi kodi, bazada yo'q tovar ---------- */
+// Tarozi yorlig'i: EAN-13, 20–29 bilan boshlanadi: 2X PPPPP WWWWW C — PLU (5 raqam) + og'irlik grammda (5 raqam)
+function parseScale(code) {
+  if (!setOn('scaleBarcodes') || !/^2\d{12}$/.test(code)) return null;
+  const plu = +code.slice(2, 7), grams = +code.slice(7, 12);
+  if (!grams) return null;
+  const p = db.products.find((x) => (x.plu && +x.plu === plu) || (x.barcode && x.barcode === code.slice(0, 7)));
+  return p ? { p, qty: rq(grams / 1000) } : null;
+}
+function findByCode(code) { return db.products.find((p) => p.barcode && p.barcode === code); }
+// Kassada skanerlangan kod
+function handleScan(raw) {
+  const code = String(raw || '').trim();
+  if (!code) return;
+  if (!licGuard()) return;
+  const p = findByCode(code);
+  if (p) { addToCart(p.id, 1); beep(true); return; }
+  const sc = parseScale(code);
+  if (sc) { addToCart(sc.p.id, sc.qty); beep(true); toast(sc.p.name + ': ' + fq(sc.qty) + ' ' + sc.p.unit); return; }
+  beep(false);
+  quickAddModal(code);
+}
+let audioCtx = null;
+function beep(ok) {
+  try {
+    audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.frequency.value = ok ? 1250 : 380; o.type = 'square'; g.gain.value = 0.04;
+    o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + (ok ? 0.07 : 0.22));
+  } catch (e) { /* ovozsiz */ }
+}
+// Bazada yo'q tovar: savdo to'xtamaydi — nom va narx yoziladi, kod eslab qolinadi («To'ldirish kerak» ro'yxatiga tushadi)
+function quickAddModal(code, onDone) {
+  openModal('Bazada yoʻq tovar',
+    '<div class="rounded-xl bg-warn-soft text-warn px-3 py-2.5 text-sm">Kod <b class="num">' + esc(code) + '</b> topilmadi. Nomi va narxini yozing — savatga tushadi, kod esa eslab qolinadi. Tannarx va boshqa maʼlumotlarni keyin «Mahsulotlar → Toʻldirish kerak»da kiritasiz.</div>' +
+    '<div class="grid grid-cols-2 gap-3 mt-3">' +
+    '<div class="col-span-2"><label class="label" for="qa-n">Nomi *</label><input id="qa-n" class="input" autocomplete="off" autofocus><p id="qa-off" class="hint hidden"></p></div>' +
+    '<div><label class="label" for="qa-p">Sotish narxi *</label><input id="qa-p" type="number" inputmode="numeric" min="0" class="input num text-lg"></div>' +
+    '<div><label class="label" for="qa-u">Birligi</label><select id="qa-u" class="input">' + UNITS.map((u) => opt(u, u, u === 'dona')).join('') + '</select></div></div>',
+    '<button data-close class="btn btn-ghost">Bekor qilish</button><button id="qa-ok" class="btn btn-primary">' + ic('plus') + (onDone ? 'Qoʻshish' : 'Savatga qoʻshish') + '</button>',
+    {
+      onMount: () => {
+        const nameIn = $('#qa-n');
+        // eslab qolingan nom bo'lsa — tayyor ma'lumot
+        const known = Object.values(db.names || {}).find((x) => x.barcode === code);
+        if (known) { nameIn.value = known.name; $('#qa-p').value = known.price || ''; $('#qa-u').value = known.unit || 'dona'; }
+        else offLookup(code).then((name) => { if (name && !nameIn.value && nameIn.isConnected) { nameIn.value = name; const h = $('#qa-off'); h.textContent = 'Nomi internetdan topildi (Open Food Facts) — tekshirib oling'; h.classList.remove('hidden'); } });
+        const ok = () => {
+          const name = nameIn.value.trim(), price = rm(num($('#qa-p').value)), unit = $('#qa-u').value;
+          if (!name) { toast('Nomini kiriting', 'warn'); nameIn.focus(); return; }
+          if (price <= 0) { toast('Narxini kiriting', 'warn'); $('#qa-p').focus(); return; }
+          let p = db.products.find((x) => skel(x.name) === skel(name));
+          if (p) { if (!p.barcode) p.barcode = code; }
+          else { p = { id: uid('p'), created: Date.now(), name, barcode: code, category: '', unit, cost: 0, price, stock: 0, min: 0, quick: true }; db.products.push(p); rememberName(p); }
+          save(); closeModal();
+          if (onDone) onDone(p); else { addToCart(p.id, 1); toast('Qoʻshildi: ' + name + ' — keyin tannarxini toʻldiring'); }
+        };
+        $('#qa-ok').onclick = ok;
+        $('#qa-p').onkeydown = (e) => { if (e.key === 'Enter') ok(); };
+        nameIn.onkeydown = (e) => { if (e.key === 'Enter') $('#qa-p').focus(); };
+      }
+    });
+}
+// Open Food Facts: faqat shtrix-kod raqami yuboriladi (sozlamada yoqilgan bo'lsa)
+async function offLookup(code) {
+  if (!setOn('offLookup') || !/^\d{8,14}$/.test(code) || navigator.onLine === false) return '';
+  try {
+    const ctl = new AbortController(); const t = setTimeout(() => ctl.abort(), 6000);
+    const r = await fetch('https://world.openfoodfacts.org/api/v2/product/' + code + '.json?fields=product_name,brands,quantity', { signal: ctl.signal });
+    clearTimeout(t);
+    const j = await r.json();
+    const p = j && j.status === 1 && j.product;
+    if (!p || !p.product_name) return '';
+    return [p.brands && !p.product_name.toLowerCase().includes(String(p.brands).split(',')[0].toLowerCase()) ? String(p.brands).split(',')[0] : '', p.product_name, p.quantity || ''].filter(Boolean).join(' ').trim();
+  } catch (e) { return ''; }
+}
+// USB skaner klaviatura kabi juda tez yozadi va Enter bosadi — kassa ochiq tursa, maydonni bosish shart emas
+const WEDGE = { buf: '', last: 0 };
+document.addEventListener('keydown', (e) => {
+  if (S.tab !== 'kassa' || S.salesView !== 'kassa' || e.ctrlKey || e.altKey || e.metaKey) return;
+  if ($('#modal-root').innerHTML) return;
+  const ae = document.activeElement, inField = ae && /INPUT|TEXTAREA|SELECT/.test(ae.tagName);
+  if (inField && ae.id !== 'k-search') return;
+  const now = Date.now();
+  if (e.key === 'Enter') {
+    if (WEDGE.buf.length >= 4 && now - WEDGE.last < 80 && !inField) { e.preventDefault(); const c = WEDGE.buf; WEDGE.buf = ''; handleScan(c); }
+    WEDGE.buf = ''; return;
+  }
+  if (e.key.length !== 1) return;
+  if (now - WEDGE.last > 60) WEDGE.buf = '';
+  WEDGE.buf += e.key; WEDGE.last = now;
+}, true);
+
+/* ---------- Kamera bilan skanerlash ---------- */
+// APK: telefonning o'z skaneri (Google ML Kit). Brauzer: BarcodeDetector, bo'lmasa ZXing (internetdan bir marta yuklanadi)
+let ZX_LOAD = null;
+function loadZxing() {
+  if (window.ZXing) return Promise.resolve(window.ZXing);
+  if (!ZX_LOAD) ZX_LOAD = new Promise((res, rej) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/@zxing/library@0.21.3/umd/index.min.js';
+    s.onload = () => (window.ZXing ? res(window.ZXing) : rej(new Error('zxing')));
+    s.onerror = () => { ZX_LOAD = null; rej(new Error('zxing')); };
+    document.head.appendChild(s);
+  });
+  return ZX_LOAD;
+}
+async function nativeScanOnce() {
+  const BS = nativePlugin('BarcodeScanner');
+  if (!BS) return null;
+  try {
+    if (BS.isGoogleBarcodeScannerModuleAvailable) {
+      const a = await BS.isGoogleBarcodeScannerModuleAvailable();
+      if (a && a.available === false) { toast('Skaner moduli yuklanmoqda — bir oz kuting va qayta bosing'); try { await BS.installGoogleBarcodeScannerModule(); } catch (e) { /* allaqachon yuklanmoqda */ } return { pending: true }; }
+    }
+    const r = await BS.scan({});
+    const b = r && r.barcodes && r.barcodes[0];
+    return { code: b ? String(b.rawValue || b.displayValue || '') : '' };
+  } catch (e) {
+    const m = String(e && e.message || '');
+    if (/cancel/i.test(m)) return { code: '' };
+    return null; // keyingi usul (veb kamera)
+  }
+}
+// opts: { title, multi (ketma-ket skanerlash), hint }
+async function cameraScan(onCode, opts = {}) {
+  if (NATIVE && nativePlugin('BarcodeScanner')) {
+    const r = await nativeScanOnce();
+    if (r && r.pending) return;
+    if (r) { if (r.code) { beep(true); onCode(r.code); if (opts.multi && !$('#modal-root').innerHTML) setTimeout(() => cameraScan(onCode, opts), 350); } return; }
+  }
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { toast('Bu qurilmada kamera ochilmadi', 'err'); return; }
+  let stream = null, stop = false, det = null, zx = null, lastCode = '', lastTs = 0;
+  const end = () => { stop = true; if (stream) stream.getTracks().forEach((t) => t.stop()); stream = null; if (zx) try { zx.reset(); } catch (e) { /* ignore */ } };
+  openModal(opts.title || 'Kamera bilan skanerlash',
+    '<div class="relative rounded-2xl overflow-hidden bg-black aspect-[4/3]"><video id="cam-v" class="w-full h-full object-cover" playsinline muted></video>' +
+    '<div class="absolute inset-x-8 top-1/2 -translate-y-1/2 h-24 rounded-xl border-2 border-white/80 shadow-[0_0_0_9999px_rgba(0,0,0,.35)] pointer-events-none"></div>' +
+    '<div class="absolute inset-x-12 top-1/2 h-0.5 bg-neg/80 pointer-events-none"></div></div>' +
+    '<p id="cam-s" class="mt-3 text-sm text-faint text-center">' + esc(opts.hint || 'Shtrix-kodni ramka ichiga keltiring') + '</p>' +
+    '<div class="mt-2 flex gap-2"><input id="cam-m" class="input num" inputmode="numeric" placeholder="yoki kodni qoʻlda yozing"><button id="cam-mok" class="btn btn-ghost shrink-0">OK</button></div>',
+    '<button data-close class="btn btn-primary">Tayyor</button>',
+    { onClose: end });
+  const st = $('#cam-s');
+  const got = (code) => {
+    const now = Date.now();
+    if (!code || (code === lastCode && now - lastTs < 2500)) return;
+    lastCode = code; lastTs = now;
+    beep(true);
+    onCode(code);
+    if (!$('#cam-v')) return; // boshqa oyna ochildi (masalan, bazada yo'q tovar) — kamera o'zi yopildi
+    if (!opts.multi) { closeModal(); return; }
+    if (st && st.isConnected) st.innerHTML = '<span class="text-pos font-semibold">✓ ' + esc(code) + '</span> — keyingisini skanerlang';
+  };
+  $('#cam-mok').onclick = () => { const v = $('#cam-m').value.trim(); if (v) { $('#cam-m').value = ''; lastCode = ''; got(v); } };
+  $('#cam-m').onkeydown = (e) => { if (e.key === 'Enter') $('#cam-mok').click(); };
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' }, width: { ideal: 1280 }, height: { ideal: 720 } }, audio: false });
+  } catch (e) {
+    if (st && st.isConnected) st.innerHTML = '<span class="text-neg">Kameraga ruxsat berilmadi.</span> Brauzer manzil qatoridagi qulf belgisi → Ruxsatlar → Kamera. Yoki kodni pastda qoʻlda yozing.';
+    return;
+  }
+  if (stop) { end(); return; }
+  const v = $('#cam-v'); if (!v) { end(); return; }
+  v.srcObject = stream; try { await v.play(); } catch (e) { /* ignore */ }
+  if ('BarcodeDetector' in window) {
+    try { det = new window.BarcodeDetector({ formats: ['ean_13', 'ean_8', 'upc_a', 'upc_e', 'code_128', 'code_39', 'itf', 'qr_code'] }); } catch (e) { det = null; }
+  }
+  if (det) {
+    const tick = async () => {
+      if (stop || !v.isConnected) return;
+      try { const r = await det.detect(v); if (r && r[0]) got(String(r[0].rawValue || '')); } catch (e) { /* kadr tayyor emas */ }
+      setTimeout(tick, 120);
+    };
+    tick(); return;
+  }
+  try {
+    const ZX = await loadZxing();
+    if (stop) return;
+    zx = new ZX.BrowserMultiFormatReader();
+    zx.decodeFromVideoElementContinuously(v, (res) => { if (res && !stop) got(res.getText()); });
+  } catch (e) {
+    if (st && st.isConnected) st.innerHTML = 'Bu brauzerda kamera skaneri ishlamadi (internet kerak). Kodni pastda qoʻlda yozing yoki USB skanerdan foydalaning.';
+  }
+}
+
+/* ---------- Smena va kassadagi naqd pul ---------- */
+function curShift(create) {
+  let sh = null;
+  for (const x of db.shifts) if (x.dev === DEV && !x.closeTs && (!sh || x.openTs > sh.openTs)) sh = x;
+  if (!sh && create) {
+    sh = { id: uid('h'), dev: DEV, openTs: Date.now(), openCash: nextOpenCash(), closeTs: null };
+    db.shifts.push(sh);
+  }
+  return sh;
+}
+const curShiftId = () => curShift(true).id;
+// Smena davomidagi naqd pul harakati (faqat shu kassaga tegishli yozuvlar: shiftId bo'yicha)
+function shiftFlow(sh) {
+  const f = { open: sh ? sh.openCash || 0 : 0, count: 0, cash: 0, card: 0, debt: 0, disc: 0, total: 0, retN: 0, ret: 0, retCash: 0, retCard: 0, cin: 0, cout: 0, custPay: 0, supPay: 0, exp: 0, prix: 0, ops: [] };
+  if (!sh) { f.expected = 0; return f; }
+  const id = sh.id;
+  for (const s of db.sales) if (s.shiftId === id) { f.count++; f.cash += s.cash; f.card += s.card; f.debt += s.debt; f.disc += s.discount; f.total += s.total; }
+  for (const r of db.returns) if (r.shiftId === id) { f.retN++; f.ret += r.total; f.retCash += r.refund.cash || 0; f.retCard += r.refund.card || 0; }
+  for (const o of db.cashops) if (o.shiftId === id) { if (o.kind === 'in') f.cin += o.amount; else f.cout += o.amount; f.ops.push(o); }
+  for (const l of db.ledger) if (l.shiftId === id && l.kind === 'payment' && !l.adjust && l.method !== 'karta') { if (l.type === 'customer') f.custPay += l.amount; else f.supPay += l.amount; }
+  for (const e of db.expenses) if (e.shiftId === id) f.exp += e.amount;
+  for (const m of db.moves) if (m.shiftId === id && m.type === 'prixod') f.prix += m.paid != null ? m.paid : m.total;
+  f.expected = rm(f.open + f.cash - f.retCash + f.cin - f.cout + f.custPay - f.supPay - f.exp - f.prix);
+  return f;
+}
+// «Kassadagi puldan» belgisi: naqd to'lov shu kassaning smena hisobiga tushadimi (oxirgi tanlov eslab qolinadi)
+function kassaChk(key, def, label) {
+  const on = lsGet('mm_kassa_' + key, def);
+  return '<label class="flex items-center gap-2 text-sm text-muted cursor-pointer"><input id="kc-' + key + '" type="checkbox" class="accent-current"' + (on ? ' checked' : '') + '> ' + label + '</label>';
+}
+// belgilangan bo'lsa (va sana bugun bo'lsa) — joriy smena raqami
+function kassaShift(key, dayK) { const el = $('#kc-' + key); if (!el) return null; lsSet('mm_kassa_' + key, el.checked); return el.checked && (!dayK || dayK === today()) ? curShiftId() : null; }
+// yopilgan oxirgi smenada qoldirilgan naqd (keyingi smena shu bilan ochiladi)
+function nextOpenCash() { let last = null; for (const x of db.shifts) if (x.dev === DEV && x.closeTs && (!last || x.closeTs > last.closeTs)) last = x; return last ? Math.max(0, rm(last.left != null ? last.left : last.counted || 0)) : 0; }
+function shiftBarHtml() {
+  const sh = curShift(false), f = shiftFlow(sh);
+  if (!sh) f.open = nextOpenCash();
+  return '<section id="k-shift" class="card mt-4 p-3 flex flex-wrap items-center gap-2">' +
+    '<div class="flex items-center gap-2.5 min-w-0 flex-1"><span class="ico t-muted">' + ic('cash', 'w-[18px] h-[18px]') + '</span><div class="min-w-0">' +
+    '<div class="text-sm font-semibold text-ink">' + (sh ? 'Smena ' + ftime(sh.openTs) + (dayKey(sh.openTs) !== today() ? ' (' + fd(dayKey(sh.openTs)) + ')' : '') + ' dan beri' : 'Smena hali ochilmagan') + '</div>' +
+    '<div class="text-xs text-faint num">Kassada naqd: <b id="k-drawer" class="text-ink">' + money(sh ? f.expected : f.open) + '</b>' + (sh ? ' · ' + f.count + ' ta chek' : ' · birinchi sotuvda ochiladi') + '</div></div></div>' +
+    '<div class="flex flex-wrap gap-2"><button id="k-cin" class="btn btn-ghost btn-sm">' + ic('plus', 'w-4 h-4') + 'Pul qoʻshish</button>' +
+    '<button id="k-cout" class="btn btn-ghost btn-sm">' + ic('minus', 'w-4 h-4') + 'Pul olish</button>' +
+    '<button id="k-z" class="btn btn-soft btn-sm">' + ic('receipt', 'w-4 h-4') + 'Kunni yopish (Z)</button></div></section>';
+}
+function bindShiftBar() {
+  const a = $('#k-cin'); if (!a) return;
+  a.onclick = () => cashOpModal('in'); $('#k-cout').onclick = () => cashOpModal('out'); $('#k-z').onclick = zModal;
+}
+function cashOpModal(kind) {
+  if (!licGuard()) return;
+  openModal(kind === 'in' ? 'Kassaga pul qoʻshish' : 'Kassadan pul olish',
+    '<label class="label" for="co-a">Summa *</label><input id="co-a" type="number" inputmode="numeric" min="0" class="input text-lg num" autofocus>' +
+    '<label class="label mt-3" for="co-n">Izoh</label><input id="co-n" class="input" placeholder="' + (kind === 'in' ? 'masalan: mayda pul' : 'masalan: egasi oldi, yetkazib beruvchiga') + '">' +
+    '<p class="hint">Bu savdo emas — faqat kassadagi naqd pul hisobiga taʼsir qiladi.</p>',
+    '<button data-close class="btn btn-ghost">Bekor qilish</button><button id="co-ok" class="btn btn-primary">' + ic('check') + 'Saqlash</button>',
+    {
+      onMount: () => {
+        once($('#co-ok'), () => {
+          const a = rm(num($('#co-a').value));
+          if (a <= 0) { toast('Summani kiriting', 'warn'); return; }
+          db.cashops.push({ id: uid('o'), ts: Date.now(), kind, amount: a, note: $('#co-n').value.trim(), shiftId: curShiftId(), dev: DEV });
+          save(); closeModal(); toast((kind === 'in' ? 'Kassaga qoʻshildi: ' : 'Kassadan olindi: ') + money(a)); render();
+        });
+      }
+    });
+}
+function zRows(f, sh) {
+  const L = (a, b, cls) => '<div class="flex justify-between gap-3 py-1.5 row-line text-sm"><span class="text-muted">' + a + '</span><span class="num ' + (cls || 'text-ink') + '">' + b + '</span></div>';
+  return L('Smena ochilgan', fdt(sh.openTs)) + L('Boshlangʻich naqd', money(f.open)) + L('Cheklar soni', String(f.count)) +
+    L('Naqd savdo', money(f.cash)) + L('Karta savdo', money(f.card)) + L('Qarzga savdo', money(f.debt), 'text-warn') +
+    (f.disc ? L('Berilgan chegirmalar', money(f.disc), 'text-faint') : '') +
+    (f.retN ? L('Qaytarishlar (' + f.retN + ' ta)', '−' + money(f.ret) + (f.retCash ? ' · naqd ' + fmt(f.retCash) : ''), 'text-neg') : '') +
+    (f.custPay ? L('Qarz toʻlovlari (naqd)', '+' + money(f.custPay), 'text-pos') : '') +
+    (f.cin ? L('Pul qoʻshildi', '+' + money(f.cin), 'text-pos') : '') + (f.cout ? L('Pul olindi', '−' + money(f.cout), 'text-neg') : '') +
+    (f.supPay + f.prix ? L('Taʼminotchilarga (kassadan)', '−' + money(f.supPay + f.prix), 'text-neg') : '') +
+    (f.exp ? L('Xarajatlar (kassadan)', '−' + money(f.exp), 'text-neg') : '') +
+    '<div class="flex justify-between gap-3 pt-2.5 mt-1 text-base font-bold"><span class="text-ink">Kassada boʻlishi kerak (naqd)</span><span class="num text-ink">' + money(f.expected) + '</span></div>';
+}
+function zModal() {
+  if (!licGuard()) return;
+  const sh = curShift(false);
+  if (!sh) { toast('Smena hali ochilmagan — bugun sotuv yoki kassa amali yoʻq', 'warn'); return; }
+  const f = shiftFlow(sh);
+  openModal('Kunni yopish — Z-hisobot',
+    '<div>' + zRows(f, sh) + '</div>' +
+    '<div class="grid sm:grid-cols-2 gap-3 mt-4"><div><label class="label" for="z-c">Sanalgan naqd (haqiqiy) *</label><input id="z-c" type="number" inputmode="numeric" min="0" class="input text-lg num" value="' + f.expected + '"></div>' +
+    '<div><label class="label" for="z-l">Ertangi smenaga qoldiriladi</label><input id="z-l" type="number" inputmode="numeric" min="0" class="input text-lg num" value="' + f.expected + '"><p class="hint">Qolgani egasiga topshiriladi</p></div></div>' +
+    '<p id="z-d" class="mt-3 rounded-xl px-3 py-2.5 text-sm font-semibold num"></p>',
+    '<button data-close class="btn btn-ghost">Bekor qilish</button><button id="z-ok" class="btn btn-primary">' + ic('check') + 'Smenani yopish</button>',
+    {
+      onMount: () => {
+        let leftTouched = false;
+        const upd = () => {
+          const c = rm(num($('#z-c').value)), d = c - f.expected, el = $('#z-d');
+          if (!leftTouched) $('#z-l').value = c;
+          el.className = 'mt-3 rounded-xl px-3 py-2.5 text-sm font-semibold num ' + (d === 0 ? 'bg-pos-soft text-pos' : d < 0 ? 'bg-neg-soft text-neg' : 'bg-warn-soft text-warn');
+          el.textContent = d === 0 ? '✓ Farq yoʻq' : d < 0 ? 'Kamomad: ' + money(-d) : 'Ortiqcha: ' + money(d);
+        };
+        $('#z-c').oninput = upd; $('#z-l').oninput = () => { leftTouched = true; };
+        upd(); $('#z-c').select();
+        once($('#z-ok'), () => {
+          const c = rm(num($('#z-c').value)), left = Math.min(c, Math.max(0, rm(num($('#z-l').value))));
+          Object.assign(sh, { closeTs: Date.now(), expected: f.expected, counted: c, diff: c - f.expected, left, z: { count: f.count, cash: f.cash, card: f.card, debt: f.debt, ret: f.ret, retCash: f.retCash, cin: f.cin, cout: f.cout, custPay: f.custPay, out: f.supPay + f.prix + f.exp, disc: f.disc } });
+          save(); closeModal(); render();
+          zReceiptModal(sh);
+          if (typeof tgEvent === 'function') tgEvent('z', { shiftId: sh.id });
+        });
+      }
+    });
+}
+function zReceiptHtml(sh) {
+  const z = sh.z || {}, L = (a, b) => '<div style="display:flex;justify-content:space-between;gap:8px"><span>' + a + '</span><span>' + b + '</span></div>';
+  return '<div style="text-align:center;font-weight:bold;font-size:14px">' + esc(db.settings.shopName || 'Minimarket') + '</div><div style="text-align:center">Z-HISOBOT</div>' +
+    '<div style="text-align:center">' + fdt(sh.openTs) + ' — ' + fdt(sh.closeTs) + '</div><hr style="border:0;border-top:1px dashed currentColor;margin:6px 0">' +
+    L('Cheklar', z.count || 0) + L('Naqd savdo', fmt(z.cash)) + L('Karta savdo', fmt(z.card)) + L('Qarzga', fmt(z.debt)) + (z.ret ? L('Qaytarish', '−' + fmt(z.ret)) : '') +
+    (z.custPay ? L('Qarz toʻlovi', fmt(z.custPay)) : '') + (z.cin ? L('Pul qoʻshildi', fmt(z.cin)) : '') + (z.cout ? L('Pul olindi', '−' + fmt(z.cout)) : '') + (z.out ? L('Kassadan toʻlovlar', '−' + fmt(z.out)) : '') +
+    '<hr style="border:0;border-top:1px dashed currentColor;margin:6px 0">' + L('Boʻlishi kerak', fmt(sh.expected)) + L('Sanaldi', fmt(sh.counted)) +
+    '<div style="display:flex;justify-content:space-between;font-weight:bold"><span>' + (sh.diff < 0 ? 'KAMOMAD' : sh.diff > 0 ? 'ORTIQCHA' : 'FARQ') + '</span><span>' + fmt(Math.abs(sh.diff || 0)) + '</span></div>' +
+    L('Qoldirildi', fmt(sh.left)) + L('Topshirildi', fmt((sh.counted || 0) - (sh.left || 0)));
+}
+function zReceiptModal(sh) {
+  openModal('Smena yopildi',
+    '<div class="mb-4 flex items-center gap-3 rounded-2xl ' + (sh.diff < 0 ? 'bg-neg-soft text-neg' : 'bg-pos-soft text-pos') + ' px-4 py-3"><span class="ico ' + (sh.diff < 0 ? 'bg-neg text-neg-on' : 'bg-pos text-pos-on') + '">' + ic(sh.diff < 0 ? 'alert' : 'check') + '</span><div class="num font-semibold">' +
+    (sh.diff < 0 ? 'Kamomad: ' + money(-sh.diff) : sh.diff > 0 ? 'Ortiqcha: ' + money(sh.diff) : 'Kassa toʻgʻri — farq yoʻq') + '</div></div>' +
+    '<div class="mx-auto max-w-xs bg-subtle border border-line rounded-xl p-4 font-mono text-sm leading-relaxed text-ink">' + zReceiptHtml(sh) + '</div>' +
+    '<p class="text-xs text-faint mt-3 text-center">Keyingi sotuv bilan yangi smena ochiladi (boshlangʻich naqd: ' + money(sh.left) + ').</p>',
+    '<button id="zr-print" class="btn btn-ghost">' + (NATIVE ? ic('receipt') + 'Yuborish' : ic('print') + 'Chop etish') + '</button><button data-close class="btn btn-primary">Yopish</button>');
+  $('#zr-print').onclick = () => printHtml('Z-hisobot', zReceiptHtml(sh));
+}
+function printHtml(title, html) {
+  if (NATIVE) { const tmp = document.createElement('div'); tmp.innerHTML = html; nativeShareText(title, tmp.innerText.replace(/\n{3,}/g, '\n\n').trim()); return; }
+  $('#print-area').innerHTML = html; window.print();
+}
+
+/* ---------- Qaytarish (vozvrat) ---------- */
+function returnedQty(saleId) {
+  const m = {};
+  for (const r of db.returns) if (r.saleId === saleId) for (const it of r.items) m[it.k] = rq((m[it.k] || 0) + it.qty);
+  return m;
+}
+const saleReturns = (saleId) => db.returns.filter((r) => r.saleId === saleId);
+function returnModal(saleId) {
+  if (!licGuard() || !adminGate('return', () => returnModal(saleId))) return;
+  const s = db.sales.find((x) => x.id === saleId);
+  if (!s) return;
+  const done = returnedQty(saleId);
+  const lines = s.items.map((it, k) => ({ it, k, max: rq(it.qty - (done[k] || 0)), unitNet: it.qty ? (it.sum - (it.disc || 0)) / it.qty : 0 })).filter((x) => x.max > 0);
+  if (!lines.length) { toast('Bu chekdagi hamma tovar allaqachon qaytarilgan', 'warn'); return; }
+  const c = s.customerId ? party('customer', s.customerId) : null;
+  const methods = [['naqd', 'Naqd qaytarildi']].concat(s.card ? [['karta', 'Kartaga qaytarildi']] : []).concat(c ? [['qarz', 'Mijoz qarzidan ayirish']] : []);
+  const defM = s.debt > 0 && c ? 'qarz' : s.payType === 'karta' ? 'karta' : 'naqd';
+  openModal('Qaytarish — chek №' + s.no,
+    '<p class="text-sm text-muted mb-3">Qaytarilayotgan miqdorni kiriting. Tovar omborga qaytadi, pul hisobotdan ayriladi.</p>' +
+    '<div class="border border-line rounded-xl overflow-hidden">' + lines.map(({ it, k, max, unitNet }) => '<div class="p-3 row-line flex items-center gap-3">' +
+      '<div class="min-w-0 flex-1"><div class="font-semibold text-ink truncate">' + esc(it.name) + '</div><div class="text-xs text-faint num">sotilgan ' + fq(it.qty) + ' ' + esc(it.unit) + (done[k] ? ' · qaytarilgan ' + fq(done[k]) : '') + ' · ' + fmt(unitNet) + ' / ' + esc(it.unit) + '</div></div>' +
+      '<input data-rq="' + k + '" type="number" inputmode="decimal" step="any" min="0" max="' + max + '" class="input input-sm num w-24" placeholder="0">' +
+      '<button data-rall="' + k + '" data-max="' + max + '" class="btn btn-ghost btn-sm shrink-0">hammasi</button></div>').join('') + '</div>' +
+    '<div class="grid sm:grid-cols-2 gap-3 mt-3"><div><label class="label" for="rt-m">Pul</label><select id="rt-m" class="input">' + methods.map((m) => opt(m[0], m[1], m[0] === defM)).join('') + '</select></div>' +
+    '<div><label class="label" for="rt-r">Sababi</label><select id="rt-r" class="input">' + ['Mijoz qaytardi', 'Sifatsiz / buzilgan', 'Xato urilgan', 'Boshqa'].map((r, i) => opt(r, r, !i)).join('') + '</select></div></div>' +
+    '<label class="mt-3 flex items-center gap-2 text-sm text-muted"><input id="rt-stock" type="checkbox" class="accent-current" checked> Tovar omborga qaytsin (sotsa boʻladigan holatda)</label>' +
+    '<p id="rt-sum" class="mt-3 rounded-xl bg-subtle px-3 py-2.5 text-sm num"></p>',
+    '<button data-close class="btn btn-ghost">Bekor qilish</button><button id="rt-ok" class="btn btn-danger">' + ic('history', 'w-4 h-4') + 'Qaytarish</button>',
+    {
+      wide: true,
+      onMount: () => {
+        const calc = () => {
+          let total = 0, n = 0;
+          for (const { k, max, unitNet } of lines) { const q = Math.min(max, Math.max(0, num($('[data-rq="' + k + '"]').value))); if (q > 0) { n++; total += rm(q * unitNet); } }
+          $('#rt-sum').innerHTML = n ? 'Qaytariladi: <b class="text-ink">' + money(total) + '</b> (' + n + ' ta tovar)' : 'Miqdorni kiriting';
+          return total;
+        };
+        $$('[data-rq]').forEach((i) => i.oninput = calc);
+        $$('[data-rall]').forEach((b) => b.onclick = () => { $('[data-rq="' + b.dataset.rall + '"]').value = b.dataset.max; calc(); });
+        if (lines.length === 1) { $('[data-rq="' + lines[0].k + '"]').value = lines[0].max; }
+        calc();
+        once($('#rt-ok'), () => {
+          const items = [];
+          for (const { it, k, max, unitNet } of lines) {
+            const q = rq(Math.min(max, Math.max(0, num($('[data-rq="' + k + '"]').value))));
+            if (q > 0) items.push({ k, pid: it.pid, name: it.name, unit: it.unit, qty: q, price: it.price, cost: it.cost, sum: rm(q * unitNet) });
+          }
+          if (!items.length) { toast('Qaytariladigan miqdorni kiriting', 'warn'); return; }
+          const total = items.reduce((a, x) => a + x.sum, 0), costTotal = items.reduce((a, x) => a + rm(x.qty * x.cost), 0);
+          const m = $('#rt-m').value, back = $('#rt-stock').checked;
+          const r = { id: uid('r'), ts: Date.now(), saleId: s.id, saleNo: s.no, items, total, costTotal, customerId: s.customerId || null, reason: $('#rt-r').value, restock: back,
+            refund: { cash: m === 'naqd' ? total : 0, card: m === 'karta' ? total : 0, debt: m === 'qarz' ? total : 0 }, shiftId: m === 'naqd' ? curShiftId() : null, dev: DEV };
+          if (back) for (const x of items) { const p = prod(x.pid); if (p) p.stock = rq(p.stock + x.qty); }
+          else for (const x of items) db.moves.push({ id: uid('m'), ts: r.ts, type: 'spisaniya', pid: x.pid, name: x.name, unit: x.unit, qty: 0, cost: x.cost, total: rm(x.qty * x.cost), reason: 'Qaytarilgan (yaroqsiz)', note: 'Chek №' + s.no, returnId: r.id });
+          db.returns.push(r);
+          if (m === 'qarz' && s.customerId) db.ledger.push({ id: uid('l'), ts: r.ts, type: 'customer', partyId: s.customerId, kind: 'payment', adjust: true, amount: total, returnId: r.id, note: 'Qaytarish: chek №' + s.no });
+          save(); closeModal(); toast('Qaytarildi: ' + money(total)); render();
+          if (typeof tgEvent === 'function') tgEvent('return', { id: r.id });
+        });
+      }
+    });
+}
+function drawReturnsList(el, list) {
+  if (!el) return;
+  el.classList.toggle('hidden', !list.length);
+  if (!list.length) { el.innerHTML = ''; return; }
+  list = list.slice().sort((a, b) => b.ts - a.ts);
+  el.innerHTML = '<div class="card-h"><h2 class="sect-t flex items-center gap-2">' + ic('undo', 'w-5 h-5 text-faint') + 'Qaytarishlar</h2><span class="text-sm text-faint num">' + list.length + ' ta · −' + money(list.reduce((a, r) => a + r.total, 0)) + '</span></div>' +
+    list.map((r) => '<div class="px-4 py-3 row-line flex items-center gap-3"><div class="min-w-0 flex-1"><div class="flex items-center gap-2 flex-wrap"><span class="font-semibold text-ink num">Chek №' + r.saleNo + '</span><span class="text-xs text-faint num">' + fdt(r.ts) + '</span><span class="badge b-muted">' + ({ cash: 'naqd', card: 'karta', debt: 'qarzdan' }[Object.keys(r.refund).find((k) => r.refund[k] > 0)] || '') + '</span></div>' +
+      '<div class="text-sm text-muted truncate">' + esc(r.items.map((i) => i.name + ' ×' + fq(i.qty)).join(', ')) + ' · ' + esc(r.reason || '') + '</div></div>' +
+      '<span class="font-bold num text-neg whitespace-nowrap">−' + money(r.total) + '</span><button data-rcancel="' + r.id + '" class="btn btn-text btn-sm text-neg shrink-0 -mr-2">Bekor</button></div>').join('');
+  $$('[data-rcancel]', el).forEach((x) => x.onclick = () => cancelReturn(x.dataset.rcancel));
+}
+function cancelReturn(id) {
+  if (!licGuard() || !adminGate('return', () => cancelReturn(id))) return;
+  const r = db.returns.find((x) => x.id === id);
+  if (!r) return;
+  confirmBox('Qaytarishni bekor qilish', 'Chek №' + r.saleNo + ' boʻyicha ' + money(r.total) + ' qaytarish bekor qilinadi, tovar qoldigʻi yana kamayadi.', 'Bekor qilish', () => {
+    if (r.restock) for (const x of r.items) { const p = prod(x.pid); if (p) p.stock = rq(p.stock - x.qty); }
+    db.returns = db.returns.filter((x) => x.id !== id);
+    db.ledger = db.ledger.filter((l) => l.returnId !== id);
+    db.moves = db.moves.filter((m) => m.returnId !== id);
+    save(); toast('Qaytarish bekor qilindi'); render();
+  });
+}
+
+/* ---------- Admin paroli (xavfli amallar uchun) — sozlamada o'rnatiladi ---------- */
+let ADMIN_OK_UNTIL = 0;
+const ADMIN_ACTS = { return: 'Qaytarish', cancel: 'Chekni bekor qilish', edit: 'Tovarni tahrirlash', inv: 'Inventarizatsiya', reset: 'Hammasini tozalash', del: 'Oʻchirish' };
+async function sha256Hex(t) {
+  if (window.crypto && crypto.subtle) { const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t)); return Array.from(new Uint8Array(b)).map((x) => x.toString(16).padStart(2, '0')).join(''); }
+  let h = 0; for (let i = 0; i < t.length; i++) h = (Math.imul(h, 31) + t.charCodeAt(i)) | 0; return 'w' + (h >>> 0).toString(16);
+}
+// true — ruxsat bor (parol o'rnatilmagan yoki yaqinda kiritilgan); false — parol so'raldi, amal parol to'g'ri bo'lgach qayta chaqiriladi
+function adminGate(act, retry) {
+  const h = db.settings.adminHash;
+  if (!h || Date.now() < ADMIN_OK_UNTIL) return true;
+  openModal('Admin paroli kerak',
+    '<p class="text-sm text-muted">«' + esc(ADMIN_ACTS[act] || act) + '» faqat admin paroli bilan bajariladi.</p>' +
+    '<label class="label mt-3" for="ad-p">Parol</label><input id="ad-p" type="password" class="input" autocomplete="current-password" autofocus>',
+    '<button data-close class="btn btn-ghost">Bekor qilish</button><button id="ad-ok" class="btn btn-primary">Tasdiqlash</button>',
+    {
+      onMount: () => {
+        const ok = async () => {
+          const v = $('#ad-p').value;
+          if (await sha256Hex('mm:' + v) !== h) { toast('Parol notoʻgʻri', 'err'); $('#ad-p').select(); return; }
+          ADMIN_OK_UNTIL = Date.now() + 5 * 60e3; // 5 daqiqa qayta so'ralmaydi
+          closeModal(true);
+          if (retry) retry();
+        };
+        $('#ad-ok').onclick = ok; $('#ad-p').onkeydown = (e) => { if (e.key === 'Enter') ok(); };
+      }
+    });
+  return false;
+}
+
+/* ---------- Sozlamalar: kassa va nazorat ---------- */
+function swRow(key, def, title, sub) {
+  return '<label class="mt-3 flex items-center justify-between gap-3 cursor-pointer"><span><span class="block text-sm font-semibold text-ink">' + title + '</span><span class="block text-xs text-faint">' + sub + '</span></span>' +
+    '<input data-sw="' + key + '" type="checkbox" class="switch"' + (setOn(key, def) ? ' checked' : '') + '></label>';
+}
+function kassaSettingsCard() {
+  return '<section class="card p-4"><h2 class="sect-t flex items-center gap-2">' + ic('cart', 'w-5 h-5 text-faint') + 'Kassa</h2>' +
+    swRow('autoPrint', false, 'Har savdodan keyin chek chop etilsin (80 mm)', 'Brauzer chop etish oynasi orqali · faqat shu qurilmada') +
+    swRow('scaleBarcodes', false, 'Tarozi shtrix-kodlarini oʻqish', 'EAN-13, 20–29 bilan boshlanadi: kod ichida tovar raqami (PLU) va gramm') +
+    swRow('offLookup', false, 'Yangi tovar nomini internetdan qidirish', 'Open Food Facts — faqat shtrix-kod raqami yuboriladi') +
+    swRow('askShort', false, 'Qoldiq yetmasa sotishdan oldin soʻrash', 'Oʻchiq boʻlsa tovar sotilaveradi, qoldiq minusga yoziladi (keyin kirimda toʻgʻrilanadi)') +
+    swRow('stockWarn', true, 'Qoldiq yetmasa ogohlantirish', 'Savatga qoʻshganda qisqa xabar chiqadi') + '</section>';
+}
+function controlSettingsCard() {
+  const h = db.settings.adminHash;
+  return '<section class="card p-4"><h2 class="sect-t flex items-center gap-2">' + ic('lock', 'w-5 h-5 text-faint') + 'Nazorat</h2>' +
+    '<div class="mt-3 flex gap-2 items-end"><div class="flex-1"><label class="label" for="st-susp">Shubhali chegirma (%)</label><input id="st-susp" type="number" inputmode="numeric" min="0" max="100" class="input num" value="' + esc(db.settings.suspPct || '') + '" placeholder="masalan 15"></div>' +
+    '<button id="st-susp-ok" class="btn btn-ghost">Saqlash</button></div>' +
+    '<p class="hint">Chegirma shu foizdan oshsa, savdo «shubhali» sanaladi (Hisobotlarda koʻrinadi, Telegram ulangan boʻlsa xabar keladi).</p>' +
+    '<div class="mt-4 flex items-center justify-between gap-3 rounded-xl border border-line px-3 py-2.5"><div><div class="text-sm font-semibold text-ink">Admin paroli</div><div class="text-xs ' + (h ? 'text-pos' : 'text-faint') + '">' + (h ? 'Oʻrnatilgan — himoya yoqiq' : 'Oʻrnatilmagan') + '</div></div>' +
+    '<div class="flex gap-2">' + (h ? '<button id="st-adm-off" class="btn btn-ghost btn-sm">Olib tashlash</button>' : '') + '<button id="st-adm" class="btn btn-primary btn-sm">' + (h ? 'Oʻzgartirish' : 'Oʻrnatish') + '</button></div></div>' +
+    '<p class="hint">Parol oʻrnatilsa: qaytarish, chekni bekor qilish, tovarni tahrirlash/oʻchirish, inventarizatsiya va hammasini tozalash faqat parol bilan boʻladi. Kassir oddiy savdoni parolsiz qiladi.</p></section>';
+}
+function bindKassaSettings() {
+  $$('[data-sw]').forEach((el) => el.onchange = () => { db.settings[el.dataset.sw] = el.checked; save(); toast(el.checked ? 'Yoqildi' : 'Oʻchirildi'); });
+  const sb = $('#st-susp-ok'); if (sb) sb.onclick = () => { const v = Math.min(100, Math.max(0, rm(num($('#st-susp').value)))); if (v) db.settings.suspPct = v; else delete db.settings.suspPct; save(); toast('Saqlandi'); };
+  const a = $('#st-adm'); if (a) a.onclick = () => adminGate('pw', adminPwModal) && adminPwModal();
+  const off = $('#st-adm-off'); if (off) off.onclick = () => adminGate('pw', () => off.click()) && confirmBox('Admin parolini olib tashlash', 'Himoya oʻchadi: hamma amallar parolsiz bajariladi.', 'Olib tashlash', () => { delete db.settings.adminHash; save(); toast('Admin paroli olib tashlandi'); render(); });
+}
+ADMIN_ACTS.pw = 'Admin parolini oʻzgartirish';
+function adminPwModal() {
+  openModal('Admin paroli',
+    '<label class="label" for="ap-1">Yangi parol (kamida 4 belgi)</label><input id="ap-1" type="password" class="input" autocomplete="new-password" autofocus>' +
+    '<label class="label mt-3" for="ap-2">Takrorlang</label><input id="ap-2" type="password" class="input" autocomplete="new-password">' +
+    '<p class="hint">Parolni kassirga bermang. Unutsangiz — sotuvchiga murojaat qiling.</p>',
+    '<button data-close class="btn btn-ghost">Bekor qilish</button><button id="ap-ok" class="btn btn-primary">' + ic('check') + 'Saqlash</button>',
+    {
+      onMount: () => {
+        $('#ap-ok').onclick = async () => {
+          const a = $('#ap-1').value, b = $('#ap-2').value;
+          if (a.length < 4) { toast('Parol kamida 4 belgi', 'warn'); return; }
+          if (a !== b) { toast('Parollar bir xil emas', 'warn'); return; }
+          db.settings.adminHash = await sha256Hex('mm:' + a); ADMIN_OK_UNTIL = Date.now() + 5 * 60e3;
+          save(); closeModal(); toast('Admin paroli oʻrnatildi'); render();
+        };
+      }
+    });
+}
+function clearAllCarts() {
+  S.carts = Array.from({ length: CART_N }, blankCart); S.ci = 0; unpackCart(S.carts[0]);
+  lsSet(CARTS_KEY, null); lsSet(HELD_KEY, []);
+  if (S.tab === 'kassa') render(); else drawCartBar();
+}
+loadCarts();
+
 /* ===================== 2. MAHSULOTLAR (ombor) ===================== */
 const SORTS = [
   ['stock', 'Avval kam qolganlar'], ['name', 'Nomi: A → Z'], ['qtyAsc', 'Qoldiq: kamdan koʻpga'], ['qtyDesc', 'Qoldiq: koʻpdan kamga'],
   ['priceDesc', 'Narx: qimmatdan'], ['marginDesc', 'Foyda foizi: yuqoridan'], ['valueDesc', 'Ombor qiymati: kattadan']
 ];
 const unitProfit = (p) => rm(p.price - p.cost);
+// kassada tez qo'shilgan yoki tannarxi yo'q tovar — foyda hisobi aniq bo'lishi uchun to'ldirilishi kerak
+const needsFill = (p) => !!p.quick || !(p.cost > 0);
 const markup = (p) => (p.cost > 0 ? Math.round((p.price - p.cost) / p.cost * 100) : null);
 const marginPct = (p) => (p.price > 0 ? Math.round((p.price - p.cost) / p.price * 100) : null);
 function renderOmbor() {
   const sv = stockValue();
-  const low = db.products.filter(isLow), out = db.products.filter(isOut);
+  const low = db.products.filter(isLow), out = db.products.filter(isOut), fill = db.products.filter(needsFill);
   const catsN = new Set(db.products.map((p) => p.category).filter(Boolean)).size;
   $('#main').innerHTML = wrap(
     pageHead('Mahsulotlar', db.products.length + ' ta mahsulot · qoldiq, narx va ombor qiymati',
@@ -2954,7 +3621,8 @@ function renderOmbor() {
         '<div class="seg" role="group" aria-label="Holat boʻyicha">' +
         '<button data-ost=""' + pressed(!S.ostat) + '>Hammasi</button>' +
         '<button data-ost="low"' + pressed(S.ostat === 'low') + '>Kam qolgan' + (low.length ? ' <span class="count bg-warn text-warn-on">' + low.length + '</span>' : '') + '</button>' +
-        '<button data-ost="out"' + pressed(S.ostat === 'out') + '>Tugagan' + (out.length ? ' <span class="count bg-neg text-neg-on">' + out.length + '</span>' : '') + '</button></div>' +
+        '<button data-ost="out"' + pressed(S.ostat === 'out') + '>Tugagan' + (out.length ? ' <span class="count bg-neg text-neg-on">' + out.length + '</span>' : '') + '</button>' +
+        (fill.length || S.ostat === 'fill' ? '<button data-ost="fill"' + pressed(S.ostat === 'fill') + ' title="Kassada tez qoʻshilgan yoki tannarxi kiritilmagan tovarlar">Toʻldirish kerak <span class="count bg-primary text-primary-on">' + fill.length + '</span></button>' : '') + '</div>' +
         '<select id="o-sort" class="input" aria-label="Saralash">' + SORTS.map((s) => opt(s[0], s[1], S.osort === s[0])).join('') + '</select></div>' +
         '<div id="o-cats" class="flex gap-2 overflow-x-auto no-sb" role="group" aria-label="Kategoriya"></div></div>' +
         '<div id="o-table"></div></section>')
@@ -2999,7 +3667,7 @@ function productActions(p, compact) {
   return b('data-ap', 'inbox', 'Kirim (prixod)', 'text-pos') + b('data-as', 'minus', 'Spisaniya', 'text-warn') + b('data-ae', 'edit', 'Tahrirlash') + b('data-ad', 'trash', 'Oʻchirish', 'text-neg');
 }
 function drawProducts() {
-  const base = db.products.filter((p) => (!S.ocat || p.category === S.ocat) && (!S.ostat || (S.ostat === 'low' ? isLow(p) : isOut(p))));
+  const base = db.products.filter((p) => (!S.ocat || p.category === S.ocat) && (!S.ostat || (S.ostat === 'low' ? isLow(p) : S.ostat === 'fill' ? needsFill(p) : isOut(p))));
   const list = S.oq.trim() ? searchList(base, S.oq, (p) => p.name, (p) => p.barcode || '') : sortProducts(base);
   const el = $('#o-table');
   if (!list.length) {
@@ -3050,7 +3718,7 @@ function bindProductActions(el) {
   $$('[data-ad]', el).forEach((b) => b.onclick = () => deleteProduct(b.dataset.ad));
 }
 function deleteProduct(id) {
-  if (!licGuard()) return;
+  if (!licGuard() || !adminGate('del', () => deleteProduct(id))) return;
   const p = prod(id);
   if (!p) return;
   confirmBox('Mahsulotni oʻchirish', '<b>' + esc(p.name) + '</b> roʻyxatdan oʻchirilsinmi? Eski sotuvlar tarixda qoladi, nomi esa keyingi safar tavsiya sifatida chiqadi.', 'Oʻchirish', () => {
@@ -3172,9 +3840,9 @@ function profitHtml(cost, price, qty, unit, qtyWord) {
     (bad ? '<div class="mt-1.5 font-semibold text-neg">Diqqat: sotish narxi tannarxdan past — zararga sotiladi!</div>' : '');
 }
 function productModal(id, prefill) {
-  if (!licGuard()) return;
+  if (!licGuard() || (id && !adminGate('edit', () => productModal(id, prefill)))) return;
   const p = id ? prod(id) : null;
-  const v = p || { name: '', barcode: '', category: '', unit: 'dona', cost: '', price: '', stock: '', min: '' };
+  const v = p || { name: '', barcode: '', category: '', unit: 'dona', cost: '', price: '', stock: '', min: '', fav: false, plu: '' };
   if (!p && prefill) { if (/^\d{6,}$/.test(prefill)) v.barcode = prefill; else v.name = prefill; }
   openModal(p ? 'Mahsulotni tahrirlash' : 'Yangi mahsulot',
     '<div class="grid sm:grid-cols-2 gap-3">' +
@@ -3186,6 +3854,8 @@ function productModal(id, prefill) {
     '<div><label class="label" for="p-min">Minimal qoldiq chegarasi</label><input id="p-min" type="number" inputmode="decimal" step="any" min="0" class="input num" value="' + esc(v.min) + '" placeholder="0"></div>' +
     markupFields('p', 'Kelish narxi (tannarx) *', 'Sotish narxi *', v.cost, v.price) +
     '<div class="sm:col-span-2"><label class="label" for="p-stock">' + (p ? 'Hozirgi qoldiq (sanab chiqib toʻgʻrilash mumkin)' : 'Boshlangʻich qoldiq') + '</label><input id="p-stock" type="number" inputmode="decimal" step="any" class="input num" value="' + esc(v.stock) + '" placeholder="0"></div>' +
+    (setOn('scaleBarcodes') ? '<div><label class="label" for="p-plu">Tarozi kodi (PLU)</label><input id="p-plu" class="input num" inputmode="numeric" value="' + esc(v.plu || '') + '" placeholder="masalan 00012"><p class="hint">Tarozi yorligʻidagi tovar raqami (5 raqam)</p></div>' : '') +
+    '<label class="' + (setOn('scaleBarcodes') ? '' : 'sm:col-span-2 ') + 'flex items-center gap-3 rounded-xl border border-line px-3 py-2.5 cursor-pointer self-end min-h-[46px]"><input id="p-fav" type="checkbox" class="switch"' + (v.fav ? ' checked' : '') + '><span class="text-sm"><b class="text-ink">Kassada tez tugma</b> <span class="text-faint">— shtrixsiz tovar (non, meva, paket) uchun</span></span></label>' +
     '<div id="p-mk" class="sm:col-span-2 rounded-xl bg-subtle p-3 text-sm text-muted num space-y-1"></div></div>',
     '<button data-close class="btn btn-ghost">Bekor qilish</button><button id="p-save" class="btn btn-primary">' + ic('check') + 'Saqlash</button>',
     {
@@ -3236,8 +3906,9 @@ function productModal(id, prefill) {
           const twin = db.products.find((x) => x.id !== id && skel(x.name) === skel(name));
           if (twin) { toast('«' + twin.name + '» omborda allaqachon bor', 'err'); return; }
           if (cost > price) toast('Diqqat: tannarx sotish narxidan yuqori', 'warn');
-          const data = { name, barcode, category: $('#p-cat').value.trim() || 'Boshqa', unit: $('#p-unit').value, cost, price, stock: rq(num($('#p-stock').value)), min: rq(num($('#p-min').value)) };
-          if (p) Object.assign(p, data); else db.products.push(Object.assign({ id: uid('p'), created: Date.now() }, data));
+          const data = { name, barcode, category: $('#p-cat').value.trim() || 'Boshqa', unit: $('#p-unit').value, cost, price, stock: rq(num($('#p-stock').value)), min: rq(num($('#p-min').value)), fav: $('#p-fav').checked };
+          if ($('#p-plu')) data.plu = $('#p-plu').value.replace(/\D/g, '');
+          if (p) { Object.assign(p, data); if (cost > 0) delete p.quick; } else db.products.push(Object.assign({ id: uid('p'), created: Date.now() }, data));
           rememberName(data);
           save(); closeModal(); toast(p ? 'Saqlandi: ' + name : 'Qoʻshildi: ' + name); render();
         });
@@ -3272,7 +3943,7 @@ function prixodModal(pid) {
     markupFields('x', 'Kelish narxi (1 birlik uchun)', 'Sotish narxi (1 birlik)', '', '') +
     '<div class="sm:col-span-2"><label class="label" for="x-d">Sana</label><input id="x-d" type="date" class="input" value="' + today() + '" max="' + today() + '"></div>' +
     '<div class="sm:col-span-2"><label class="label" for="x-sup">Taʼminotchi (optomchi)</label><div class="flex gap-2"><select id="x-sup" class="input">' + opt('', '— koʻrsatilmagan —', true) + sups.map((s) => opt(s.id, s.name, false)).join('') + '</select><button id="x-newsup" class="btn btn-ghost shrink-0">' + ic('plus', 'w-4 h-4') + 'Yangi</button></div></div>' +
-    '<div class="sm:col-span-2"><span class="label">Toʻlov</span><div class="flex gap-2"><label class="radio-card"><input type="radio" name="x-pay" value="naqd" checked class="accent-current"> Naqd toʻlandi</label><label class="radio-card"><input type="radio" name="x-pay" value="qarz" class="accent-current"> Qarzga olindi</label></div></div>' +
+    '<div class="sm:col-span-2"><span class="label">Toʻlov</span><div class="flex gap-2"><label class="radio-card"><input type="radio" name="x-pay" value="naqd" checked class="accent-current"> Naqd toʻlandi</label><label class="radio-card"><input type="radio" name="x-pay" value="qarz" class="accent-current"> Qarzga olindi</label></div><div class="mt-2">' + kassaChk('prix', false, 'Naqd pul kassadan berildi') + '</div></div>' +
     '<div class="sm:col-span-2"><label class="label" for="x-n">Izoh</label><input id="x-n" class="input" placeholder="ixtiyoriy"></div>' +
     '<div id="x-info" class="sm:col-span-2 rounded-xl bg-subtle p-3 text-sm text-muted num space-y-1"></div>' +
     '<p class="sm:col-span-2 hint">Tovar xaridi xarajat emas: u omborga qoʻshiladi, tannarx esa sotilganda foydadan ayriladi.</p></div>',
@@ -3311,6 +3982,7 @@ function prixodModal(pid) {
           if (sp > 0) p.price = sp;
           const ts = tsFromDay($('#x-d').value || today());
           const m = { id: uid('m'), ts, type: 'prixod', pid: p.id, name: p.name, unit: p.unit, qty: q, cost: c, total: rm(q * c), supplierId, payMode, note: $('#x-n').value.trim() };
+          if (payMode === 'naqd') { const sh = kassaShift('prix', $('#x-d').value || today()); if (sh) m.shiftId = sh; }
           db.moves.push(m);
           if (payMode === 'qarz') db.ledger.push({ id: uid('l'), ts, type: 'supplier', partyId: supplierId, kind: 'debt', amount: m.total, moveId: m.id, note: 'Prixod: ' + p.name + ' ' + fq(q) + ' ' + p.unit });
           save(); closeModal(); toast('Kirim qilindi: ' + p.name + ' +' + fq(q) + ' ' + p.unit); render();
@@ -3514,7 +4186,8 @@ function payModal(type, id, addDebt) {
       '<button data-pq="' + half + '" class="chip num">Yarmi: ' + fmt(half) + '</button>' +
       '<button data-pq="' + bal + '" class="chip num">Toʻliq: ' + fmt(bal) + '</button></div>' : '') +
     '<p id="pm-left" class="mt-2 text-sm num"></p></div>' +
-    (!addDebt ? '<div><label class="label" for="pm-m">Toʻlov turi</label><select id="pm-m" class="input">' + opt('naqd', 'Naqd', true) + opt('karta', 'Plastik karta', false) + '</select></div>' : '') +
+    (!addDebt ? '<div><label class="label" for="pm-m">Toʻlov turi</label><select id="pm-m" class="input">' + opt('naqd', 'Naqd', true) + opt('karta', 'Plastik karta', false) + '</select>' +
+      '<div class="mt-2">' + (type === 'customer' ? kassaChk('cpay', true, 'Naqd pul shu kassaga tushdi') : kassaChk('spay', false, 'Kassadagi naqd puldan toʻlandi')) + '</div></div>' : '') +
     '<div><label class="label" for="pm-d">Sana</label><input id="pm-d" type="date" class="input" value="' + today() + '" max="' + today() + '"></div>' +
     '<div><label class="label" for="pm-n">Izoh</label><input id="pm-n" class="input" placeholder="ixtiyoriy"></div>' +
     (!addDebt && type === 'customer' ? '<p class="hint">Qarz toʻlovi yangi savdo emas: tushum va foydaga qoʻshilmaydi, faqat kassaga tushgan pulda koʻrinadi.</p>' : '') + '</div>',
@@ -3533,7 +4206,9 @@ function payModal(type, id, addDebt) {
           if (a <= 0) { toast('Summani kiriting', 'warn'); return; }
           if (!addDebt && a > bal) toast('Diqqat: qarzdan koʻp summa kiritildi', 'warn');
           const method = $('#pm-m') ? $('#pm-m').value : null;
-          db.ledger.push({ id: uid('l'), ts: tsFromDay($('#pm-d').value || today()), type, partyId: id, kind: addDebt ? 'debt' : 'payment', amount: a, method, note: $('#pm-n').value.trim() || (addDebt ? "Qo'lda qo'shilgan qarz" : (method === 'karta' ? "To'lov (karta)" : "To'lov (naqd)")) });
+          const L = { id: uid('l'), ts: tsFromDay($('#pm-d').value || today()), type, partyId: id, kind: addDebt ? 'debt' : 'payment', amount: a, method, note: $('#pm-n').value.trim() || (addDebt ? "Qo'lda qo'shilgan qarz" : (method === 'karta' ? "To'lov (karta)" : "To'lov (naqd)")) };
+          const sh = !addDebt && method === 'naqd' ? kassaShift(type === 'customer' ? 'cpay' : 'spay', $('#pm-d').value || today()) : null; if (sh) L.shiftId = sh;
+          db.ledger.push(L);
           save(); closeModal();
           const rest = balance(type, id);
           toast((addDebt ? 'Qarz qoʻshildi: ' : 'Toʻlov saqlandi: ') + money(a) + ' · qoldi ' + money(rest)); render();
@@ -3632,6 +4307,7 @@ function renderXarajat() {
     '<div class="grid grid-cols-2 gap-3"><div><label class="label" for="e-d">Sana</label><input id="e-d" type="date" class="input" value="' + t + '" max="' + t + '"></div>' +
     '<div><span class="label">Toʻlov turi</span><div class="seg w-full" role="group" aria-label="Toʻlov turi"><button data-epm="naqd" aria-pressed="true">Naqd</button><button data-epm="karta" aria-pressed="false">Karta</button></div></div></div>' +
     '<div><label class="label" for="e-n">Izoh</label><input id="e-n" class="input" placeholder="Masalan: oktabr oyi ijarasi"></div>' +
+    kassaChk('exp', false, 'Kassadagi naqd puldan toʻlandi') +
     '<button id="e-ok" class="btn btn-primary w-full">' + ic('plus') + 'Xarajatni qoʻshish</button>' +
     '<p class="hint flex gap-1.5">' + ic('info', 'w-4 h-4 shrink-0') + '<span>Tovar xaridi (prixod) bu yerga yozilmaydi — u Mahsulotlar → Kirim orqali omborga qoʻshiladi. Shunda foyda ikki marta ayirilmaydi.</span></p></div></section>' +
     '<section class="min-w-0 space-y-3">' +
@@ -3660,7 +4336,9 @@ function renderXarajat() {
     const a = rm(num($('#e-a').value));
     if (a <= 0) { toast('Summani kiriting', 'warn'); return; }
     const d = $('#e-d').value || today();
-    db.expenses.push({ id: uid('e'), ts: tsFromDay(d), category: cat, amount: a, note: $('#e-n').value.trim(), method });
+    const e = { id: uid('e'), ts: tsFromDay(d), category: cat, amount: a, note: $('#e-n').value.trim(), method };
+    const sh = method === 'naqd' ? kassaShift('exp', d) : null; if (sh) e.shiftId = sh;
+    db.expenses.push(e);
     if (!inRange(tsFromDay(d), periodBounds(E))) { E.mode = 'month'; E.from = d; }
     save(); toast('Xarajat qoʻshildi: ' + cat + ' ' + money(a)); renderXarajat();
   });
@@ -3818,6 +4496,7 @@ function renderSozlama() {
     '<p class="hint">«Tizim» — telefon/kompyuter sozlamasiga qarab avtomatik almashadi.</p></div>' +
     '<label class="mt-4 flex items-center justify-between gap-3 cursor-pointer"><span><span class="block text-sm font-semibold text-ink">Telefonda avtomatik toʻliq ekran</span><span class="block text-xs text-faint">Birinchi bosishda toʻliq ekran va tik holat</span></span>' +
     '<input id="st-full" type="checkbox" class="switch"' + (db.settings.autoFull === false ? '' : ' checked') + '></label></section>' +
+    kassaSettingsCard() + controlSettingsCard() +
     '<section class="card p-4 lg:col-span-2"><h2 class="sect-t flex items-center gap-2">' + ic('download', 'w-5 h-5 text-faint') + 'Zaxira nusxa (backup) va eksport</h2>' +
     '<p class="text-sm text-muted mt-1">' + (CLOUD_CFG ? 'Maʼlumotlar serverda saqlanadi va doʻkondagi barcha qurilmalarga sinxronlanadi. Qoʻshimcha ehtiyot uchun vaqti-vaqti bilan JSON nusxa olib qoʻyishingiz mumkin.' : 'Maʼlumotlar shu brauzerning xotirasida (LocalStorage) saqlanadi. Brauzer tozalansa yoʻqolmasligi uchun vaqti-vaqti bilan JSON nusxa olib qoʻying.') + '</p>' +
     '<div class="flex flex-wrap gap-2 mt-3">' +
@@ -3841,11 +4520,12 @@ function renderSozlama() {
   $('#b-prod').onclick = exportProducts;
   $('#b-exp').onclick = exportExpenses;
   $('#b-import').onchange = importJson;
+  bindKassaSettings();
   $('#st-full').onchange = (e) => { db.settings.autoFull = e.target.checked; save(); toast(e.target.checked ? 'Avtomatik toʻliq ekran yoqildi' : 'Avtomatik toʻliq ekran oʻchirildi'); };
   $('#st-save').onclick = () => { db.settings.shopName = $('#st-name').value.trim() || 'Minimarket'; save(); toast('Saqlandi'); };
-  $('#b-reset').onclick = () => confirmBox('Barcha maʼlumotlarni oʻchirish', 'Mahsulotlar, sotuvlar, qarzlar va xarajatlar butunlay oʻchadi' + (CLOUD_CFG ? ' — <b class="text-ink">doʻkondagi barcha qurilmalarda va serverda</b>' : '') + '. Avval JSON nusxa olganingizga ishonch hosil qiling.', 'Ha, hammasini oʻchirish', () => {
+  $('#b-reset').onclick = () => adminGate('reset', () => $('#b-reset').click()) && confirmBox('Barcha maʼlumotlarni oʻchirish', 'Mahsulotlar, sotuvlar, qarzlar va xarajatlar butunlay oʻchadi' + (CLOUD_CFG ? ' — <b class="text-ink">doʻkondagi barcha qurilmalarda va serverda</b>' : '') + '. Avval JSON nusxa olganingizga ishonch hosil qiling.', 'Ha, hammasini oʻchirish', () => {
     const keep = { theme: db.settings.theme, autoFull: db.settings.autoFull };
-    db = emptyDB(); Object.assign(db.settings, keep); save(); resetCart(); toast('Barcha maʼlumotlar oʻchirildi'); setTab('sozlama');
+    db = emptyDB(); Object.assign(db.settings, keep); save(); clearAllCarts(); toast('Barcha maʼlumotlar oʻchirildi'); setTab('sozlama');
   });
 }
 function download(name, text, mime) {
