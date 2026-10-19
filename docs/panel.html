@@ -223,8 +223,10 @@
   html.native [data-fs] { display: none !important; }
   @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 
-  html, body { height: auto; overflow: auto; }
+  /* Panel oddiy sahifa kabi aylanadi: ilovaning «qotirilgan ekran» qoidalari bekor qilinadi */
+  html, body { height: auto !important; min-height: 0; overflow: visible !important; overscroll-behavior: auto !important; position: static; touch-action: auto; }
   body { min-height: 100vh; min-height: 100dvh; }
+  #modal-body { min-height: 0; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
   .grid > * { min-width: 0; }
   .bar { height: 10px; border-radius: 999px; background: rgb(var(--primary)); min-width: 2px; }
 </style>
