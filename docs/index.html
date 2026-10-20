@@ -1858,9 +1858,18 @@ function clLicModal() {
     '<div class="mt-4"><div class="label">Qanday uzaytiriladi</div><ol class="text-sm text-muted space-y-1 list-decimal pl-5">' +
     '<li>' + licPayText() + '</li><li>Unga hisobingiz telefon raqamini ayting: <b class="text-ink num">+998 ' + esc(clFmtPhone(CL.auth && CL.auth.phone)) + '</b>.</li>' +
     '<li>Sotuvchi muddatni uzaytirgach, pastdagi «Holatni yangilash»ni bosing — hamma qurilmalarda oʻzi yangilanadi.</li></ol></div>' +
+    (LIC.mode !== 'owner' ? '<div class="mt-4 rounded-2xl border border-primary/30 bg-primary-soft p-4"><div class="font-semibold text-ink">Tez yoʻl — Telegram orqali</div><div class="text-sm text-muted mt-1">Botda tarifni tanlaysiz, kartaga oʻtkazib chek rasmini yuborasiz — sotuvchi tasdiqlashi bilan obuna oʻzi yoqiladi.</div>' +
+      '<button id="cl-lic-tg" class="btn btn-primary w-full mt-3">' + ic('send', 'w-4 h-4') + 'Telegram orqali toʻlash</button></div>' : '') +
     (licContactHtml() ? '<div class="mt-4">' + licContactHtml() + '</div>' : ''),
     '<button data-close class="btn btn-ghost">Yopish</button><button id="cl-lic-ref" class="btn btn-primary">' + ic('sync', 'w-4 h-4') + 'Holatni yangilash</button>',
-    { onMount: () => { $('#cl-lic-ref').onclick = async () => { await clSync(); licRefresh(); if (CL.state === 'offline') toast('Internet yoʻq', 'warn'); else { closeModal(true); render(); toast(LIC.mode === 'active' || LIC.mode === 'owner' ? 'Obuna faol' : 'Holat yangilandi'); } }; } });
+    { onMount: () => {
+      const tb = $('#cl-lic-tg');
+      if (tb) tb.onclick = async () => {
+        let bot = tgBotName();
+        if (!bot) { try { const st = await clRpc('tg_chats_list', {}); bot = st.bot || ''; if (bot) clSet('minimarket_pos_bot', bot); } catch (e) { /* ignore */ } }
+        if (!bot) { toast('Telegram bot hali sozlanmagan — sotuvchiga murojaat qiling', 'warn'); return; }
+        openTg('https://t.me/' + bot + '?start=pay');
+      }; $('#cl-lic-ref').onclick = async () => { await clSync(); licRefresh(); if (CL.state === 'offline') toast('Internet yoʻq', 'warn'); else { closeModal(true); render(); toast(LIC.mode === 'active' || LIC.mode === 'owner' ? 'Obuna faol' : 'Holat yangilandi'); } }; } });
 }
 
 /* ---------- sozlamalardagi «Obuna» kartasi ---------- */
@@ -1960,6 +1969,11 @@ function clShowAuth(msg) {
     '<div class="flex items-center gap-3 mb-6"><div class="w-12 h-12 rounded-2xl bg-primary text-primary-on grid place-items-center font-extrabold text-xl shadow-card" aria-hidden="true">M</div>' +
     '<div><div class="font-extrabold text-xl text-ink leading-tight">Minimarket POS</div><div class="text-sm text-faint">Savdo daftari — onlayn hisob</div></div></div>' +
     '<div class="card p-5">' +
+    '<div id="tg-block"><button id="tg-go" type="button" class="btn btn-primary w-full min-h-[52px] text-base">' + ic('send', 'w-5 h-5') + 'Telegram orqali kirish</button>' +
+    '<p class="hint mt-2 text-center">Parol kerak emas. Yangi doʻkon ham shu yerda ochiladi — <b>30 kun bepul</b>.</p>' +
+    '<div id="tg-wait" class="hidden mt-4 rounded-xl bg-subtle p-4 text-sm text-muted"></div>' +
+    '<button id="am-pwtoggle" type="button" class="btn btn-text btn-sm w-full mt-3 text-faint">Telefon raqam va parol bilan kirish</button></div>' +
+    '<div id="am-pw" class="hidden mt-2">' +
     '<div class="seg w-full" role="tablist"><button data-am="in" aria-pressed="true">Kirish</button><button data-am="up" aria-pressed="false">Yangi hisob</button></div>' +
     (msg ? '<div class="mt-4 rounded-xl border border-warn/40 bg-warn-soft text-warn text-sm px-3 py-2.5">' + esc(msg) + '</div>' : '') +
     '<div id="am-err" class="hidden mt-4 rounded-xl border border-neg/40 bg-neg-soft text-neg text-sm px-3 py-2.5" role="alert"></div>' +
@@ -1972,6 +1986,7 @@ function clShowAuth(msg) {
     phoneField('up-phone') + clPwField('up-pw', 'Oʻzingizga parol qoʻying (kamida 6 belgi)', 'new-password') + clPwField('up-pw2', 'Parolni takrorlang', 'new-password') +
     '<button id="up-go" type="submit" class="btn btn-primary w-full mt-5 min-h-[48px]">Hisob ochish</button>' +
     '<p class="hint mt-3">Shu telefon raqam va parol bilan doʻkoningizdagi istalgan qurilmadan kirasiz. Parolni xodimlaringizga ham bersangiz boʻladi.</p></form>' +
+    '</div>' +
     '<div id="am-busy" class="hidden py-8 text-center"><div class="mx-auto w-10 h-10 text-primary">' + ic('sync', 'w-10 h-10 animate-spin') + '</div><div id="am-busy-t" class="mt-3 font-semibold text-ink">Yuklanmoqda…</div><div id="am-busy-s" class="text-sm text-faint mt-1"></div></div>' +
     '</div>' + sellerLine + '</div></div>';
   const tabs = $$('[data-am]', el);
@@ -1982,8 +1997,10 @@ function clShowAuth(msg) {
   $$('input[type=tel]', el).forEach((inp) => inp.addEventListener('input', () => { const p = inp.selectionStart === inp.value.length; inp.value = clFmtPhone(inp.value); if (p) inp.selectionStart = inp.selectionEnd = inp.value.length; }));
   $('#up-code').addEventListener('input', (e) => { const v = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8); e.target.value = v.length > 4 ? v.slice(0, 4) + '-' + v.slice(4) : v; });
   $('#am-in').onsubmit = (e) => { e.preventDefault(); clDoLogin(); };
+  $('#tg-go').onclick = clTgCodeLogin;
+  $('#am-pwtoggle').onclick = () => { $('#am-pw').classList.remove('hidden'); $('#am-pwtoggle').classList.add('hidden'); const f = $('#in-phone').value ? $('#in-pw') : $('#in-phone'); if (f) f.focus(); };
+  if (msg) $('#am-pwtoggle').click();
   $('#am-up').onsubmit = (e) => { e.preventDefault(); clDoRegister(); };
-  setTimeout(() => { const f = last ? $('#in-pw') : $('#in-phone'); if (f) f.focus(); }, 60);
   // sotuvchi bilan bog'lanish ma'lumoti serverdan (sotuvchi panelida o'zgartiriladi)
   clFetch('/rest/v1/rpc/public_cfg', { method: 'POST', headers: clHeaders(), body: '{}' }, 10000).then((r) => {
     if (r.ok && r.data) { clSet('minimarket_pos_pubcfg', r.data); const el2 = $('#am-seller'); if (el2) el2.innerHTML = clSellerLine(); }
@@ -1993,13 +2010,14 @@ function clSellerLine() {
   const pub = clGet('minimarket_pos_pubcfg') || {};
   const s = Object.assign({}, (CLOUD_CFG && CLOUD_CFG.seller) || {}, Object.fromEntries(Object.entries(pub.seller || {}).filter((x) => x[1])));
   if (!s.phone && !s.tg) return '';
-  return 'Taklif kodi va yordam uchun: ' + (s.phone ? '<a class="font-semibold text-primary num" href="' + telUrl(s.phone) + '">' + esc(s.phone) + '</a>' : '') + (s.phone && s.tg ? ' · ' : '') +
+  return 'Yordam uchun: ' + (s.phone ? '<a class="font-semibold text-primary num" href="' + telUrl(s.phone) + '">' + esc(s.phone) + '</a>' : '') + (s.phone && s.tg ? ' · ' : '') +
     (s.tg ? '<a class="font-semibold text-primary" target="_blank" rel="noopener" href="' + tgUrl(s.tg) + '">Telegram</a>' : '');
 }
 function clHideAuth() { const el = $('#auth-root'); if (el) el.remove(); }
 function clBusy(on, title, sub) {
   const b = $('#am-busy'); if (!b) return;
   b.classList.toggle('hidden', !on);
+  const tb = $('#tg-block'); if (tb) tb.classList.toggle('hidden', on);
   $('#am-in').classList.toggle('hidden', on || $('[data-am="in"]').getAttribute('aria-pressed') !== 'true');
   $('#am-up').classList.toggle('hidden', on || $('[data-am="up"]').getAttribute('aria-pressed') !== 'true');
   $$('[data-am]').forEach((x) => x.disabled = on);
@@ -2111,6 +2129,12 @@ function tgWebAppInit() {
   s.onload = () => { try { const W = window.Telegram.WebApp; W.ready(); W.expand(); } catch (e) { /* ignore */ } };
   document.head.appendChild(s);
 }
+// Telegram havolasini ochish: Telegram ichida — o'z usuli bilan, aks holda yangi oyna (APK'da Telegram ilovasi ochiladi)
+function openTg(url) {
+  try { const W = window.Telegram && window.Telegram.WebApp; if (TG_INIT && W && W.openTelegramLink) { W.openTelegramLink(url); return; } } catch (e) { /* ignore */ }
+  try { const w = window.open(url, '_blank'); if (w) w.opener = null; } catch (e) { /* bloklangan bo'lsa — sahifadagi tugma bor */ }
+}
+const tgBotName = () => clGet('minimarket_pos_bot') || '';
 async function clTgLogin() {
   clBusy(true, 'Telegram orqali kirilmoqda…');
   try {
@@ -2118,8 +2142,37 @@ async function clTgLogin() {
     await clAfterSession(r.session, clPhoneDigits(r.phone));
   } catch (e) {
     clBusy(false);
-    clErr(e && e.net ? CL_NET : e && e.code === 'NOT_LINKED' ? 'Bu Telegram hisobi doʻkonga ulanmagan. Bir marta parol bilan kiring, keyin «Sozlamalar → Telegram bot va AI → Telegramni ulash» qiling — shundan soʻng botdan parolsiz kiriladi.' : 'Telegram orqali kirib boʻlmadi — telefon raqam va parol bilan kiring.');
+    if (e && e.code === 'NOT_LINKED') {
+      const bot = tgBotName();
+      clErr('Siz hali roʻyxatdan oʻtmagansiz. Botga qayting va telefon raqamingizni yuboring — doʻkon 1 daqiqada ochiladi (30 kun bepul).');
+      if (bot) { try { window.Telegram.WebApp.openTelegramLink('https://t.me/' + bot + '?start=reg'); window.Telegram.WebApp.close(); } catch (er) { /* ignore */ } }
+    } else clErr(e && e.net ? CL_NET : 'Telegram orqali kirib boʻlmadi — «Telegram orqali kirish» tugmasini bosing.');
   }
+}
+// APK va brauzer: bir martalik kod -> botda «Ha, kirish» -> sessiya
+let TG_POLL = 0;
+async function clTgCodeLogin() {
+  const btn = $('#tg-go'), box = $('#tg-wait');
+  btn.disabled = true; clErr('');
+  let r;
+  try { r = await clFn('tg-login', { action: 'start' }, false); }
+  catch (e) { btn.disabled = false; clErr(e && e.net ? CL_NET : e && e.code === 'NO_BOT' ? 'Telegram bot hali sozlanmagan — telefon raqam va parol bilan kiring.' : 'Xato: ' + ((e && e.code) || '')); return; }
+  if (r.bot) clSet('minimarket_pos_bot', r.bot);
+  const url = 'https://t.me/' + r.bot + '?start=login_' + r.code, my = ++TG_POLL, t0 = Date.now();
+  box.classList.remove('hidden'); btn.disabled = false;
+  box.innerHTML = '<div class="flex items-center gap-2 font-semibold text-ink">' + ic('sync', 'w-4 h-4 animate-spin text-primary') + 'Telegramda tasdiqlang</div>' +
+    '<ol class="mt-2 list-decimal pl-5 space-y-1"><li>Telegram ochiladi (ochilmasa — pastdagi tugma).</li><li>Birinchi marta boʻlsa: telefon raqamingizni yuboring va doʻkon nomini yozing.</li><li>«<b>Ha, kirish</b>» tugmasini bosing — shu yerga oʻzi qaytadi.</li></ol>' +
+    '<a id="tg-open-l" class="btn btn-ghost w-full mt-3" href="' + esc(url) + '" target="_blank" rel="noopener">' + ic('send', 'w-4 h-4') + 'Telegramni ochish</a>';
+  openTg(url);
+  const poll = async () => {
+    if (my !== TG_POLL || !$('#tg-wait') || CL.auth) return;
+    let p = null;
+    try { p = await clFn('tg-login', { action: 'poll', code: r.code }, false); }
+    catch (e) { if (e && e.code === 'EXPIRED') { box.innerHTML = 'Havola muddati tugadi. «Telegram orqali kirish»ni qayta bosing.'; return; } }
+    if (p && p.session) { TG_POLL++; box.classList.add('hidden'); clBusy(true, 'Kirilmoqda…'); try { await clAfterSession(p.session, clPhoneDigits(p.phone)); } catch (e) { clBusy(false); clErr('Kirib boʻlmadi: ' + ((e && e.code) || '')); } return; }
+    if (Date.now() - t0 < 10 * 60e3) setTimeout(poll, 2000); else box.innerHTML = 'Havola muddati tugadi. «Telegram orqali kirish»ni qayta bosing.';
+  };
+  setTimeout(poll, 2000);
 }
 function cloudBoot() {
   CL.auth = clGet(CL_AUTH_KEY);
@@ -5519,6 +5572,7 @@ function aiSetOn(on) {
 async function tgState() {
   const r = await clRpc('tg_chats_list', {});
   aiSetOn(!!r.ai);
+  if (r.bot) clSet('minimarket_pos_bot', r.bot);
   return r;
 }
 function aiProbe() {
