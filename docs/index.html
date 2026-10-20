@@ -1354,7 +1354,8 @@ const telUrl = (p) => 'tel:' + String(p || '').replace(/[^\d+]/g, '');
 function licStatusHtml(big) {
   const S2 = LIC;
   let tone = 'info', icon = 'info', title = '', text = '';
-  if (S2.mode === 'trial') { tone = S2.left <= 3 ? 'warn' : 'info'; title = 'Sinov muddati: ' + S2.left + ' kun qoldi'; text = fd(S2.trialEnd) + ' gacha bepul. Keyin ishlatishda davom etish uchun obunani faollashtiring.'; }
+  if (S2.mode === 'owner') { tone = 'pos'; icon = 'check'; title = 'Sotuvchi hisobi — obuna cheksiz'; text = 'Bu sizning shaxsiy hisobingiz: muddat va toʻlov talab qilinmaydi. Mijoz doʻkonlarida 30 kunlik sinov, keyin oylik obuna ishlaydi.'; }
+  else if (S2.mode === 'trial') { tone = S2.left <= 3 ? 'warn' : 'info'; title = 'Sinov muddati: ' + S2.left + ' kun qoldi'; text = fd(S2.trialEnd) + ' gacha bepul. Keyin ishlatishda davom etish uchun obunani faollashtiring.'; }
   else if (S2.mode === 'active') { tone = S2.left <= 7 ? 'warn' : 'pos'; icon = 'check'; title = 'Obuna faol — ' + fd(S2.lic.expiry) + ' gacha'; text = (LicCore.PLANS[S2.lic.plan] || '') + ' · ' + S2.left + ' kun qoldi' + (S2.lic.shop ? ' · ' + esc(S2.lic.shop) : ''); }
   else if (S2.mode === 'grace') { tone = 'neg'; icon = 'alert'; title = 'Obuna muddati tugadi (' + fd(S2.lic.expiry) + ')'; text = S2.graceLeft > 1 ? 'Yana ' + S2.graceLeft + ' kun (bugun bilan) ishlash mumkin — shu vaqt ichida obunani yangilang.' : 'Bugun oxirgi kun — obunani yangilang.'; }
   else if (S2.mode === 'locked') { tone = 'neg'; icon = 'alert'; title = S2.why === 'blocked' ? 'Hisob vaqtincha toʻxtatilgan' : S2.why === 'trial' ? 'Sinov muddati tugadi' : 'Obuna muddati tugagan'; text = (S2.why === 'blocked' ? 'Sotuvchiga murojaat qiling. ' : '') + 'Sotuv va yangi yozuvlar toʻxtatildi. Maʼlumotlaringiz oʻchmaydi: hisobotlarni koʻrish va zaxira nusxa olish mumkin.'; }
@@ -1461,8 +1462,17 @@ function licActivate(code) {
   toast('Obuna faollashtirildi: ' + fd(v.expiry) + ' gacha');
   render();
 }
+// Muddat yaqinlashganda kuniga bir marta eslatma oynasi (3 kun qolganda, tugaganda)
+function licRemind() {
+  licRefresh();
+  const m = LIC.mode, soon = (m === 'trial' || m === 'active') && LIC.left <= 3;
+  if (!(soon || m === 'grace' || m === 'locked') || $('#modal-root').innerHTML || $('#auth-root')) return;
+  const k = 'mm_lic_remind', t = today();
+  try { if (localStorage.getItem(k) === t + m) return; localStorage.setItem(k, t + m); } catch (e) { /* ignore */ }
+  licModal();
+}
 function licSettingsCard() {
-  if (CLOUD_CFG) return clAccountCard();
+  if (CLOUD_CFG) return clSubCard() + clAccountCard();
   if (!LICENSE_CFG) return '';
   return '<section class="card p-4 lg:col-span-2"><h2 class="sect-t flex items-center gap-2 mb-3">' + ic('book', 'w-5 h-5 text-faint') + 'Obuna</h2>' + licStatusHtml(false) +
     '<div class="mt-3 flex flex-wrap items-center gap-3"><span class="text-sm text-muted">Qurilma kodi: <b class="font-mono text-ink tracking-wider">' + LicCore.fmtDevice(LIC.device) + '</b></span>' +
@@ -1828,11 +1838,14 @@ function clSyncModal() {
 function clLicCompute() {
   const s = CL.meta && CL.meta.shopInfo;
   if (!s || s.owner) return { mode: 'owner' };
-  const now = Date.now() + (+CL.meta.skew || 0), t = dayKey(now), exp = dayKey(+s.paidUntil), grace = s.graceDays != null ? +s.graceDays : 3;
+  const now = Date.now() + (+CL.meta.skew || 0), t = dayKey(now), exp = dayKey(+s.paidUntil);
+  let grace = s.graceDays != null ? +s.graceDays : 3;
   const base = { device: '', rolled: false, today: t, cloud: true };
   if (s.blocked) return Object.assign(base, { mode: 'locked', why: 'blocked', lic: { expiry: exp } });
-  if (exp >= t) return s.trial ? Object.assign(base, { mode: 'trial', left: daysBetween(t, exp), trialEnd: exp })
-    : Object.assign(base, { mode: 'active', lic: { expiry: exp, plan: '', shop: s.name }, left: daysBetween(t, exp) });
+  if (s.trial) grace = 0; // sinov tugashi bilan — obuna faollashtirilmaguncha ishlamaydi
+  const left = Math.max(1, daysBetween(t, exp) - 1); // 30 kunlik sinov = «30 kun qoldi»
+  if (exp >= t) return s.trial ? Object.assign(base, { mode: 'trial', left, trialEnd: exp })
+    : Object.assign(base, { mode: 'active', lic: { expiry: exp, plan: '', shop: s.name }, left });
   const over = daysBetween(exp, t) - 1;
   if (over <= grace) return Object.assign(base, { mode: 'grace', lic: { expiry: exp }, over, graceLeft: grace - over + 1 });
   return Object.assign(base, { mode: 'locked', why: s.trial ? 'trial' : 'expired', trialEnd: exp, lic: { expiry: exp } });
@@ -1850,6 +1863,14 @@ function clLicModal() {
     { onMount: () => { $('#cl-lic-ref').onclick = async () => { await clSync(); licRefresh(); if (CL.state === 'offline') toast('Internet yoʻq', 'warn'); else { closeModal(true); render(); toast(LIC.mode === 'active' || LIC.mode === 'owner' ? 'Obuna faol' : 'Holat yangilandi'); } }; } });
 }
 
+/* ---------- sozlamalardagi «Obuna» kartasi ---------- */
+function clSubCard() {
+  if (!CL.auth) return '';
+  const s = (CL.meta && CL.meta.shopInfo) || {};
+  return '<section class="card p-4 lg:col-span-2"><h2 class="sect-t flex items-center gap-2 mb-3">' + ic('book', 'w-5 h-5 text-faint') + 'Obuna</h2>' + licStatusHtml(false) +
+    (LIC.mode !== 'owner' && s.paidUntil ? '<p class="hint mt-2">Muddat: <b class="num">' + fd(dayKey(+s.paidUntil)) + '</b> gacha. Tugashidan 7, 3 va 1 kun oldin ilovada va Telegram botda eslatma chiqadi.</p>' : '') +
+    '<div class="flex flex-wrap gap-2 mt-3"><button id="st-lic" class="btn btn-primary btn-sm">' + ic('book', 'w-4 h-4') + (LIC.mode === 'trial' ? 'Obunani faollashtirish' : LIC.mode === 'owner' ? 'Narxlar va toʻlov maʼlumoti' : 'Obunani uzaytirish') + '</button></div></section>';
+}
 /* ---------- sozlamalardagi «Hisob» kartasi ---------- */
 function clAccountCard() {
   if (!CL.auth) return '';
@@ -1858,10 +1879,8 @@ function clAccountCard() {
     '<div class="grid gap-3 sm:grid-cols-2">' +
     '<div class="rounded-xl bg-subtle px-3 py-2.5"><div class="text-xs text-faint">Hisob (login)</div><div class="font-bold text-ink num">+998 ' + esc(clFmtPhone(CL.auth.phone)) + '</div><div class="text-xs text-faint truncate">' + esc(s.name || '') + '</div></div>' +
     '<div class="rounded-xl bg-subtle px-3 py-2.5"><div class="text-xs text-faint">Sinxron</div><div id="cl-live" class="text-sm mt-0.5">' + clStatusRow() + '</div></div></div>' +
-    (LIC.mode !== 'owner' ? '<div class="mt-3">' + licStatusHtml(false) + '</div>' : '') +
     '<p class="hint mt-3">Shu telefon raqam va parol bilan doʻkoningizdagi istalgan telefon, planshet yoki kompyuterdan kiring — hammasida bir xil maʼlumot koʻrinadi.</p>' +
     '<div class="flex flex-wrap gap-2 mt-3">' +
-    (LIC.mode !== 'owner' ? '<button id="st-lic" class="btn btn-primary btn-sm">' + ic('book', 'w-4 h-4') + 'Obuna</button>' : '') +
     '<button id="cl-pw" class="btn btn-ghost btn-sm">' + ic('key', 'w-4 h-4') + 'Parolni almashtirish</button>' +
     '<button id="cl-sync" class="btn btn-ghost btn-sm">' + ic('sync', 'w-4 h-4') + 'Sinxronlash</button>' +
     (clStandalone() || NATIVE ? '' : '<button id="cl-inst" class="btn btn-ghost btn-sm">' + ic('download', 'w-4 h-4') + 'Telefonga oʻrnatish</button>') +
@@ -2026,6 +2045,10 @@ async function clDoRegister() {
 }
 async function clSignIn(d9, pw) {
   const ses = await clAuthToken('password', { email: clEmail(d9), password: pw });
+  await clAfterSession(ses, d9);
+}
+// Sessiya olingandan keyin (parol yoki Telegram orqali): do'konni aniqlash, ma'lumotni yuklash
+async function clAfterSession(ses, d9) {
   CL.auth = null; clTakeSession(ses, { phone: d9 });
   clSet(CL_PHONE_KEY, d9);
   let info;
@@ -2051,6 +2074,7 @@ async function clEnter() {
   setTab('bosh');
   CL.state = 'ok'; CL.lastOk = Date.now(); clStatus();
   clSync();
+  setTimeout(licRemind, 1500);
 }
 function clSessionLost() {
   if (!CL.auth) return;
@@ -2075,17 +2099,42 @@ async function clLogout() {
 }
 
 /* ---------- ishga tushirish ---------- */
+// Telegram ichida ochilgan bo'lsa (bot «Ilova» tugmasi): Telegram imzolagan ma'lumot — parolsiz kirish uchun
+const TG_INIT = (() => {
+  try { const d = new URLSearchParams(String(location.hash || '').slice(1)).get('tgWebAppData'); if (d) return d; } catch (e) { /* ignore */ }
+  try { return (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData) || ''; } catch (e) { return ''; }
+})();
+function tgWebAppInit() {
+  if (!TG_INIT) return;
+  const s = document.createElement('script');
+  s.src = 'https://telegram.org/js/telegram-web-app.js';
+  s.onload = () => { try { const W = window.Telegram.WebApp; W.ready(); W.expand(); } catch (e) { /* ignore */ } };
+  document.head.appendChild(s);
+}
+async function clTgLogin() {
+  clBusy(true, 'Telegram orqali kirilmoqda…');
+  try {
+    const r = await clFn('tg-login', { initData: TG_INIT }, false);
+    await clAfterSession(r.session, clPhoneDigits(r.phone));
+  } catch (e) {
+    clBusy(false);
+    clErr(e && e.net ? CL_NET : e && e.code === 'NOT_LINKED' ? 'Bu Telegram hisobi doʻkonga ulanmagan. Bir marta parol bilan kiring, keyin «Sozlamalar → Telegram bot va AI → Telegramni ulash» qiling — shundan soʻng botdan parolsiz kiriladi.' : 'Telegram orqali kirib boʻlmadi — telefon raqam va parol bilan kiring.');
+  }
+}
 function cloudBoot() {
   CL.auth = clGet(CL_AUTH_KEY);
   CL.meta = clGet(CL_META_KEY);
+  tgWebAppInit();
   if (CL.auth && CL.meta && CL.meta.shop === CL.auth.shop) {
     licRefresh(); setTab('bosh'); clStatus();
     clSync();
+    setTimeout(licRemind, 1500);
     return;
   }
   CL.auth = null;
   clShowAuth();
   clStatus();
+  if (TG_INIT) clTgLogin();
 }
 
 /* ===================== 0. BOSH SAHIFA (boshqaruv paneli) ===================== */
