@@ -2362,6 +2362,7 @@ function renderKassa() {
   const PAYS = [['naqd', 'cash'], ['karta', 'card'], ['aralash', 'split'], ['qarz', 'book']];
   $('#main').innerHTML = wrap(
     pageHead('Savdo', 'Mahsulotni bosing yoki shtrix-kodni skanerlang · F9 — toʻlov · F1–F4 — savatlar',
+      '<button id="k-ret" class="btn btn-ghost" title="Mijoz qaytargan tovarni skanerlang yoki nomini yozing">' + ic('undo', 'w-4 h-4') + 'Tovar qaytarish</button>' +
       '<button id="k-held" class="btn btn-ghost">' + ic('inbox', 'w-4 h-4') + 'Saqlangan cheklar <span id="k-heldn" class="num"></span></button>') + salesSeg() +
     '<div class="grid gap-4 xl:grid-cols-[minmax(0,1fr)_400px] 2xl:grid-cols-[minmax(0,1fr)_440px]">' +
     '<section class="min-w-0">' +
@@ -2411,6 +2412,7 @@ function renderKassa() {
   $('#k-voice').onclick = voiceModal;
   $('#k-cam').onclick = () => cameraScan(handleScan, { multi: true, title: 'Skanerlash — savatga qoʻshish' });
   $('#k-held').onclick = heldModal; updateHeldBtn();
+  $('#k-ret').onclick = () => quickReturn();
   $('#k-hold').onclick = holdCart;
   bindCartTabs(); bindShiftBar();
   $('#k-disc').addEventListener('input', (e) => { S.disc.value = e.target.value; drawTotals(); drawPayInfo(); });
@@ -2764,7 +2766,7 @@ function renderTarix() {
   const custIds = Array.from(new Set(db.sales.map((s) => s.customerId).filter(Boolean)));
   const custs = custIds.map((id) => party('customer', id)).filter(Boolean).sort((a, b) => a.name.localeCompare(b.name));
   $('#main').innerHTML = wrap(
-    pageHead('Savdo', 'Sotuvlar tarixi — sana, toʻlov turi va mijoz boʻyicha', '') + salesSeg() +
+    pageHead('Savdo', 'Sotuvlar tarixi — sana, toʻlov turi va mijoz boʻyicha', '<button id="sh-ret" class="btn btn-ghost">' + ic('undo', 'w-4 h-4') + 'Tovar qaytarish</button>') + salesSeg() +
     periodBar('sh', H, ['today', 'yesterday', 'week', 'month', 'year', 'custom']) +
     '<div class="card p-3 mt-3 grid gap-2 md:grid-cols-[minmax(0,1fr)_200px_220px]">' +
     '<div class="relative">' + ic('search', 'w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-faint pointer-events-none') +
@@ -2777,6 +2779,7 @@ function renderTarix() {
   );
   bindSalesSeg();
   bindPeriodBar('sh', H, () => { H.limit = 60; renderTarix(); });
+  $('#sh-ret').onclick = () => quickReturn();
   $('#sh-q').oninput = (e) => { H.q = e.target.value; H.limit = 60; drawTarix(); };
   $('#sh-pay').onchange = (e) => { H.pay = e.target.value; H.limit = 60; drawTarix(); };
   $('#sh-cust').onchange = (e) => { H.cust = e.target.value; H.limit = 60; drawTarix(); };
@@ -3589,7 +3592,7 @@ function returnedQty(saleId) {
   return m;
 }
 const saleReturns = (saleId) => db.returns.filter((r) => r.saleId === saleId);
-function returnModal(saleId) {
+function returnModal(saleId, focusPid) {
   if (!licGuard()) return; // qaytarish hammaga (kassirga ham) ochiq — tovar qaytsa, qoldiq va tushum to'g'ri qolishi uchun
   const s = db.sales.find((x) => x.id === saleId);
   if (!s) return;
@@ -3621,7 +3624,13 @@ function returnModal(saleId) {
         };
         $$('[data-rq]').forEach((i) => i.oninput = calc);
         $$('[data-rall]').forEach((b) => b.onclick = () => { $('[data-rq="' + b.dataset.rall + '"]').value = b.dataset.max; calc(); });
-        if (lines.length === 1) { $('[data-rq="' + lines[0].k + '"]').value = lines[0].max; }
+        const fl = focusPid ? lines.find((x) => x.it.pid === focusPid) : null;
+        if (fl) { // skaner/qidiruvdan kelgan tovar: dona — 1 ta (yana kerak bo'lsa yoziladi), kg/litr — hammasi
+          const inp = $('[data-rq="' + fl.k + '"]');
+          inp.value = isWeightUnit(fl.it.unit) ? fl.max : Math.min(1, fl.max);
+          inp.closest('.row-line').classList.add('bg-primary-soft');
+          setTimeout(() => { try { inp.focus(); inp.select(); } catch (e) { /* ignore */ } }, 60);
+        } else if (lines.length === 1) { $('[data-rq="' + lines[0].k + '"]').value = lines[0].max; }
         calc();
         once($('#rt-ok'), () => {
           const items = [];
@@ -3641,6 +3650,78 @@ function returnModal(saleId) {
           save(); closeModal(); toast('Qaytarildi: ' + money(total)); render();
           if (typeof tgEvent === 'function') tgEvent('return', { id: r.id });
         });
+      }
+    });
+}
+// «Tovar qaytarish»: qaytgan tovarni skanerlang (USB / kamera) yoki nomini yozing — uning oxirgi sotuvlari topiladi
+const RET_DAYS = 30;
+const agoTxt = (ts) => { const m = Math.max(0, Math.round((Date.now() - ts) / 6e4)); return m < 1 ? 'hozirgina' : m < 60 ? m + ' daqiqa oldin' : m < 1440 ? Math.floor(m / 60) + ' soat oldin' : fdt(ts); };
+function returnCandidates(pid) {
+  const from = Date.now() - RET_DAYS * 864e5, out = [];
+  for (const s of db.sales) {
+    if (s.ts < from) continue;
+    const done = returnedQty(s.id);
+    let left = 0;
+    s.items.forEach((it, k) => { if (it.pid === pid) left = rq(left + it.qty - (done[k] || 0)); });
+    if (left > 0) out.push({ s, left });
+  }
+  return out.sort((a, b) => b.s.ts - a.s.ts);
+}
+function quickReturn(code) {
+  if (!licGuard()) return;
+  openModal('Tovar qaytarish',
+    '<p class="text-sm text-muted mb-3">Mijoz qaytargan tovarni <b>skanerlang</b> yoki <b>nomini yozing</b> — uning oxirgi sotuvi oʻzi topiladi.</p>' +
+    '<div class="relative">' + ic('search', 'w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-faint pointer-events-none') +
+    '<input id="qr-q" type="search" autocomplete="off" enterkeyhint="search" class="input pl-10 pr-11 text-base" placeholder="Shtrix-kod yoki tovar nomi" aria-label="Qaytgan tovar" autofocus>' +
+    '<button id="qr-cam" class="btn btn-ghost btn-icon btn-sm absolute right-1.5 top-1/2 -translate-y-1/2" aria-label="Kamera bilan skanerlash" title="Kamera bilan skanerlash">' + ic('camera', 'w-[18px] h-[18px]') + '</button></div>' +
+    '<div id="qr-res" class="mt-3"></div>',
+    '<button data-close class="btn btn-ghost">Yopish</button>',
+    {
+      onMount: () => {
+        const q = $('#qr-q'), res = $('#qr-res');
+        const recentPids = () => { // oxirgi sotilganlar — qidiruvsiz ham tez tanlash uchun
+          const seen = new Set(), out = [];
+          for (const s of db.sales.slice().sort((a, b) => b.ts - a.ts).slice(0, 40)) for (const it of s.items) if (!seen.has(it.pid) && prod(it.pid)) { seen.add(it.pid); out.push(prod(it.pid)); }
+          return out.slice(0, 6);
+        };
+        const prodRow = (p) => '<button data-qp="' + p.id + '" class="w-full text-left px-3 py-2.5 row-line flex items-center gap-3 hover:bg-subtle"><span class="min-w-0 flex-1"><span class="block font-semibold text-ink truncate">' + esc(p.name) + '</span>' +
+          '<span class="block text-xs text-faint num">' + (p.barcode ? esc(p.barcode) + ' · ' : '') + fmt(p.price) + ' ' + SUM + '/' + esc(p.unit) + '</span></span>' + ic('right', 'w-4 h-4 text-faint shrink-0') + '</button>';
+        const bindRows = () => $$('[data-qp]', res).forEach((b) => b.onclick = () => pick(prod(b.dataset.qp)));
+        const list = () => {
+          const v = q.value.trim();
+          const ps = v ? searchList(db.products, v, (p) => p.name, (p) => p.barcode || '').slice(0, 8) : recentPids();
+          res.innerHTML = ps.length ? (v ? '' : '<div class="text-xs font-semibold text-faint uppercase tracking-wide mb-2">Oxirgi sotilganlar</div>') + '<div class="border border-line rounded-xl overflow-hidden">' + ps.map(prodRow).join('') + '</div>'
+            : '<p class="text-sm text-faint text-center py-4">' + (v ? '«' + esc(v) + '» topilmadi' : 'Hali sotuv yoʻq') + '</p>';
+          bindRows();
+        };
+        const pick = (p) => {
+          if (!p) return;
+          const c = returnCandidates(p.id);
+          if (!c.length) { beep(false); res.innerHTML = '<div class="rounded-xl bg-warn-soft text-warn px-3 py-2.5 text-sm"><b>' + esc(p.name) + '</b> oxirgi ' + RET_DAYS + ' kunda sotilmagan (yoki hammasi qaytarilgan).</div>'; q.select(); return; }
+          beep(true);
+          if (c.length === 1) { returnModal(c[0].s.id, p.id); return; }
+          res.innerHTML = '<div class="text-sm text-muted mb-2"><b class="text-ink">' + esc(p.name) + '</b> — qaysi chekdan qaytdi? Eng oxirgisi tepada.</div><div class="border border-line rounded-xl overflow-hidden">' +
+            c.slice(0, 10).map(({ s, left }, i) => '<button data-qs="' + s.id + '" class="w-full text-left px-3 py-2.5 row-line flex items-center gap-3 hover:bg-subtle' + (i ? '' : ' bg-primary-soft') + '"><span class="min-w-0 flex-1">' +
+              '<span class="flex items-center gap-2 flex-wrap"><span class="font-semibold text-ink num">Chek №' + s.no + '</span><span class="text-xs text-faint num">' + agoTxt(s.ts) + '</span>' + payBadge(s.payType) + '</span>' +
+              '<span class="block text-xs text-muted truncate mt-0.5">' + esc(s.items.map((it) => it.name + ' ×' + fq(it.qty)).join(', ')) + '</span></span>' +
+              '<span class="text-right shrink-0"><span class="block font-bold text-ink num">' + money(s.total) + '</span><span class="block text-xs text-faint num">qaytarsa boʻladi ' + fq(left) + ' ' + esc(p.unit) + '</span></span></button>').join('') + '</div>';
+          $$('[data-qs]', res).forEach((b) => b.onclick = () => returnModal(b.dataset.qs, p.id));
+        };
+        const byCode = (v) => findByCode(v) || (parseScale(v) || {}).p || null;
+        q.addEventListener('input', list);
+        q.addEventListener('keydown', (e) => {
+          if (e.key !== 'Enter') return;
+          e.preventDefault();
+          const v = q.value.trim();
+          if (!v) return;
+          if (/^\d{4,}$/.test(v)) { const p = byCode(v); if (p) { pick(p); return; } }
+          const ps = searchList(db.products, v, (p) => p.name, (p) => p.barcode || '');
+          if (ps.length === 1 || (ps.length && /^\d{4,}$/.test(v))) { pick(ps[0]); return; }
+          if (!ps.length) { beep(false); res.innerHTML = '<p class="text-sm text-faint text-center py-4">«' + esc(v) + '» topilmadi</p>'; }
+        });
+        $('#qr-cam').onclick = () => cameraScan((c) => setTimeout(() => quickReturn(c), 0), { title: 'Qaytgan tovarni skanerlang' });
+        if (code) { q.value = code; const p = byCode(code); if (p) pick(p); else { list(); beep(false); toast('Bu kod bazada yoʻq: ' + code, 'warn'); } }
+        else list();
       }
     });
 }
@@ -5473,9 +5554,10 @@ const HELP = [
     'Kun oxirida «Kunni yopish (Z)»: kassadagi naqdni sanab yozasiz — dastur kamomad yoki ortiqchani koʻrsatadi. Ertangi smenaga qoldiriladigan pulni ham yozasiz.',
     'Naqd qarz toʻlovi, kassadan berilgan xarajat yoki taʼminotchi toʻlovi ham smenaga tushadi («Kassadagi puldan» belgisi).'] ],
   ['kassa', 'Qaytarish (vozvrat)', 'undo', [
-    '«Savdo → Sotuvlar tarixi» yoki bugungi sotuvlardan chekni toping → «Qaytarish».',
+    'Eng tezi: «Savdo → Tovar qaytarish» — qaytgan tovarni skanerlang (USB skaner yoki kamera) yoki nomini yozing. Oxirgi sotuvi oʻzi topiladi.',
+    'Yoki «Sotuvlar tarixi» / bugungi sotuvlardan chekni toping → «Qaytarish».',
     'Qancha qaytarilayotganini yozasiz; tovar omborga qaytadi, pul hisobotdan ayriladi. Qarzga sotilgan boʻlsa — mijoz qarzidan ayiriladi.',
-    'Admin paroli oʻrnatilgan boʻlsa, qaytarish faqat parol bilan.'] ],
+    'Qaytarish hammaga (kassirga ham) parolsiz ochiq — tovar va pul hisobi toʻgʻri qoladi.'] ],
   ['ombor', 'Telefon va kamera bilan skaner', 'camera', [
     'Kassada qidiruv yonidagi kamera tugmasi — ketma-ket skanerlaysiz.',
     '«Mahsulotlar → Skaner bilan kiritish» — javonlarni aylanib tovarlarni bazaga kiritasiz.',
@@ -5519,7 +5601,7 @@ const FAQ = [
   ['AI notoʻgʻri javob bersa-chi?', 'AI faqat doʻkoningiz maʼlumotiga tayanadi, lekin adashishi mumkin — muhim raqamlarni «Hisobotlar»da tekshiring. U hech narsani oʻzgartira olmaydi, faqat javob beradi.'],
   ['Oʻrgatuvchini qayta koʻrsam boʻladimi?', 'Har boʻlim tepasidagi «?» tugmasi qadam-baqadam oʻrgatishni qayta boshlaydi.']
 ];
-const VIDEOS = [['minimarket-boshlash.mp4', 'Noldan boshlab: Telegram orqali roʻyxatdan oʻtish, tovar qoʻshish, turlarga ajratish, sotish', '1:32'], ['minimarket-qollanma.mp4', 'Foyda: kelish narxi, ustama, sotish va hisobot', '3:13']];
+const VIDEOS = [['minimarket-boshlash.mp4', 'Noldan boshlab: Telegram orqali roʻyxatdan oʻtish, tovar qoʻshish, turlarga ajratish, sotish', '1:32'], ['minimarket-qollanma.mp4', 'Foyda: kelish narxi, ustama, sotish va hisobot', '3:13'], ['minimarket-kassir.mp4', 'Kassir taklif qilish: nom berish, boʻlimlarni ochish, taklif havolasi', '1:36'], ['minimarket-qaytarish.mp4', 'Tovar qaytarish: skaner yoki qoʻlda, chek oʻzi topiladi', '1:29']];
 
 function renderYordam() {
   const done = db.settings.plan || {}, all = PLAN.reduce((a, s) => a + s.items.length, 0), n = PLAN.reduce((a, s) => a + s.items.filter((x) => done[x[0]]).length, 0);
@@ -5544,7 +5626,7 @@ function renderYordam() {
 const TOUR_KEY = 'mm_tour_seen';
 const TOURS = {
   bosh: [['#d-sales', 'Bugungi savdo va cheklar soni. Davrni yuqoridan tanlaysiz: kun, hafta, oy.'], ['[data-act="prixod"]', 'Tez tugmalar: yangi sotuv, tovar kirimi, xarajat, qarz toʻlovi.'], ['#d-chart', 'Savdo va sof foyda grafigi — ustunni bossangiz aniq raqam chiqadi.']],
-  kassa: [['#k-search', 'Shtrix-kodni skanerlang yoki nomini yozing. USB skaner bilan maydonni bosish ham shart emas.'], ['#k-cam', 'Telefon kamerasi bilan skanerlash.'], ['#k-grid', 'Shtrixsiz tovar — plitkani bosing. Kg tovarda miqdor yoki summa soʻraladi.'], ['#k-ctabs', '4 ta savat: mijoz «hozir kelaman» desa — keyingisiga oʻting (F1–F4).'], ['#k-pays', 'Toʻlov turi: naqd, karta, aralash yoki qarzga.'], ['#k-checkout', 'Toʻlovni yakunlash (F9). Chek tayyor boʻladi.'], ['#k-shift', 'Smena: kassadagi naqd, pul qoʻshish/olish va kun oxirida «Kunni yopish (Z)».']],
+  kassa: [['#k-search', 'Shtrix-kodni skanerlang yoki nomini yozing. USB skaner bilan maydonni bosish ham shart emas.'], ['#k-cam', 'Telefon kamerasi bilan skanerlash.'], ['#k-ret', 'Mijoz tovarni qaytardimi? Shu yerda skanerlang yoki nomini yozing — oxirgi sotuvi oʻzi topiladi.'], ['#k-grid', 'Shtrixsiz tovar — plitkani bosing. Kg tovarda miqdor yoki summa soʻraladi.'], ['#k-ctabs', '4 ta savat: mijoz «hozir kelaman» desa — keyingisiga oʻting (F1–F4).'], ['#k-pays', 'Toʻlov turi: naqd, karta, aralash yoki qarzga.'], ['#k-checkout', 'Toʻlovni yakunlash (F9). Chek tayyor boʻladi.'], ['#k-shift', 'Smena: kassadagi naqd, pul qoʻshish/olish va kun oxirida «Kunni yopish (Z)».']],
   ombor: [['#o-new', 'Yangi tovar qoʻshish. Kassada noma’lum kod chiqsa, u yerda ham qoʻshiladi.'], ['#o-prix', 'Tovar kelganda — kirim: taʼminotchi, soni, narxi, qisman toʻlov.'], ['[data-ov="list"]', 'Boʻlimlar: kirim tarixi, muddat, brak, nazorat (minus), nollash, inventarizatsiya.'], ['#o-table', 'Tovarlar roʻyxati: nomini bossangiz harakatlar tarixi chiqadi.']],
   qarz: [['[data-qt="customer"]', 'Mijozlar sizga qarzi va taʼminotchilarga sizning qarzingiz.'], ['#q-list', 'Har birida tarix va «toʻlov» tugmasi bor.']],
   xarajat: [['#e-a', 'Ijara, svet, oylik kabi xarajatlarni yozing — sof foyda toʻgʻri chiqadi.']],
