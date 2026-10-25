@@ -25,7 +25,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: pip install edge-tts==7.0.2
+      - run: pip install edge-tts==7.3.1
       - name: Ovoz yaratish
         env:
           SCRIPT: ${{ inputs.script }}
@@ -34,7 +34,7 @@ jobs:
         run: |
           mkdir -p out
           python - <<'PY'
-          import asyncio, json, os, edge_tts
+          import asyncio, json, os, sys, traceback, edge_tts
           items = json.load(open('tools/tts/' + os.environ['SCRIPT'] + '.json', encoding='utf-8'))
           async def main():
               for it in items:
@@ -47,9 +47,13 @@ jobs:
                           elif ch['type'] in ('WordBoundary', 'SentenceBoundary'): sub.feed(ch)
                   open('out/' + it['id'] + '.srt', 'w', encoding='utf-8').write(sub.get_srt())
                   print(it['id'], 'ok')
-          asyncio.run(main())
+          try:
+              asyncio.run(main())
+          except Exception:
+              open('out/error.txt', 'w').write(traceback.format_exc()); traceback.print_exc(); sys.exit(1)
           PY
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: tts-${{ inputs.script }}
           path: out/
