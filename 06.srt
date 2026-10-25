@@ -1,0 +1,12 @@
+1
+00:00:00,100 --> 00:00:04,600
+Bir tovar bir nechta chekda bo'lsa, ilova cheklarni ko'rsatadi.
+
+2
+00:00:04,550 --> 00:00:08,062
+Eng oxirgisi tepada, qachon sotilgani bilan.
+
+3
+00:00:08,062 --> 00:00:10,537
+Kerakli chekni tanlaysiz.
+

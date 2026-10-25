@@ -1,0 +1,12 @@
+1
+00:00:00,100 --> 00:00:03,825
+Qaytarish hammaga, kassirga ham parolsiz ochiq.
+
+2
+00:00:03,775 --> 00:00:09,675
+Chekni bilsangiz, bugungi sotuvlardan chekni topib «Qaytarish»ni bosishingiz ham mumkin.
+
+3
+00:00:09,675 --> 00:00:11,200
+Rahmat!
+

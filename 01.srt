@@ -1,0 +1,12 @@
+1
+00:00:00,100 --> 00:00:02,187
+Assalomu alaykum!
+
+2
+00:00:02,137 --> 00:00:06,837
+Mijoz tovarni sotib oldi va besh daqiqadan keyin qaytarib keldi.
+
+3
+00:00:06,837 --> 00:00:12,050
+Bu darsda tovarni qanday qaytarishni ko'rsatamiz: skaner bilan yoki qo'lda.
+

@@ -1,0 +1,8 @@
+1
+00:00:00,100 --> 00:00:05,350
+Ilova shu tovar sotilgan chekni o'zi topadi va miqdorni bitta qilib qo'yadi.
+
+2
+00:00:05,300 --> 00:00:09,825
+Mijoz ko'proq qaytarsa, sonini yozing yoki «hammasi»ni bosing.
+

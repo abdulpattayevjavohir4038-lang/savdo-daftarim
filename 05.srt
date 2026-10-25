@@ -1,0 +1,8 @@
+1
+00:00:00,100 --> 00:00:05,512
+Pul qanday qaytarilganini tanlang: naqd, karta yoki mijoz qarzidan ayirish.
+
+2
+00:00:05,462 --> 00:00:09,100
+Sababini belgilang va «Qaytarish» tugmasini bosing.
+
