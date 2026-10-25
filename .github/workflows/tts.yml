@@ -15,7 +15,7 @@ on:
         default: '+0%'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   tts:
@@ -52,8 +52,13 @@ jobs:
           except Exception:
               open('out/error.txt', 'w').write(traceback.format_exc()); traceback.print_exc(); sys.exit(1)
           PY
-      - uses: actions/upload-artifact@v4
+      - name: Natijani alohida branchga yozish (tts/<nom>)
         if: always()
-        with:
-          name: tts-${{ inputs.script }}
-          path: out/
+        env:
+          SCRIPT: ${{ inputs.script }}
+        run: |
+          cd out
+          git init -q -b main
+          git config user.name tts-bot && git config user.email tts-bot@users.noreply.github.com
+          git add -A && git commit -q -m "tts $SCRIPT"
+          git push -f -q "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" HEAD:refs/heads/tts/$SCRIPT
