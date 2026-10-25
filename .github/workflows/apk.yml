@@ -96,3 +96,14 @@ jobs:
             --title "Minimarket POS $TAG" \
             --notes "Android ilova. Telefonda faylni yuklab oling va oching (birinchi marta «Nomaʼlum manbalardan oʻrnatish»ga ruxsat bering)." \
             --latest
+
+      # Yangi versiya — botga ulangan barcha do'kon egalari va xodimlarga e'lon (commit xabaridan).
+      # Commit xabarida [e'lonsiz] bo'lsa, e'lon qilinmaydi. E'lon xatosi yig'ishni buzmaydi.
+      - name: Botda e'lon qilish
+        continue-on-error: true
+        run: |
+          OIDC=$(curl -sS -H "Authorization: bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=savdo-daftarim-announce" | jq -r .value)
+          jq -n --arg v "1.${{ github.run_number }}" --arg m "$(git log -1 --format=%B)" '{version: $v, message: $m}' > announce.json
+          curl -sS -m 60 -X POST "https://fgwqodeqfqbagimauulc.supabase.co/functions/v1/tg-announce" \
+            -H "apikey: sb_publishable_sYxQqC2eOvkeiX39MCNVxQ_epqjABBR" -H "x-github-oidc: $OIDC" \
+            -H "Content-Type: application/json" --data @announce.json

@@ -3590,7 +3590,7 @@ function returnedQty(saleId) {
 }
 const saleReturns = (saleId) => db.returns.filter((r) => r.saleId === saleId);
 function returnModal(saleId) {
-  if (!licGuard() || !adminGate('return', () => returnModal(saleId))) return;
+  if (!licGuard()) return; // qaytarish hammaga (kassirga ham) ochiq — tovar qaytsa, qoldiq va tushum to'g'ri qolishi uchun
   const s = db.sales.find((x) => x.id === saleId);
   if (!s) return;
   const done = returnedQty(saleId);
@@ -3656,7 +3656,7 @@ function drawReturnsList(el, list) {
   $$('[data-rcancel]', el).forEach((x) => x.onclick = () => cancelReturn(x.dataset.rcancel));
 }
 function cancelReturn(id) {
-  if (!licGuard() || !adminGate('return', () => cancelReturn(id))) return;
+  if (!licGuard() || !adminGate('unret', () => cancelReturn(id))) return;
   const r = db.returns.find((x) => x.id === id);
   if (!r) return;
   confirmBox('Qaytarishni bekor qilish', 'Chek №' + r.saleNo + ' boʻyicha ' + money(r.total) + ' qaytarish bekor qilinadi, tovar qoldigʻi yana kamayadi.', 'Bekor qilish', () => {
@@ -3670,7 +3670,7 @@ function cancelReturn(id) {
 
 /* ---------- Admin paroli (xavfli amallar uchun) — sozlamada o'rnatiladi ---------- */
 let ADMIN_OK_UNTIL = 0;
-const ADMIN_ACTS = { return: 'Qaytarish', cancel: 'Chekni bekor qilish', edit: 'Tovarni tahrirlash', inv: 'Inventarizatsiya', reset: 'Hammasini tozalash', del: 'Oʻchirish' };
+const ADMIN_ACTS = { return: 'Qaytarish', unret: 'Qaytarishni bekor qilish', cancel: 'Chekni bekor qilish', edit: 'Tovarni tahrirlash', inv: 'Inventarizatsiya', reset: 'Hammasini tozalash', del: 'Oʻchirish' };
 async function sha256Hex(t) {
   if (window.crypto && crypto.subtle) { const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t)); return Array.from(new Uint8Array(b)).map((x) => x.toString(16).padStart(2, '0')).join(''); }
   let h = 0; for (let i = 0; i < t.length; i++) h = (Math.imul(h, 31) + t.charCodeAt(i)) | 0; return 'w' + (h >>> 0).toString(16);
@@ -3720,7 +3720,7 @@ function controlSettingsCard() {
     '<p class="hint">Chegirma shu foizdan oshsa, savdo «shubhali» sanaladi (Hisobotlarda koʻrinadi, Telegram ulangan boʻlsa xabar keladi).</p>' +
     '<div class="mt-4 flex items-center justify-between gap-3 rounded-xl border border-line px-3 py-2.5"><div><div class="text-sm font-semibold text-ink">Admin paroli</div><div class="text-xs ' + (h ? 'text-pos' : 'text-faint') + '">' + (h ? 'Oʻrnatilgan — himoya yoqiq' : 'Oʻrnatilmagan') + '</div></div>' +
     '<div class="flex gap-2">' + (h ? '<button id="st-adm-off" class="btn btn-ghost btn-sm">Olib tashlash</button>' : '') + '<button id="st-adm" class="btn btn-primary btn-sm">' + (h ? 'Oʻzgartirish' : 'Oʻrnatish') + '</button></div></div>' +
-    '<p class="hint">Parol oʻrnatilsa: qaytarish, chekni bekor qilish, tovarni tahrirlash/oʻchirish, inventarizatsiya va hammasini tozalash faqat parol bilan boʻladi. Kassir oddiy savdoni parolsiz qiladi.</p>' +
+    '<p class="hint">Parol oʻrnatilsa: chekni bekor qilish, qaytarishni bekor qilish, tovarni tahrirlash/oʻchirish, inventarizatsiya va hammasini tozalash faqat parol bilan boʻladi. Kassir oddiy savdoni va tovar qaytarishni parolsiz qiladi.</p>' +
     '<div class="mt-4 flex items-center justify-between gap-3 rounded-xl border border-line px-3 py-2.5"><div><div class="text-sm font-semibold text-ink">Oʻrgatuvchi</div><div class="text-xs text-faint">Har boʻlimdagi «?» tugmasi qadam-baqadam koʻrsatadi</div></div><button id="st-tour" class="btn btn-ghost btn-sm">Qayta yoqish</button></div></section>';
 }
 function bindKassaSettings() {
