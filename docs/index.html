@@ -268,7 +268,7 @@
       <div class="w-10 h-10 rounded-xl bg-primary text-primary-on grid place-items-center font-extrabold text-lg shadow-card" aria-hidden="true">M</div>
       <div class="min-w-0">
         <div id="sb-shop" class="font-bold text-ink truncate">Minimarket</div>
-        <div class="text-xs text-faint">Savdo daftari</div>
+        <div id="sb-sub" class="text-xs text-faint truncate">Savdo daftari</div>
       </div>
     </div>
     <nav id="nav" class="flex-1 px-3 py-2 space-y-1 overflow-y-auto scroll-thin" aria-label="Asosiy menyu"></nav>
@@ -1179,6 +1179,7 @@ const NAV = [
   { id: 'bosh', label: 'Bosh sahifa', short: 'Bosh', icon: 'home' },
   { id: 'kassa', label: 'Savdo', short: 'Savdo', icon: 'cart' },
   { id: 'ombor', label: 'Mahsulotlar', short: 'Mahsulotlar', icon: 'box', badge: 'low' },
+  { id: 'kirim', label: 'Tovar kirimi', short: 'Kirim', icon: 'inbox' },
   { id: 'qarz', label: 'Qarzdorlar', short: 'Qarzdorlar', icon: 'book', badge: 'debt' },
   { id: 'xarajat', label: 'Xarajatlar', icon: 'wallet' },
   { id: 'moliya', label: 'Hisobotlar', icon: 'chart' },
@@ -1187,6 +1188,28 @@ const NAV = [
 ];
 const TAB_TITLE = Object.fromEntries(NAV.map((n) => [n.id, n.label]));
 const MORE_TABS = ['xarajat', 'moliya', 'sozlama', 'yordam'];
+/* ---------- xodim ruxsatlari: Savdo va Tovar kirimi doim ochiq, qolgan bo'limlarni do'kon egasi botda ochib beradi ---------- */
+// do'kon egasi (yoki eski, oflayn nusxa) — hamma bo'lim ochiq; xodim — faqat ruxsat berilganlari
+const ME = () => (CLOUD_CFG && CL.auth && CL.meta && CL.meta.shopInfo && CL.meta.shopInfo.me) || null;
+const isStaff = () => { const m = ME(); return !!(m && m.role === 'staff'); };
+const staffPerms = () => { const m = ME(); return m && Array.isArray(m.perms) ? m.perms : []; };
+const staffName = () => { const m = ME(); return (m && m.name) || ''; };
+const STAFF_OPEN = ['kassa', 'yordam'];
+function canTab(t) {
+  if (t === 'kirim') return isStaff() && !staffPerms().includes('ombor'); // Mahsulotlar ochiq bo'lsa, kirim o'sha yerda
+  return !isStaff() || STAFF_OPEN.includes(t) || staffPerms().includes(t);
+}
+const seeProfit = () => !isStaff() || staffPerms().includes('moliya'); // foyda — faqat «Hisobotlar» ochilgan xodimga
+const homeTab = () => (canTab('bosh') ? 'bosh' : 'kassa');
+let PERM_SIG = '';
+const permSig = () => { const m = ME(); return m ? m.role + ':' + staffPerms().slice().sort().join(',') + ':' + (m.name || '') : ''; };
+// ruxsatlar o'zgarsa (ega botda bo'lim ochdi/yopdi) — menyu va joriy bo'lim darhol yangilanadi
+function applyPerms() {
+  const sg = permSig(); if (sg === PERM_SIG) return false;
+  PERM_SIG = sg; navHtml(); updateBadges();
+  if (!canTab(S.tab)) { closeModal(true); setTab(homeTab()); } else if (CL.auth) clRerender();
+  return true;
+}
 const S = {
   tab: 'bosh',
   cart: [], disc: { type: 'sum', value: '' }, pay: 'naqd', given: '', mixCash: '', custId: '', paidNow: '', carts: [], ci: 0,
@@ -1198,10 +1221,14 @@ const S = {
   dash: { mode: 'day', from: today(), to: today() },
   range: { mode: 'day', from: today(), to: today() }
 };
+function navVis() { const vis = NAV.filter((n) => canTab(n.id)); const bottom = vis.filter((n) => !MORE_TABS.includes(n.id)).slice(0, 4); return { vis, bottom, more: vis.filter((n) => !bottom.includes(n)) }; }
+const staffOutHtml = (cls) => isStaff() ? '<button id="cl-out" class="' + cls + '">' + ic('logout') + '<span class="flex-1 text-left">Chiqish' + (staffName() ? ' · ' + esc(staffName()) : '') + '</span></button>' : '';
 function navHtml() {
-  $('#nav').innerHTML = NAV.map((n, i) => '<button data-tab="' + n.id + '" class="sn nav-btn" title="' + n.label + ' (Alt+' + (i + 1) + ')">' + ic(n.icon) +
-    '<span class="flex-1 text-left">' + n.label + '</span>' + (n.badge ? '<span data-bdg="' + n.badge + '" id="bdg-' + n.badge + '" class="count hidden ' + (n.badge === 'low' ? 'bg-warn text-warn-on' : 'bg-neg text-neg-on') + '"></span>' : '') + '</button>').join('');
-  $('#bnav').innerHTML = NAV.slice(0, 4).map((n) => '<button data-tab="' + n.id + '" class="bn"><span class="bn-i">' + ic(n.icon, 'w-[22px] h-[22px]') + '</span>' +
+  PERM_SIG = permSig();
+  const NV = navVis();
+  $('#nav').innerHTML = NV.vis.map((n, i) => '<button data-tab="' + n.id + '" class="sn nav-btn" title="' + n.label + ' (Alt+' + (i + 1) + ')">' + ic(n.icon) +
+    '<span class="flex-1 text-left">' + n.label + '</span>' + (n.badge ? '<span data-bdg="' + n.badge + '" id="bdg-' + n.badge + '" class="count hidden ' + (n.badge === 'low' ? 'bg-warn text-warn-on' : 'bg-neg text-neg-on') + '"></span>' : '') + '</button>').join('') + staffOutHtml('sn nav-btn mt-3 text-neg');
+  $('#bnav').innerHTML = NV.bottom.map((n) => '<button data-tab="' + n.id + '" class="bn"><span class="bn-i">' + ic(n.icon, 'w-[22px] h-[22px]') + '</span>' +
     (n.badge ? '<span data-bdg="' + n.badge + '" class="count bn-b hidden ' + (n.badge === 'low' ? 'bg-warn text-warn-on' : 'bg-neg text-neg-on') + '"></span>' : '') + '<span>' + n.short + '</span></button>').join('') +
     '<button id="bn-more" class="bn" aria-haspopup="dialog"><span class="bn-i">' + ic('more', 'w-[22px] h-[22px]') + '</span><span>Koʻproq</span></button>';
   $$('[data-theme-group]').forEach((g) => { g.innerHTML = themeSeg(true); });
@@ -1209,7 +1236,8 @@ function navHtml() {
 }
 function moreSheet() {
   openModal('Koʻproq',
-    '<div class="grid gap-2">' + NAV.filter((n) => MORE_TABS.includes(n.id)).map((n) => '<button data-tab="' + n.id + '" class="sn border border-line min-h-[52px]"' + (S.tab === n.id ? ' aria-current="page"' : '') + '>' + ic(n.icon) + '<span class="flex-1 text-left">' + n.label + '</span>' + ic('right', 'w-4 h-4 text-faint') + '</button>').join('') + '</div>' +
+    (isStaff() ? '<div class="mb-3 rounded-xl bg-subtle px-3 py-2.5"><div class="text-xs text-faint">Xodim</div><div class="font-semibold text-ink">' + esc(staffName()) + '</div></div>' : '') +
+    '<div class="grid gap-2">' + navVis().more.map((n) => '<button data-tab="' + n.id + '" class="sn border border-line min-h-[52px]"' + (S.tab === n.id ? ' aria-current="page"' : '') + '>' + ic(n.icon) + '<span class="flex-1 text-left">' + n.label + '</span>' + ic('right', 'w-4 h-4 text-faint') + '</button>').join('') + staffOutHtml('sn border border-line min-h-[52px] text-neg') + '</div>' +
     '<div class="mt-5"><div class="label">Mavzu</div><div class="seg w-full" role="group" aria-label="Mavzu">' + themeSeg(false) + '</div></div>' +
     '<button data-fs class="btn btn-ghost w-full mt-4">' + ic('expand') + '<span data-fs-label>' + (isFull() ? 'Toʻliq ekrandan chiqish' : 'Toʻliq ekran') + '</span></button>');
 }
@@ -1227,10 +1255,11 @@ document.addEventListener('click', (e) => {
   }
 });
 function setTab(t) {
-  if (!TAB_TITLE[t]) t = 'bosh';
+  if (permSig() !== PERM_SIG) navHtml();
+  if (!TAB_TITLE[t] || !canTab(t)) t = homeTab();
   S.tab = t;
   $$('[data-tab]').forEach((b) => { if (b.closest('#modal-root')) return; if (b.dataset.tab === t) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
-  const more = $('#bn-more'); if (more) { if (MORE_TABS.includes(t)) more.setAttribute('aria-current', 'page'); else more.removeAttribute('aria-current'); }
+  const more = $('#bn-more'); if (more) { if (navVis().more.some((n) => n.id === t)) more.setAttribute('aria-current', 'page'); else more.removeAttribute('aria-current'); }
   $('#m-title').textContent = TAB_TITLE[t];
   tourEnd();
   render();
@@ -1250,6 +1279,7 @@ function render() {
   else if (t === 'xarajat') renderXarajat();
   else if (t === 'moliya') renderMoliya();
   else if (t === 'yordam') renderYordam();
+  else if (t === 'kirim') renderKirim();
   else renderSozlama();
   drawCartBar();
   const mh = $('#m-help'); if (mh) mh.classList.toggle('hidden', !TOURS[t]);
@@ -1280,7 +1310,7 @@ window.addEventListener('resize', () => {
   }, 160);
 });
 document.addEventListener('keydown', (e) => {
-  const map = { 1: 'bosh', 2: 'kassa', 3: 'ombor', 4: 'qarz', 5: 'xarajat', 6: 'moliya', 7: 'sozlama', 8: 'yordam' };
+  const map = Object.fromEntries(navVis().vis.map((n, i) => [i + 1, n.id]));
   if (e.altKey && map[e.key]) { e.preventDefault(); closeModal(true); setTab(map[e.key]); }
   if (e.key === 'F9' && !e.repeat && S.tab === 'kassa' && S.salesView === 'kassa' && !$('#modal-root').innerHTML) { e.preventDefault(); checkout(); }
   // F1–F4: savatlar orasida o'tish (kassaga ham olib o'tadi)
@@ -1293,7 +1323,8 @@ function updateBadges() {
   $$('[data-bdg="low"]').forEach((b) => { b.textContent = low; b.classList.toggle('hidden', !low); b.title = low + ' ta mahsulot kam qolgan'; });
   $$('[data-bdg="debt"]').forEach((b) => { b.textContent = debtors; b.classList.toggle('hidden', !debtors); b.title = debtors + ' ta qarzdor mijoz'; });
   $('#sb-shop').textContent = db.settings.shopName || 'Minimarket';
-  $('#m-sub').textContent = db.settings.shopName || 'Minimarket';
+  $('#m-sub').textContent = (db.settings.shopName || 'Minimarket') + (isStaff() && staffName() ? ' · ' + staffName() : '');
+  const sbs = $('#sb-sub'); if (sbs) sbs.textContent = isStaff() && staffName() ? staffName() : 'Savdo daftari';
 }
 function tickClock() {
   const d = new Date();
@@ -1734,6 +1765,7 @@ function clShopInfo(s) {
   if (s.now) CL.meta.skew = +s.now - Date.now();
   clSaveMeta();
   if (!prev || prev.paidUntil !== s.paidUntil || prev.blocked !== s.blocked || prev.trial !== s.trial) { const m = LIC.mode; licRefresh(); if (m !== LIC.mode) clRerender(); }
+  applyPerms();
 }
 
 /* ---------- sinxron sikli ---------- */
@@ -1886,11 +1918,11 @@ function clAccountCard() {
   const s = (CL.meta && CL.meta.shopInfo) || {};
   return '<section class="card p-4 lg:col-span-2"><h2 class="sect-t flex items-center gap-2 mb-3">' + ic('cloud', 'w-5 h-5 text-faint') + 'Onlayn hisob</h2>' +
     '<div class="grid gap-3 sm:grid-cols-2">' +
-    '<div class="rounded-xl bg-subtle px-3 py-2.5"><div class="text-xs text-faint">Hisob (login)</div><div class="font-bold text-ink num">+998 ' + esc(clFmtPhone(CL.auth.phone)) + '</div><div class="text-xs text-faint truncate">' + esc(s.name || '') + '</div></div>' +
+    '<div class="rounded-xl bg-subtle px-3 py-2.5">' + (isStaff() ? '<div class="text-xs text-faint">Xodim</div><div class="font-bold text-ink">' + esc(staffName()) + '</div>' : '<div class="text-xs text-faint">Hisob (login)</div><div class="font-bold text-ink num">+998 ' + esc(clFmtPhone(CL.auth.phone)) + '</div>') + '<div class="text-xs text-faint truncate">' + esc(s.name || '') + '</div></div>' +
     '<div class="rounded-xl bg-subtle px-3 py-2.5"><div class="text-xs text-faint">Sinxron</div><div id="cl-live" class="text-sm mt-0.5">' + clStatusRow() + '</div></div></div>' +
-    '<p class="hint mt-3">Shu telefon raqam va parol bilan doʻkoningizdagi istalgan telefon, planshet yoki kompyuterdan kiring — hammasida bir xil maʼlumot koʻrinadi.</p>' +
+    '<p class="hint mt-3">' + (isStaff() ? 'Siz ilovaga oʻz Telegramingiz orqali kirasiz («Telegram orqali kirish»). Qaysi boʻlimlar ochiqligini doʻkon egasi belgilaydi.' : 'Shu telefon raqam va parol bilan doʻkoningizdagi istalgan telefon, planshet yoki kompyuterdan kiring — hammasida bir xil maʼlumot koʻrinadi.') + '</p>' +
     '<div class="flex flex-wrap gap-2 mt-3">' +
-    '<button id="cl-pw" class="btn btn-ghost btn-sm">' + ic('key', 'w-4 h-4') + 'Parolni almashtirish</button>' +
+    (isStaff() ? '' : '<button id="cl-pw" class="btn btn-ghost btn-sm">' + ic('key', 'w-4 h-4') + 'Parolni almashtirish</button>') +
     '<button id="cl-sync" class="btn btn-ghost btn-sm">' + ic('sync', 'w-4 h-4') + 'Sinxronlash</button>' +
     (clStandalone() || NATIVE ? '' : '<button id="cl-inst" class="btn btn-ghost btn-sm">' + ic('download', 'w-4 h-4') + 'Telefonga oʻrnatish</button>') +
     (CLOUD_CFG.apkUrl && !NATIVE ? '<a class="btn btn-ghost btn-sm" href="' + esc(CLOUD_CFG.apkUrl) + '">' + ic('download', 'w-4 h-4') + 'Android ilova (APK)</a>' : '') +
@@ -2532,7 +2564,7 @@ function drawTotals() {
     '<div class="flex justify-between text-muted"><span>Summa</span><span>' + money(t.sub) + '</span></div>' +
     (t.disc ? '<div class="flex justify-between text-neg"><span>Chegirma</span><span>−' + money(t.disc) + '</span></div>' : '') +
     '<div class="flex justify-between items-baseline gap-3 pt-2 border-t border-line"><span class="font-semibold text-ink">Jami</span><span id="k-total" class="text-2xl font-extrabold text-ink tracking-tight">' + money(t.total) + '</span></div>' +
-    '<div class="flex justify-between text-xs text-faint"><span>Taxminiy foyda</span><span>' + money(t.profit) + '</span></div></div>';
+    (seeProfit() ? '<div class="flex justify-between text-xs text-faint"><span>Taxminiy foyda</span><span>' + money(t.profit) + '</span></div>' : '') + '</div>';
 }
 function drawPays() { $$('[data-pay]').forEach((b) => b.setAttribute('aria-pressed', b.dataset.pay === S.pay ? 'true' : 'false')); }
 function drawPayX() {
@@ -2652,7 +2684,7 @@ function receiptModal(s, fresh) {
   openModal(fresh ? 'Sotuv yakunlandi' : 'Chek №' + s.no,
     (fresh ? '<div class="mb-4 flex items-center gap-3 rounded-2xl bg-pos-soft text-pos px-4 py-3"><span class="ico bg-pos text-pos-on">' + ic('check') + '</span><div class="num"><div class="font-bold text-lg leading-tight">' + money(s.total) + '</div><div class="text-sm">' + PAY_LABEL[s.payType] + (s.given > s.total ? ' · qaytim ' + money(s.given - s.total) : '') + '</div></div></div>' : '') +
     '<div class="mx-auto max-w-xs bg-subtle border border-line rounded-xl p-4 font-mono text-sm leading-relaxed text-ink">' + receiptHtml(s) + '</div>' +
-    '<p class="text-xs text-faint mt-3 text-center num">Foyda: ' + money(s.profit) + ' (chekda koʻrinmaydi)</p>',
+    (seeProfit() ? '<p class="text-xs text-faint mt-3 text-center num">Foyda: ' + money(s.profit) + ' (chekda koʻrinmaydi)</p>' : ''),
     '<button id="r-print" class="btn btn-ghost">' + (NATIVE ? ic('receipt') + 'Chekni yuborish' : ic('print') + 'Chop etish') + '</button><button data-close class="btn btn-primary">' + (fresh ? 'Yangi sotuv' : 'Yopish') + '</button>',
     { onClose: () => { if (S.tab === 'kassa') { const s2 = $('#k-search'); if (s2 && appW() >= 1024) s2.focus(); } } });
   $('#r-print').onclick = () => {
@@ -2670,18 +2702,18 @@ function saleRowsHtml(list, opts = {}) {
     '<button data-ret="' + s.id + '" class="btn btn-text btn-sm" title="Tovar qaytarish (vozvrat)">' + ic('undo', 'w-4 h-4') + 'Qaytarish</button>' +
     '<button data-cancel="' + s.id + '" class="btn btn-text btn-sm text-neg" title="Sotuvni butunlay bekor qilish">' + ic('x', 'w-4 h-4') + 'Bekor</button>';
   if (isWide()) {
-    return '<div class="overflow-x-auto"><table class="tbl min-w-[760px]"><thead><tr><th>Chek</th><th>Vaqt</th><th>Mahsulotlar</th><th>Mijoz</th><th>Toʻlov</th><th class="r">Summa</th><th class="r">Foyda</th><th class="r">Amallar</th></tr></thead><tbody>' +
+    return '<div class="overflow-x-auto"><table class="tbl min-w-[760px]"><thead><tr><th>Chek</th><th>Vaqt</th><th>Mahsulotlar</th><th>Mijoz</th><th>Toʻlov</th><th class="r">Summa</th>' + (seeProfit() ? '<th class="r">Foyda</th>' : '') + '<th class="r">Amallar</th></tr></thead><tbody>' +
       list.map((s) => '<tr><td class="num font-semibold text-ink">№' + s.no + '</td><td class="num text-muted whitespace-nowrap">' + when(s) + '</td>' +
         '<td class="max-w-[280px]"><div class="truncate text-ink">' + esc(s.items.map((i) => i.name + ' ×' + fq(i.qty)).join(', ')) + '</div>' + (s.discount ? '<div class="text-xs text-faint num">chegirma ' + fmt(s.discount) + '</div>' : '') + '</td>' +
         '<td class="text-muted">' + esc(custName(s) || '—') + '</td><td>' + payBadge(s.payType) + (s.debt ? ' <span class="text-xs text-warn num">qarz ' + fmt(s.debt) + '</span>' : '') + retTag(s) + '</td>' +
-        '<td class="r num font-semibold text-ink">' + fmt(s.total) + '</td><td class="r num ' + (s.profit < 0 ? 'text-neg' : 'text-pos') + '">' + fmt(s.profit) + '</td>' +
+        '<td class="r num font-semibold text-ink">' + fmt(s.total) + '</td>' + (seeProfit() ? '<td class="r num ' + (s.profit < 0 ? 'text-neg' : 'text-pos') + '">' + fmt(s.profit) + '</td>' : '') +
         '<td class="r whitespace-nowrap">' + acts(s) + '</td></tr>').join('') + '</tbody></table></div>';
   }
   return '<div>' + list.map((s) => '<div class="px-4 py-3 row-line">' +
     '<div class="flex items-center justify-between gap-2"><div class="flex items-center gap-2 min-w-0 flex-wrap"><span class="font-semibold text-ink num">№' + s.no + '</span><span class="text-xs text-faint num">' + when(s) + '</span>' + payBadge(s.payType) + retTag(s) + '</div>' +
     '<span class="font-bold num text-ink whitespace-nowrap">' + money(s.total) + '</span></div>' +
     '<div class="text-sm text-muted truncate mt-1">' + esc(s.items.map((i) => i.name + ' ×' + fq(i.qty)).join(', ')) + '</div>' +
-    '<div class="flex items-center justify-between gap-2 mt-1"><span class="text-xs text-faint num truncate">' + (custName(s) ? esc(custName(s)) + ' · ' : '') + (s.debt ? 'qarz ' + fmt(s.debt) + ' · ' : '') + 'foyda ' + fmt(s.profit) + '</span>' +
+    '<div class="flex items-center justify-between gap-2 mt-1"><span class="text-xs text-faint num truncate">' + (custName(s) ? esc(custName(s)) + ' · ' : '') + (s.debt ? 'qarz ' + fmt(s.debt) + (seeProfit() ? ' · ' : '') : '') + (seeProfit() ? 'foyda ' + fmt(s.profit) : '') + '</span>' +
     '<div class="flex -mr-2 shrink-0">' + acts(s) + '</div></div></div>').join('') + '</div>';
 }
 function bindSaleRows(el) {
@@ -2756,7 +2788,7 @@ function drawTarix() {
   $('#sh-sum').innerHTML =
     kpi('Cheklar', String(list.length), { raw: true, icon: 'receipt', itone: 't-muted', id: 'sh-count', sub: list.length ? 'oʻrtacha ' + money(tot.sum / list.length) : '' }) +
     kpi('Tushum', tot.sum, { icon: 'cart', itone: 't-primary', id: 'sh-total', sub: tot.disc ? 'chegirma ' + fmt(tot.disc) : 'chegirmasiz' }) +
-    kpi('Yalpi foyda', tot.profit, { icon: 'trend', itone: 't-pos', tone: tot.profit < 0 ? 'neg' : 'pos', id: 'sh-profit', sub: 'tushum − tannarx' }) +
+    (seeProfit() ? kpi('Yalpi foyda', tot.profit, { icon: 'trend', itone: 't-pos', tone: tot.profit < 0 ? 'neg' : 'pos', id: 'sh-profit', sub: 'tushum − tannarx' }) : '') +
     kpi('Qarzga sotilgan', tot.debt, { icon: 'book', itone: 't-warn', id: 'sh-debt', sub: 'naqd tushmagan qism' });
   const rets = db.returns.filter((r) => inRange(r.ts, b)), retSum = rets.reduce((a, r) => a + r.total, 0);
   if (retSum) { const st = $('#sh-total .text-xs'); if (st) st.textContent += ' · qaytarish −' + fmt(retSum); }
@@ -3646,6 +3678,7 @@ async function sha256Hex(t) {
 // true — ruxsat bor (parol o'rnatilmagan yoki yaqinda kiritilgan); false — parol so'raldi, amal parol to'g'ri bo'lgach qayta chaqiriladi
 function adminGate(act, retry) {
   const h = db.settings.adminHash;
+  if (isStaff() && !h) { toast('«' + (ADMIN_ACTS[act] || act) + '» faqat doʻkon egasi uchun. Ega «Sozlamalar → Nazorat»da admin parol qoʻysa, parol bilan bajarish mumkin.', 'err'); return false; }
   if (!h || Date.now() < ADMIN_OK_UNTIL) return true;
   openModal('Admin paroli kerak',
     '<p class="text-sm text-muted">«' + esc(ADMIN_ACTS[act] || act) + '» faqat admin paroli bilan bajariladi.</p>' +
@@ -3973,6 +4006,7 @@ function bindMarkup(costEl, pctEl, priceEl, onChange, root) {
 }
 // "har biridan qancha foyda" — aniq ko'rsatkichlar
 function profitHtml(cost, price, qty, unit, qtyWord) {
+  if (!seeProfit()) return '';
   if (!(cost > 0) || !(price > 0)) return '<span class="text-faint">Kelish narxi va sotish narxini kiriting — foyda shu yerda koʻrinadi.</span>';
   const pu = rm(price - cost), bad = pu < 0;
   return '<div class="flex justify-between gap-3"><span>Har biridan foyda</span><b class="' + (bad ? 'text-neg' : 'text-pos') + '">' + money(pu) + '</b></div>' +
@@ -4173,6 +4207,13 @@ function spisModal(pid, pre) {
     });
 }
 
+/* ---------- xodim uchun «Tovar kirimi» sahifasi: kirim qilish va kirim tarixi ---------- */
+function renderKirim() {
+  $('#main').innerHTML = wrap(pageHead('Tovar kirimi', 'Kelgan tovarni omborga qoʻshish va kirim tarixi',
+    '<button id="o-prix" class="btn btn-primary">' + ic('inbox') + 'Kirim qilish</button>') + '<div id="o-view" class="mt-3"></div>');
+  $('#o-prix').onclick = () => invoiceModal();
+  drawInvoices();
+}
 /* ===================== 2b. OMBOR: KIRIM (nakladnoy), MUDDAT, BRAK, NAZORAT, NOLLASH, INVENTARIZATSIYA ===================== */
 const OVIEWS = [['list', 'Tovarlar', 'box'], ['kirim', 'Kirim tarixi', 'history'], ['exp', 'Muddat', 'calendar'], ['brak', 'Brak', 'minus'], ['ctrl', 'Nazorat', 'alert'], ['noll', 'Nollash', 'scan'], ['inv', 'Inventarizatsiya', 'check']];
 const daysTo = (k) => Math.round((startTs(k) - startTs(today())) / 864e5);
@@ -5602,7 +5643,7 @@ async function aiFn(body, ms) {
 function aiFab() {
   let b = $('#ai-fab');
   if (aiCloud() && (AI.on === null || Date.now() - AI.ts > 30 * 60e3)) aiProbe();
-  const show = aiCloud() && AI.on === true && S.tab !== 'kassa' && !$('#auth-root');
+  const show = aiCloud() && AI.on === true && seeProfit() && S.tab !== 'kassa' && !$('#auth-root');
   document.documentElement.classList.toggle('ai-fab-on', show);
   if (!show) { if (b) b.classList.add('hidden'); return; }
   if (!b) {
@@ -5754,7 +5795,7 @@ const TG_ROLE_SUB = {
   cashier: 'Faqat smena yopilgandagi Z-hisobot'
 };
 function tgCardHtml() {
-  if (!aiCloud()) return '';
+  if (!aiCloud() || isStaff()) return '';
   return '<section id="tg-card" class="card p-4 lg:col-span-2"><h2 class="sect-t flex items-center gap-2">' + ic('send', 'w-5 h-5 text-faint') + 'Telegram bot va AI yordamchi</h2>' +
     '<div id="tg-body" class="mt-3 text-sm text-faint">Yuklanmoqda…</div></section>';
 }
