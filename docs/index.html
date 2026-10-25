@@ -5519,7 +5519,7 @@ const FAQ = [
   ['AI notoʻgʻri javob bersa-chi?', 'AI faqat doʻkoningiz maʼlumotiga tayanadi, lekin adashishi mumkin — muhim raqamlarni «Hisobotlar»da tekshiring. U hech narsani oʻzgartira olmaydi, faqat javob beradi.'],
   ['Oʻrgatuvchini qayta koʻrsam boʻladimi?', 'Har boʻlim tepasidagi «?» tugmasi qadam-baqadam oʻrgatishni qayta boshlaydi.']
 ];
-const VIDEOS = [['minimarket-noldan-darslik.mp4', 'Noldan boshlab: kirish, tovar qoʻshish, turlarga ajratish, sotish', '1:55'], ['minimarket-qollanma.mp4', 'Foyda: kelish narxi, ustama, sotish va hisobot', '3:13']];
+const VIDEOS = [['minimarket-boshlash.mp4', 'Noldan boshlab: Telegram orqali roʻyxatdan oʻtish, tovar qoʻshish, turlarga ajratish, sotish', '1:32'], ['minimarket-qollanma.mp4', 'Foyda: kelish narxi, ustama, sotish va hisobot', '3:13']];
 
 function renderYordam() {
   const done = db.settings.plan || {}, all = PLAN.reduce((a, s) => a + s.items.length, 0), n = PLAN.reduce((a, s) => a + s.items.filter((x) => done[x[0]]).length, 0);
