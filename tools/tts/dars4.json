@@ -1,0 +1,10 @@
+[
+  {"id": "01", "text": "Assalomu alaykum! Mijoz tovarni sotib oldi va besh daqiqadan keyin qaytarib keldi. Bu darsda tovarni qanday qaytarishni koʻrsatamiz: skaner bilan yoki qoʻlda."},
+  {"id": "02", "text": "Savdo boʻlimida «Tovar qaytarish» tugmasini bosing."},
+  {"id": "03", "text": "Qaytgan tovarning shtrix-kodini skanerlang: USB skaner bilan yoki kamera tugmasi bilan. Shtrix-kodi boʻlmasa — nomini yozing yoki oxirgi sotilganlardan tanlang."},
+  {"id": "04", "text": "Ilova shu tovar sotilgan chekni oʻzi topadi va miqdorni bitta qilib qoʻyadi. Mijoz koʻproq qaytarsa, sonini yozing yoki «hammasi»ni bosing."},
+  {"id": "05", "text": "Pul qanday qaytarilganini tanlang: naqd, karta yoki mijoz qarzidan ayirish. Sababini belgilang va «Qaytarish» tugmasini bosing."},
+  {"id": "06", "text": "Bir tovar bir nechta chekda boʻlsa, ilova cheklarni koʻrsatadi. Eng oxirgisi tepada, qachon sotilgani bilan. Kerakli chekni tanlaysiz."},
+  {"id": "07", "text": "Tayyor! Tovar omborga qaytdi, pul esa tushumdan ayrildi. Chekda «qaytarilgan» belgisi chiqadi va hisobotlar toʻgʻri qoladi."},
+  {"id": "08", "text": "Qaytarish hammaga, kassirga ham parolsiz ochiq. Chekni bilsangiz, bugungi sotuvlardan chekni topib «Qaytarish»ni bosishingiz ham mumkin. Rahmat!"}
+]
