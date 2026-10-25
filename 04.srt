@@ -1,0 +1,12 @@
+1
+00:00:00,100 --> 00:00:04,112
+Endi xodimga qaysi bo'limlar ochiq bo'lishini belgilang.
+
+2
+00:00:04,062 --> 00:00:08,387
+Tugmani bossangiz — ochiladi, yana bossangiz — yopiladi.
+
+3
+00:00:08,387 --> 00:00:11,425
+Savdo va Tovar kirimi doim ochiq.
+

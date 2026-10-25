@@ -1,0 +1,8 @@
+1
+00:00:00,100 --> 00:00:03,487
+Xodim «Ilovani ochish» tugmasi bilan kiradi.
+
+2
+00:00:03,437 --> 00:00:08,075
+Unga Savdo, Tovar kirimi va siz ochgan bo'limlargina ko'rinadi.
+

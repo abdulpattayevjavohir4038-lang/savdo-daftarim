@@ -1,0 +1,8 @@
+1
+00:00:00,100 --> 00:00:05,175
+Xodim havolani ochib, «Start» tugmasini bosadi va do'koningizga ulanadi.
+
+2
+00:00:05,125 --> 00:00:08,125
+Shu zahoti sizga ham xabar keladi.
+

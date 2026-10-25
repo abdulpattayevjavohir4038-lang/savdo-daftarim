@@ -1,0 +1,8 @@
+1
+00:00:00,100 --> 00:00:04,062
+Botda pastdagi «Kassir taklif qilish» tugmasini bosing.
+
+2
+00:00:04,012 --> 00:00:07,150
+Bu tugma faqat do'kon egasida bo'ladi.
+
