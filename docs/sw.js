@@ -1,5 +1,5 @@
-// Minimarket POS — internetsiz ochilish uchun (versiya: 4c9aa9cc35)
-const CACHE = 'mm-4c9aa9cc35';
+// Minimarket POS — internetsiz ochilish uchun (versiya: 72da6918a0)
+const CACHE = 'mm-72da6918a0';
 const CORE = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png', './favicon.png'];
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(CORE)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', (e) => {
