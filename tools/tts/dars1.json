@@ -1,0 +1,38 @@
+[
+ {
+  "id": "01",
+  "text": "Assalomu alaykum! Bu darsda Minimarket POS'ni noldan boshlashni koʻrsatamiz: roʻyxatdan oʻtish, tovar qoʻshish va birinchi savdo."
+ },
+ {
+  "id": "02",
+  "text": "Telegramda botni oching va «Boshlash» tugmasini bosing. Keyin pastdagi «Telefon raqamni yuborish» tugmasini bosing. Parol kerak emas."
+ },
+ {
+  "id": "03",
+  "text": "Doʻkoningiz nomini yozing, masalan, Baraka market. Doʻkon darhol ochiladi, birinchi oʻttiz kun esa bepul."
+ },
+ {
+  "id": "04",
+  "text": "Endi chap pastdagi «Ilovalar» tugmasini bosing va «Minimarket POS»ni tanlang. Ilova parolsiz ochiladi."
+ },
+ {
+  "id": "05",
+  "text": "Tovar qoʻshamiz. «Mahsulotlar» boʻlimida «Yangi mahsulot» tugmasini bosing. Tovar nomini, turini va kelish narxini yozing."
+ },
+ {
+  "id": "06",
+  "text": "Ustamani tanlang, sotish narxi oʻzi hisoblanadi. Qoldiqni yozing va «Saqlash» tugmasini bosing."
+ },
+ {
+  "id": "07",
+  "text": "Endi sotamiz. «Savdo» boʻlimida tovarni bosing, u savatga tushadi. Yana bossangiz, soni koʻpayadi."
+ },
+ {
+  "id": "08",
+  "text": "Toʻlov turini tanlang: naqd, karta yoki qarzga. «Toʻlovni yakunlash»ni bosing. Chek tayyor, ombordagi qoldiq esa oʻzi kamayadi."
+ },
+ {
+  "id": "09",
+  "text": "Hammasi shu! Kun oxirida hisobot Telegramga oʻzi keladi. Keyingi darslarda foyda, kassir va qaytarishni koʻrasiz. Rahmat!"
+ }
+]
