@@ -1,0 +1,8 @@
+1
+00:00:00,100 --> 00:00:05,437
+Kimgadir qarz bersangiz, «Qarz berdim»ni bosing va ism bilan summani yozing.
+
+2
+00:00:05,387 --> 00:00:09,112
+O'zingiz qarz olsangiz, «Qarz oldim»ni bosing.
+

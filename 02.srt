@@ -1,0 +1,8 @@
+1
+00:00:00,100 --> 00:00:04,900
+Botda chap pastdagi «Ilovalar» tugmasini bosing va «Hisobchi»ni tanlang.
+
+2
+00:00:04,850 --> 00:00:06,825
+Parol so'ralmaydi.
+

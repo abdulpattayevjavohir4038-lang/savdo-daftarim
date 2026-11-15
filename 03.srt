@@ -1,0 +1,8 @@
+1
+00:00:00,100 --> 00:00:03,525
+Xarajat yozish uchun «Chiqim» tugmasini bosing.
+
+2
+00:00:03,475 --> 00:00:08,087
+Summani va izohni yozing, toifani tanlang va «Saqlash»ni bosing.
+

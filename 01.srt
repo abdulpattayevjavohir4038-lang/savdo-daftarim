@@ -1,0 +1,16 @@
+1
+00:00:00,100 --> 00:00:02,187
+Assalomu alaykum!
+
+2
+00:00:02,137 --> 00:00:05,450
+Bu darsda Hisobchi ilovasini ko'rsatamiz.
+
+3
+00:00:05,450 --> 00:00:10,825
+U shaxsiy kirim-chiqimingiz, qarz oldi-berdi va byudjetingizni hisoblab boradi.
+
+4
+00:00:10,825 --> 00:00:12,612
+Hisobchi bepul.
+

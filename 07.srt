@@ -1,0 +1,8 @@
+1
+00:00:00,100 --> 00:00:07,112
+Hisobot» bo'limida kirim va chiqim grafigi, pul qaysi toifalarga ketgani va oy oxiriga prognoz ko'rinadi.
+
+2
+00:00:07,062 --> 00:00:10,487
+Toifaga oylik limit ham qo'yishingiz mumkin.
+

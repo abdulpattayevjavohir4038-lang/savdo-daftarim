@@ -1,0 +1,8 @@
+1
+00:00:00,100 --> 00:00:06,887
+Botdagi «Hamyon nazorat»ga yozganlaringiz ham shu yerda ko'rinadi, kechqurun esa kunlik hisobot keladi.
+
+2
+00:00:06,837 --> 00:00:08,362
+Rahmat!
+

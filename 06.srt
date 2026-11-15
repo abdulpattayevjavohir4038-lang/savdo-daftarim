@@ -1,0 +1,8 @@
+1
+00:00:00,100 --> 00:00:05,975
+Qarz qaytarilganda, qarz daftaridan o'sha odamni oching va qancha qaytarganini yozing.
+
+2
+00:00:05,925 --> 00:00:09,175
+Hammasi qaytsa, «To'liq yopish»ni bosing.
+

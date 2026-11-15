@@ -1,0 +1,16 @@
+1
+00:00:00,100 --> 00:00:02,725
+Bundan ham tezroq usul bor.
+
+2
+00:00:02,675 --> 00:00:06,687
+Tez yozish» maydoniga «taksi yigirma besh ming» deb yozing.
+
+3
+00:00:06,687 --> 00:00:09,050
+Toifa o'zi aniqlanadi.
+
+4
+00:00:09,050 --> 00:00:13,025
+Plyus belgisi bilan boshlasangiz, kirim bo'lib yoziladi.
+
