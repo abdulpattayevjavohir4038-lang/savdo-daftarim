@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<title>Video darslik sahnasi</title>
+<style>
+  /* 540x960 CSS piksel (x2 = 1080x1920 video). Minimarket ilovasining ranglari */
+  :root { --pri: 31 79 214; --pos: 4 120 87; --warn: 245 158 11; --ink: 15 23 42; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; width: 540px; height: 960px; overflow: hidden; font-family: Inter, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  body { background: radial-gradient(120% 70% at 50% 0%, #2453d8 0%, #16349b 45%, #0b1b5c 100%); color: #fff; position: relative; }
+  body.hb { background: radial-gradient(120% 70% at 50% 0%, #0f8a63 0%, #0b6347 45%, #063a2a 100%); }
+  body::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(60% 40% at 85% 95%, rgb(255 255 255 / .08), transparent 70%); }
+  #top { position: absolute; left: 20px; right: 20px; top: 16px; }
+  .brand { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; opacity: .92; }
+  .brand .lg { width: 22px; height: 22px; border-radius: 7px; background: #fff; color: rgb(var(--pri)); display: grid; place-items: center; font-weight: 800; font-size: 13px; letter-spacing: 0; }
+  body.hb .brand .lg { color: rgb(var(--pos)); }
+  #prog { margin-left: auto; display: flex; gap: 4px; }
+  #prog i { width: 16px; height: 4px; border-radius: 9px; background: rgb(255 255 255 / .25); transition: background .4s; }
+  #prog i.on { background: #fcd34d; }
+  .tl { display: flex; align-items: center; gap: 8px; margin-top: 10px; }
+  #step { background: #fcd34d; color: #3b2a00; font-size: 12px; font-weight: 800; padding: 2px 8px; border-radius: 999px; }
+  #title { font-size: 21px; font-weight: 800; letter-spacing: -.01em; transition: opacity .3s; }
+  /* telefon */
+  #phone { position: absolute; left: 50%; top: 92px; transform: translateX(-50%); width: 376px; height: 726px; border-radius: 44px; background: #0b0f1a;
+    box-shadow: 0 30px 60px -20px rgb(0 0 0 / .6), inset 0 0 0 2px #2a3245; padding: 10px; transition: opacity .45s, transform .45s; }
+  #phone.off { opacity: 0; transform: translateX(-50%) translateY(30px) scale(.96); pointer-events: none; }
+  #scr { position: relative; width: 356px; height: 706px; border-radius: 34px; overflow: hidden; background: #fff; }
+  #sbar { height: 24px; display: flex; align-items: center; justify-content: space-between; padding: 0 22px; font-size: 12px; font-weight: 700; color: #0f172a; background: #fff; position: relative; z-index: 2; }
+  #sbar.dark { background: #17212b; color: #fff; }
+  #sbar .ic { display: flex; gap: 5px; align-items: center; }
+  #notch { position: absolute; left: 50%; top: 6px; width: 90px; height: 20px; border-radius: 12px; background: #0b0f1a; transform: translateX(-50%); z-index: 3; }
+  #wa { height: 40px; display: none; align-items: center; gap: 10px; padding: 0 12px; background: #17212b; color: #fff; font-size: 14px; font-weight: 600; position: relative; z-index: 2; }
+  #wa .x { font-size: 20px; opacity: .8; } #wa .t { flex: 1; } #wa .s { font-size: 11px; opacity: .6; font-weight: 500; }
+  #scr.webapp #wa { display: flex; }
+  #view { position: absolute; left: 0; top: 24px; width: 356px; height: 682px; overflow: hidden; }
+  #scr.webapp #view { top: 64px; height: 642px; }
+  #ld { position: absolute; left: 50%; top: 42%; width: 34px; height: 34px; margin-left: -17px; border-radius: 50%; border: 3px solid #e2e8f0; border-top-color: #3390ec; animation: sp .8s linear infinite; }
+  @keyframes sp { to { transform: rotate(360deg); } }
+  #view { background: #f4f6fa; }
+  #view iframe { position: absolute; left: 0; top: 0; border: 0; width: 360px; transform-origin: 0 0; transform: scale(.98889); background: #fff; transition: opacity .3s; }
+  /* kursor va ajratish */
+  #cur { position: absolute; left: 0; top: 0; width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 50%; background: rgb(255 255 255 / .55); border: 2px solid rgb(15 23 42 / .55);
+    box-shadow: 0 4px 14px rgb(0 0 0 / .35); z-index: 50; opacity: 0; transition: left .7s cubic-bezier(.4,0,.2,1), top .7s cubic-bezier(.4,0,.2,1), opacity .3s, transform .15s; pointer-events: none; }
+  #cur.on { opacity: 1; } #cur.dn { transform: scale(.78); background: rgb(255 255 255 / .8); }
+  .rip { position: absolute; width: 20px; height: 20px; margin: -10px 0 0 -10px; border-radius: 50%; border: 3px solid #fcd34d; z-index: 49; animation: rip .6s ease-out forwards; pointer-events: none; }
+  @keyframes rip { to { transform: scale(3.4); opacity: 0; } }
+  #ring { position: absolute; z-index: 48; border: 3px solid #f59e0b; border-radius: 12px; box-shadow: 0 0 0 4px rgb(245 158 11 / .25), 0 0 24px rgb(245 158 11 / .45); opacity: 0; transition: all .45s cubic-bezier(.4,0,.2,1); pointer-events: none; }
+  #ring.on { opacity: 1; animation: pulse 1.6s ease-in-out infinite; }
+  @keyframes pulse { 50% { box-shadow: 0 0 0 7px rgb(245 158 11 / .15), 0 0 30px rgb(245 158 11 / .55); } }
+  /* Telegram bildirishnomasi (telefon tepasida) */
+  #note { position: absolute; left: 92px; right: 92px; top: 128px; z-index: 60; background: rgb(255 255 255 / .97); color: #0f172a; border-radius: 16px; padding: 10px 12px; box-shadow: 0 16px 40px -10px rgb(0 0 0 / .5);
+    font-size: 12.5px; line-height: 1.35; transform: translateY(-30px); opacity: 0; transition: all .45s cubic-bezier(.2,.9,.3,1.2); pointer-events: none; }
+  #note.on { transform: none; opacity: 1; }
+  #note .nh { display: flex; align-items: center; gap: 6px; font-size: 11.5px; margin-bottom: 4px; } #note .nt { margin-left: auto; color: #94a3b8; }
+  #note .na { width: 18px; height: 18px; border-radius: 5px; background: #1f4fd6; color: #fff; display: grid; place-items: center; font-size: 10px; font-weight: 800; }
+  /* subtitr */
+  #cap { position: absolute; left: 22px; right: 22px; bottom: 22px; min-height: 108px; display: flex; align-items: center; justify-content: center; text-align: center;
+    background: rgb(8 15 40 / .78); border: 1px solid rgb(255 255 255 / .12); border-radius: 18px; padding: 14px 18px; font-size: 18px; line-height: 1.38; font-weight: 600; backdrop-filter: blur(6px); }
+  #cap span { transition: opacity .25s; }
+  #cap b { color: #fcd34d; font-weight: 800; }
+  /* kartochka (kirish / xulosa) */
+  #card { position: absolute; left: 30px; right: 30px; top: 104px; bottom: 156px; background: #fff; color: #0f172a; border-radius: 26px; padding: 26px 24px; box-shadow: 0 30px 60px -20px rgb(0 0 0 / .55);
+    display: flex; flex-direction: column; justify-content: center; gap: 20px; transition: opacity .45s, transform .45s; }
+  #card.off { opacity: 0; transform: translateY(30px) scale(.96); pointer-events: none; }
+  .ch { display: flex; align-items: center; gap: 14px; margin-bottom: 8px; }
+  .ch .lg { width: 52px; height: 52px; border-radius: 15px; background: rgb(var(--pri)); color: #fff; display: grid; place-items: center; font-weight: 800; font-size: 26px; flex-shrink: 0; }
+  body.hb .ch .lg { background: rgb(var(--pos)); }
+  .ch .t { font-size: 26px; font-weight: 800; letter-spacing: -.01em; line-height: 1.15; } .ch .s { font-size: 13px; color: #64748b; margin-top: 3px; font-weight: 500; }
+  .li { display: flex; gap: 14px; align-items: flex-start; font-size: 18.5px; line-height: 1.38; font-weight: 600; opacity: 0; transform: translateY(10px); transition: all .45s; }
+  .li.on { opacity: 1; transform: none; }
+  .li .n { width: 32px; height: 32px; border-radius: 9px; background: #e8efff; color: rgb(var(--pri)); display: grid; place-items: center; font-weight: 800; font-size: 14px; flex-shrink: 0; margin-top: -2px; }
+  body.hb .li .n { background: #e4f5ed; color: rgb(var(--pos)); }
+  .li.ok .n { background: rgb(var(--pos)); color: #fff; }
+  .li b { color: rgb(var(--pri)); } body.hb .li b { color: rgb(var(--pos)); }
+  .foot { margin-top: 10px; background: #e4f5ed; color: #047857; border-radius: 14px; padding: 12px; text-align: center; font-weight: 700; font-size: 14px; }
+</style>
+</head>
+<body>
+<div id="top">
+  <div class="brand"><span class="lg" id="b-lg">M</span><span id="b-t">Minimarket POS · Video darslik</span><span id="prog"></span></div>
+  <div class="tl"><span id="step">1/6</span><span id="title"></span></div>
+</div>
+<div id="card" class="off"></div>
+<div id="phone" class="off">
+  <div id="scr">
+    <div id="notch"></div>
+    <div id="sbar"><span>09:41</span><span class="ic">
+      <svg width="16" height="11" viewBox="0 0 16 11"><rect x="0" y="7" width="3" height="4" rx="1" fill="currentColor"/><rect x="4.3" y="5" width="3" height="6" rx="1" fill="currentColor"/><rect x="8.6" y="2.5" width="3" height="8.5" rx="1" fill="currentColor"/><rect x="13" y="0" width="3" height="11" rx="1" fill="currentColor"/></svg>
+      <svg width="24" height="11" viewBox="0 0 24 11"><rect x=".5" y=".5" width="20" height="10" rx="3" fill="none" stroke="currentColor" opacity=".5"/><rect x="2" y="2" width="15" height="7" rx="1.6" fill="currentColor"/><rect x="21.5" y="3.5" width="1.6" height="4" rx=".8" fill="currentColor" opacity=".5"/></svg></span></div>
+    <div id="wa"><span class="x">✕</span><div class="t"><div id="wa-t">Minimarket POS</div><div class="s">mini ilova</div></div><span style="opacity:.8">⋮</span></div>
+    <div id="view"><div id="ld"></div><iframe id="fr" src="about:blank"></iframe></div>
+  </div>
+</div>
+<div id="note"><div class="nh"><span class="na">M</span><b>Minimarket POS</b><span class="nt">hozir</span></div><div id="note-t"></div></div>
+<div id="ring"></div>
+<div id="cur"></div>
+<div id="cap"><span id="cap-t"></span></div>
+<script>
+// Sahna boshqaruvi — Python (Playwright) chaqiradi
+const $ = (s) => document.querySelector(s);
+const K = 356 / 360;
+const S = window.S = {
+  setup(o) {
+    document.body.classList.toggle('hb', !!o.hb);
+    $('#b-lg').textContent = o.hb ? 'H' : 'M';
+    $('#b-t').textContent = o.brand;
+    $('#prog').innerHTML = Array.from({ length: o.steps }, () => '<i></i>').join('');
+  },
+  head(step, total, title) {
+    $('#step').textContent = step + '/' + total;
+    $('#title').textContent = title;
+    [...document.querySelectorAll('#prog i')].forEach((x, i) => x.classList.toggle('on', i < step));
+  },
+  cap(html) {
+    const t = $('#cap-t'); t.style.opacity = 0;
+    setTimeout(() => { t.innerHTML = html; t.style.opacity = 1; }, 180);
+  },
+  card(html) { const c = $('#card'); c.innerHTML = html; c.classList.remove('off'); $('#phone').classList.add('off'); },
+  cardItem(i, ok) { const el = document.querySelectorAll('#card .li')[i]; if (el) { el.classList.add('on'); if (ok) el.classList.add('ok'); } },
+  phone(on) { $('#phone').classList.toggle('off', !on); if (on) $('#card').classList.add('off'); },
+  webapp(on, title) { $('#scr').classList.toggle('webapp', !!on); $('#sbar').classList.toggle('dark', !!on || S._dark); if (title) $('#wa-t').textContent = title; S.fit(); },
+  dark(on) { S._dark = on; $('#sbar').classList.toggle('dark', !!on || $('#scr').classList.contains('webapp')); },
+  fit() { const v = $('#view'); $('#fr').style.height = (v.clientHeight / K) + 'px'; },
+  load(url) { return new Promise((res) => { const f = $('#fr'); f.onload = () => res(true); f.src = url; S.fit(); }); },
+  // iframe ichidagi element -> sahna koordinatalari
+  rectOf(r) { const v = $('#view').getBoundingClientRect(); return { x: v.left + r.x * K, y: v.top + r.y * K, w: r.w * K, h: r.h * K }; },
+  cursorTo(x, y) { const c = $('#cur'); c.classList.add('on'); c.style.left = x + 'px'; c.style.top = y + 'px'; },
+  cursorOff() { $('#cur').classList.remove('on'); },
+  tapFx(x, y) { const c = $('#cur'); c.classList.add('dn'); setTimeout(() => c.classList.remove('dn'), 180); const r = document.createElement('div'); r.className = 'rip'; r.style.left = x + 'px'; r.style.top = y + 'px'; document.body.appendChild(r); setTimeout(() => r.remove(), 700); },
+  notify(html) { const n = $('#note'); if (!html) { n.classList.remove('on'); return; } $('#note-t').innerHTML = html; n.classList.add('on'); },
+  ring(b, pad) { const r = $('#ring'); if (!b) { r.classList.remove('on'); return; } pad = pad == null ? 5 : pad; r.style.left = (b.x - pad) + 'px'; r.style.top = (b.y - pad) + 'px'; r.style.width = (b.w + pad * 2) + 'px'; r.style.height = (b.h + pad * 2) + 'px'; r.classList.add('on'); },
+};
+S.fit();
+</script>
+</body>
+</html>

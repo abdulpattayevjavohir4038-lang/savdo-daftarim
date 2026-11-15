@@ -108,17 +108,19 @@ const PAGES: Record<string, string> = {
 const VIDEO_BASE = 'https://abdulpattayevjavohir4038-lang.github.io/savdo-daftarim/video/';
 const VIDEOS: Record<string, { file: string; dur: number; caption: string; btn: string }> = {
   '1': { file: 'minimarket-boshlash.mp4', dur: 92, btn: '🎬 1-dars: Noldan boshlash',
-    caption: '🎬 <b>1-dars: Noldan boshlash</b> (1:32)\n\nRoʻyxatdan oʻtish → tovar qoʻshish → turlarga ajratish → sotish.\nHar bir qadam ekranda yozib koʻrsatilgan.' },
-  '2': { file: 'minimarket-qollanma.mp4', dur: 193, btn: '🎬 2-dars: Narx, ustama va foyda',
-    caption: '🎬 <b>2-dars: Narx, ustama va foyda</b> (3:13)\n\nKelish narxi, ustama (foyda %), tovar kirimi, sotish va foydani hisobotda koʻrish.\nHar bir qadam ekranda yozib koʻrsatilgan.' },
-  '3': { file: 'minimarket-kassir.mp4', dur: 96, btn: '🎬 3-dars: Kassir taklif qilish',
-    caption: '🎬 <b>3-dars: Kassir taklif qilish</b> (1:36)\n\nXodimga nom berish (Kassir 1, Menejer), ilovadagi boʻlimlarni ochish va taklif havolasini yuborish. Foyda kassirga koʻrinmaydi.\nHar bir qadam ekranda yozib koʻrsatilgan.' },
-  '4': { file: 'minimarket-qaytarish.mp4', dur: 89, btn: '🎬 4-dars: Tovar qaytarish',
-    caption: '🎬 <b>4-dars: Tovar qaytarish</b> (1:29)\n\nMijoz tovarni qaytardi: skanerlaysiz yoki nomini yozasiz — ilova chekni oʻzi topadi, tovar omborga, pul hisobdan qaytadi.\nHar bir qadam ekranda yozib koʻrsatilgan.' },
+    caption: '🎬 <b>1-dars: Noldan boshlash</b> (1:32)\n\nBotda roʻyxatdan oʻtish → «Ilovalar» → Minimarket POS → tovar qoʻshish → birinchi savdo.\nMadina ovozida, ekranda yozma subtitr bilan.' },
+  '2': { file: 'minimarket-qollanma.mp4', dur: 92, btn: '🎬 2-dars: Narx, ustama va foyda',
+    caption: '🎬 <b>2-dars: Narx, ustama va foyda</b> (1:32)\n\nKelish narxi va ustama, tovar kirimi va taʼminotchi qarzi, chek foydasi, xarajatlar va sof foyda.\nMadina ovozida, ekranda yozma subtitr bilan.' },
+  '3': { file: 'minimarket-kassir.mp4', dur: 95, btn: '🎬 3-dars: Kassir taklif qilish',
+    caption: '🎬 <b>3-dars: Kassir taklif qilish</b> (1:35)\n\nXodimga nom berish, boʻlimlarni ochish, taklif havolasi. Kassir «Ilovalar» orqali oʻz Telegrami bilan kiradi, foyda unga koʻrinmaydi.\nMadina ovozida, ekranda yozma subtitr bilan.' },
+  '4': { file: 'minimarket-qaytarish.mp4', dur: 67, btn: '🎬 4-dars: Tovar qaytarish',
+    caption: '🎬 <b>4-dars: Tovar qaytarish</b> (1:07)\n\nTovarni skanerlaysiz yoki nomini yozasiz — ilova chekni oʻzi topadi, tovar omborga, pul hisobdan qaytadi.\nMadina ovozida, ekranda yozma subtitr bilan.' },
+  '5': { file: 'hisobchi.mp4', dur: 89, btn: '🎬 5-dars: Hisobchi ilovasi',
+    caption: '🎬 <b>5-dars: Hisobchi ilovasi</b> (1:29)\n\nKirim-chiqim, «taksi 25 ming» deb tez yozish, qarz berdim/oldim, hisobot va byudjet. Bepul.\nMadina ovozida, ekranda yozma subtitr bilan.' },
 };
-const VORDER = ['1', '2', '3', '4'];
+const VORDER = ['1', '2', '3', '4', '5'];
 // barcha video darslar tugmalari (2 tadan qator)
-export const videoRows = () => [[{ text: '🎬 1-dars: Boshlash', callback_data: 'v:1' }, { text: '🎬 2-dars: Foyda', callback_data: 'v:2' }], [{ text: '🎬 3-dars: Kassir', callback_data: 'v:3' }, { text: '🎬 4-dars: Qaytarish', callback_data: 'v:4' }]];
+export const videoRows = () => [[{ text: '🎬 1-dars: Boshlash', callback_data: 'v:1' }, { text: '🎬 2-dars: Foyda', callback_data: 'v:2' }], [{ text: '🎬 3-dars: Kassir', callback_data: 'v:3' }, { text: '🎬 4-dars: Qaytarish', callback_data: 'v:4' }], [{ text: '🎬 5-dars: Hisobchi', callback_data: 'v:5' }]];
 
 // /video — barcha darslar ro'yxati
 export async function sendVideoMenu(token: string, chat: number) {
@@ -132,12 +134,12 @@ export async function sendVideoLesson(token: string, chat: number, id: string) {
   const rest = VORDER.filter((x) => x !== id && x !== next);
   const markup = { inline_keyboard: [[{ text: '▶️ Keyingi: ' + VIDEOS[next].btn.replace('🎬 ', ''), callback_data: 'v:' + next }],
     rest.map((x) => ({ text: '🎬 ' + x + '-dars', callback_data: 'v:' + x })), [{ text: '📖 Yozma qoʻllanma', callback_data: 'g:menu' }]] };
-  const key = 'tgvid:' + v.file, cached = await secret(key);
+  const key = 'tgvid2:' + v.file, cached = await secret(key);
   await tg(token, 'sendChatAction', { chat_id: chat, action: 'upload_video' });
   const params = (video: string) => ({ chat_id: chat, video, caption: v.caption, parse_mode: 'HTML', supports_streaming: true, width: 1080, height: 1920, duration: v.dur, reply_markup: markup });
   let r: any = cached ? await tg(token, 'sendVideo', params(cached)) : null;
   if (!r || !r.ok) {
-    r = await tg(token, 'sendVideo', params(VIDEO_BASE + v.file));
+    r = await tg(token, 'sendVideo', params(VIDEO_BASE + v.file + '?v=2'));
     const fid = r && r.ok && r.result && r.result.video && r.result.video.file_id;
     if (fid) await setSecret(key, fid);
   }
@@ -148,7 +150,7 @@ function nav(key: string) {
   const rows: any[] = [...videoRows()];
   const list = TOPICS.filter(([k]) => k !== key);
   for (let i = 0; i < list.length; i += 2) rows.push(list.slice(i, i + 2).map(([k, l]) => ({ text: l, callback_data: 'g:' + k })));
-  if (key === 'hamyon') rows.unshift([{ text: '👛 Hamyonni ochish', callback_data: 'w:home' }]);
+  if (key === 'hamyon') rows.unshift([{ text: '👛 Hamyonni ochish', callback_data: 'w:home' }, { text: '🎬 Hisobchi darsi', callback_data: 'v:5' }]);
   if (key !== 'menu') rows.push([{ text: '📖 Mundarija', callback_data: 'g:menu' }]);
   return { inline_keyboard: rows };
 }

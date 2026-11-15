@@ -323,7 +323,7 @@ const ICONS = {
   user: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>', download: '<path d="M12 4v11m0 0-4-4m4 4 4-4M4 20h16"/>', logout: '<path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3M10 17l-5-5 5-5M5 12h11"/>',
   store: '<path d="M4 9h16l-1.5-5h-13z"/><path d="M5 9v11h14V9"/><path d="M9 20v-6h6v6"/>', grid: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
   target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>', bell: '<path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21h4"/>',
-  info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>', check: '<path d="m5 12 5 5 9-10"/>', calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+  info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>', play: '<circle cx="12" cy="12" r="9"/><path d="m10 8.5 5.5 3.5-5.5 3.5z"/>', check: '<path d="m5 12 5 5 9-10"/>', calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
 };
 const ic = (n, s) => '<svg width="' + (s || 20) + '" height="' + (s || 20) + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICONS[n] || '') + '</svg>';
 
@@ -666,6 +666,9 @@ function vSet() {
       '<label class="li" style="cursor:pointer"><span class="ico t-pos">' + ic('bell') + '</span><span class="grow"><span class="fw6" style="display:block">Kechki hisobot (21:00)</span><span class="fs13 faint">Har kuni Telegram botga kunlik hisobot keladi</span></span><input type="checkbox" class="switch" id="sw-daily"' + (u.daily ? ' checked' : '') + '></label>' +
       item('download', 'muted', 'Yuklab olish (CSV / Excel)', 'Barcha kirim-chiqim va qarzlar', 'data-export') +
     '</div>' +
+    '<div class="card" style="overflow:hidden"><div class="sect"><div class="sect-t">Yordam</div></div>' +
+      item('play', 'pos', 'Video darslik (1:29)', 'Kirim-chiqim, tez yozish, qarz daftari va hisobot — Madina ovozida', 'data-video') +
+    '</div>' +
     '<div class="card" style="overflow:hidden"><div class="sect"><div class="sect-t">Koʻrinish</div></div><div class="p4"><div class="seg full" data-theme-group></div></div></div>' +
     '<div class="card" style="overflow:hidden"><div class="sect"><div class="sect-t">Telegram va boshqa ilovalar</div></div>' +
       item('send', 'primary', 'Botda tez yozish', 'Botdagi «👛 Hamyon nazorat»ga <b>kofe 38000</b> deb yozsangiz — shu yerda koʻrinadi', 'data-bot') +
@@ -706,6 +709,7 @@ document.addEventListener('click', async (e) => {
   else if ('balance' in ds) balanceForm();
   else if ('export' in ds) exportCsv();
   else if ('bot' in ds) { if (S.data.bot) openTg('https://t.me/' + S.data.bot + '?start=hamyon'); else botLink(); }
+  else if ('video' in ds) videoModal();
   else if ('apps' in ds) location.href = '../ilovalar/' + (location.hash || '');
   else if ('logout' in ds) { if (await confirmBox('Chiqish', 'Shu qurilmadan chiqasizmi? Maʼlumotlar oʻchmaydi — keyin Telegram orqali qayta kirasiz.', 'Chiqish', true)) logout(); }
 });
@@ -833,6 +837,15 @@ function budgetForm(cat) {
     const c = e.target.closest('[data-cat]'); if (c) { cur = c.dataset.cat; paint(); $('#g-amt', ov).focus(); return; }
     if (e.target.closest('[data-gsave]')) { if (!cur) { toast('Toifani tanlang', true); return; } const v = money($('#g-amt', ov)); const r = await mut('budget', { cat: cur, value: v }, v ? 'Limit saqlandi' : 'Limit olib tashlandi'); if (r) closeModal(); }
   });
+}
+
+/* ---------- video darslik ---------- */
+const VIDEO = 'hisobchi.mp4', VIDEO_BASE = 'https://cdn.jsdelivr.net/gh/abdulpattayevjavohir4038-lang/savdo-daftarim@main/docs/video/', VIDEO_ALT = 'https://raw.githubusercontent.com/abdulpattayevjavohir4038-lang/savdo-daftarim/main/docs/video/';
+function videoModal() {
+  const ov = modal('Video darslik', '<video id="vd" controls playsinline preload="metadata" style="width:100%;max-height:68dvh;aspect-ratio:9/16;border-radius:14px;background:#000" src="' + VIDEO_BASE + VIDEO + '"></video>' +
+    '<p class="hint" style="margin:0">Internet kerak. Ochilmasa — <a class="c-pri fw6" target="_blank" rel="noopener" href="' + VIDEO_ALT + VIDEO + '">faylni yuklab oling</a>.</p>');
+  const v = $('#vd', ov); let alt = false; v.onerror = () => { if (!alt) { alt = true; v.src = VIDEO_ALT + VIDEO; } };
+  ov.addEventListener('click', (e) => { if (e.target === ov || e.target.closest('[data-close]')) try { v.pause(); } catch (er) { /* ignore */ } });
 }
 
 /* ---------- CSV ---------- */

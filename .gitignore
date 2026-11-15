@@ -8,3 +8,4 @@ app/android/capacitor-cordova-android-plugins/build/
 *.jks
 *.keystore
 local.properties
+__pycache__/
