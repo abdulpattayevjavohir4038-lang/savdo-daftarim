@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Ilovalar — Minimarket POS va Hisobchi</title>
-<meta name="description" content="Minimarket POS (doʻkon kassasi) va Hisobchi (kirim-chiqim, qarz daftari)">
+<title>Ilovalar — Minimarket POS, Hisobchi, Ishlab chiqarish</title>
+<meta name="description" content="Minimarket POS (doʻkon kassasi), Hisobchi (kirim-chiqim, qarz daftari) va Ishlab chiqarish (xomashyo, sotuv, foyda-ziyon)">
 <meta id="meta-theme" name="theme-color" content="#f4f6fa">
 <meta name="color-scheme" content="light dark">
 <link rel="icon" type="image/png" href="../favicon.png">
@@ -28,6 +28,7 @@
     --ink: 15 23 42; --muted: 71 85 105; --faint: 100 116 139;
     --primary: 31 79 214; --primary-soft: 232 239 255; --on-primary: 255 255 255;
     --pos: 4 120 87; --pos-soft: 228 245 237; --on-pos: 255 255 255;
+    --warn: 180 83 9; --warn-soft: 253 243 225; --on-warn: 255 255 255;
     --shadow: 15 23 42;
   }
   html.dark {
@@ -36,6 +37,7 @@
     --ink: 236 240 246; --muted: 170 181 199; --faint: 135 148 170;
     --primary: 112 150 255; --primary-soft: 29 41 74; --on-primary: 6 14 36;
     --pos: 52 211 153; --pos-soft: 14 48 38; --on-pos: 3 28 20;
+    --warn: 251 191 36; --warn-soft: 56 40 10; --on-warn: 40 26 0;
     --shadow: 0 0 0;
   }
   * { box-sizing: border-box; }
@@ -52,11 +54,13 @@
   .logo { width: 56px; height: 56px; border-radius: 16px; display: grid; place-items: center; font-weight: 800; font-size: 1.625rem; flex-shrink: 0; }
   .logo.m { background: rgb(var(--primary)); color: rgb(var(--on-primary)); }
   .logo.h { background: rgb(var(--pos)); color: rgb(var(--on-pos)); }
+  .logo.ic { background: rgb(var(--warn)); color: rgb(var(--on-warn)); font-size: 1.375rem; letter-spacing: -.04em; }
   .t { font-weight: 700; font-size: 1.0625rem; }
   .d { color: rgb(var(--muted)); font-size: .875rem; line-height: 1.4; margin-top: 2px; }
   .tag { display: inline-block; margin-top: 6px; padding: 0 .5rem; border-radius: 999px; font-size: .75rem; font-weight: 600; line-height: 1.375rem; }
   .tag.m { background: rgb(var(--primary-soft)); color: rgb(var(--primary)); }
   .tag.h { background: rgb(var(--pos-soft)); color: rgb(var(--pos)); }
+  .tag.ic { background: rgb(var(--warn-soft)); color: rgb(var(--warn)); }
   .grow { flex: 1; min-width: 0; }
   .arr { color: rgb(var(--faint)); flex-shrink: 0; }
   .note { color: rgb(var(--faint)); font-size: .8125rem; text-align: center; line-height: 1.5; }
@@ -86,13 +90,22 @@
     </div>
     <svg class="arr" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
   </a>
-  <div class="note">Hisobchi doʻkon hisobidan alohida: Minimarket maʼlumotlariga taʼsir qilmaydi.<br>Botdagi «👛 Hamyon nazorat» yozuvlari Hisobchida ham koʻrinadi.</div>
+  <a class="app" id="go-ic" href="../ishlab/">
+    <div class="logo ic" aria-hidden="true">IC</div>
+    <div class="grow">
+      <div class="t">Ishlab chiqarish</div>
+      <div class="d">Pishiriq va boshqa mahsulot ishlab chiqaruvchilar uchun: xomashyo xarajati, necha kg qanchadan sotildi, tannarx va oylik foyda-ziyon</div>
+      <span class="tag ic">Ishlab chiqaruvchi · bepul</span>
+    </div>
+    <svg class="arr" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+  </a>
+  <div class="note">Hisobchi va Ishlab chiqarish doʻkon hisobidan alohida: Minimarket maʼlumotlariga taʼsir qilmaydi.<br>Botdagi «👛 Hamyon nazorat» yozuvlari Hisobchida ham koʻrinadi.</div>
 </main>
 <script>
   // Telegram ichida ochilganda: kirish maʼlumoti (#tgWebAppData…) tanlangan ilovaga ham o'tadi — parol so'ralmaydi
   (function () {
     var h = location.hash || '';
-    if (h) { document.getElementById('go-pos').href = '../' + h; document.getElementById('go-hb').href = '../hisobchi/' + h; }
+    if (h) { document.getElementById('go-pos').href = '../' + h; document.getElementById('go-hb').href = '../hisobchi/' + h; document.getElementById('go-ic').href = '../ishlab/' + h; }
     if (/tgWebAppData=/.test(h)) {
       var s = document.createElement('script');
       s.src = 'https://telegram.org/js/telegram-web-app.js';

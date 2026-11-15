@@ -37,6 +37,7 @@ export async function track(token: string, u: any): Promise<boolean> {
 export async function statsText() {
   const s: any = await call('admin_tg_stats');
   const h = s.hb || {};
+  const p: any = await call('admin_pr_stats').catch(() => ({}));
   const L = [
     '📈 <b>Toʻliq statistika</b> · ' + dt(Date.now()), '',
     '🤖 <b>Telegram bot</b>',
@@ -57,6 +58,12 @@ export async function statsText() {
     '📱 Ochgan: bugun <b>' + (h.app1 || 0) + '</b> · 7 kunda ' + (h.app7 || 0),
     '✍️ Yozuv qilgan: bugun <b>' + (h.writers1 || 0) + '</b> · 7 kunda ' + (h.writers7 || 0),
     '🧾 Yozuvlar: bugun ' + (h.tx1 || 0) + ' · 7 kunda ' + (h.tx7 || 0) + ' · jami ' + (h.tx || 0) + ' · ochiq qarzlar: ' + (h.debtsOpen || 0),
+    '',
+    '🏭 <b>Ishlab chiqarish</b>',
+    'Ilovani ochganlar: <b>' + (p.app || 0) + '</b> (7 kunda yangi: ' + (p.appNew7 || 0) + ') · jami ochilish: ' + (p.opens || 0),
+    '📱 Ochgan: bugun <b>' + (p.app1 || 0) + '</b> · 7 kunda ' + (p.app7 || 0),
+    '✍️ Yozuv qilgan: bugun <b>' + (p.writers1 || 0) + '</b> · 7 kunda ' + (p.writers7 || 0),
+    '🧾 Yozuvlar: bugun ' + (p.tx1 || 0) + ' · 7 kunda ' + (p.tx7 || 0) + ' · jami ' + (p.tx || 0) + ' · mahsulotlar: ' + (p.items || 0),
   ];
   if ((s.recentNew || []).length) {
     L.push('', '🆕 <b>Botga oxirgi kirganlar</b>');
@@ -65,6 +72,10 @@ export async function statsText() {
   if ((s.hbRecent || []).length) {
     L.push('', '🧮 <b>Hisobchini oxirgi ochganlar</b>');
     s.hbRecent.forEach((x: any, i: number) => L.push((i + 1) + '. ' + who(x.name, x.username) + ' · ' + dt(+x.ts) + ' · ' + x.n + ' marta'));
+  }
+  if ((p.recent || []).length) {
+    L.push('', '🏭 <b>Ishlab chiqarishni oxirgi ochganlar</b>');
+    p.recent.forEach((x: any, i: number) => L.push((i + 1) + '. ' + who(x.name, x.username) + ' · ' + dt(+x.ts) + ' · ' + x.n + ' marta'));
   }
   if ((s.recentLeft || []).length) {
     L.push('', '🚪 <b>Oxirgi chiqqanlar</b> (botni toʻxtatgan)');

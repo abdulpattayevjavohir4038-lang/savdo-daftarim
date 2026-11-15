@@ -17,7 +17,7 @@ self.addEventListener('fetch', (e) => {
     e.respondWith(withTimeout(fetch(req), 6000).then((res) => {
       if (res && res.ok) { const cp = res.clone(); caches.open(CACHE).then((c) => c.put(req, cp)); }
       return res;
-    }).catch(() => caches.match(req, { ignoreSearch: true }).then((r) => r || caches.match(u.pathname.endsWith('panel.html') ? './panel.html' : u.pathname.includes('/hisobchi/') ? './hisobchi/index.html' : u.pathname.includes('/ilovalar/') ? './ilovalar/index.html' : './index.html'))));
+    }).catch(() => caches.match(req, { ignoreSearch: true }).then((r) => r || caches.match(u.pathname.endsWith('panel.html') ? './panel.html' : u.pathname.includes('/hisobchi/') ? './hisobchi/index.html' : u.pathname.includes('/ilovalar/') ? './ilovalar/index.html' : u.pathname.includes('/ishlab/') ? './ishlab/index.html' : './index.html'))));
     return;
   }
   e.respondWith(caches.match(req).then((r) => r || fetch(req).then((res) => { if (res && res.ok) { const cp = res.clone(); caches.open(CACHE).then((c) => c.put(req, cp)); } return res; })));

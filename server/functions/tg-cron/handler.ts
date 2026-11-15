@@ -14,6 +14,7 @@ async function adminDigest(token: string, t: string) {
   if (!admins.length) return 0;
   const d: any = await call('admin_tg_digest', new Date(Date.now() - 864e5).toISOString());
   const s: any = await call('admin_tg_stats');
+  const p: any = await call('admin_pr_digest', new Date(Date.now() - 864e5).toISOString()).catch(() => ({ new: [] }));
   const list = (a: any[], f: (x: any) => string) => a.slice(0, 20).map((x) => '• ' + f(x)).join('\n') + (a.length > 20 ? '\n… yana ' + (a.length - 20) + ' ta' : '');
   const L = ['📈 <b>Kunlik hisobot</b> · ' + t.split('-').reverse().join('.'), '<i>oxirgi 24 soat</i>', ''];
   L.push('🤖 <b>Telegram bot</b> — jami ' + d.users + ' kishi');
@@ -29,6 +30,9 @@ async function adminDigest(token: string, t: string) {
   L.push('', '🧮 <b>Hisobchi</b> — jami ' + d.hbApp + ' kishi ochgan');
   L.push('🆕 Birinchi marta ochdi: <b>' + d.hbNew.length + '</b>' + (d.hbNew.length ? '\n' + list(d.hbNew, who) : ''));
   L.push('📱 Ochganlar: <b>' + d.hbOpen + '</b> · ✍️ Yozuv qilganlar: <b>' + d.hbWriters + '</b> (' + d.hbTx + ' ta yozuv, botdagi «Hamyon» bilan)');
+  L.push('', '🏭 <b>Ishlab chiqarish</b> — jami ' + (p.app || 0) + ' kishi ochgan');
+  L.push('🆕 Birinchi marta ochdi: <b>' + p.new.length + '</b>' + (p.new.length ? '\n' + list(p.new, who) : ''));
+  L.push('📱 Ochganlar: <b>' + (p.open || 0) + '</b> · ✍️ Yozuv qilganlar: <b>' + (p.writers || 0) + '</b> (' + (p.tx || 0) + ' ta yozuv)');
   L.push('', 'Istalgan payt — «📈 Statistika» tugmasi yoki /statistika.');
   for (const a of admins) await send(token, a, L.join('\n').slice(0, 4000));
   return admins.length;

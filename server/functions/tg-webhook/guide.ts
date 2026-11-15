@@ -20,7 +20,7 @@ const PAGES: Record<string, string> = {
     '🎁 Birinchi <b>30 kun bepul</b>.',
   app:
     '📱 <b>Ilovaga kirish</b>\n\n' +
-    '<b>1. Telegram ichida (eng oson)</b>\nChap pastdagi <b>«Ilovalar»</b> tugmasi → <b>Minimarket POS</b> yoki <b>Hisobchi</b> — parol soʻralmaydi.\n\n' +
+    '<b>1. Telegram ichida (eng oson)</b>\nChap pastdagi <b>«Ilovalar»</b> tugmasi → <b>Minimarket POS</b>, <b>Hisobchi</b> yoki <b>Ishlab chiqarish</b> — parol soʻralmaydi.\n\n' +
     '<b>2. Android ilova (APK)</b>\nIlovani oʻrnating, <b>«Telegram orqali kirish»</b>ni bosing → bot ochiladi → <b>«✅ Ha, kirish»</b>ni bosing → ilovaga oʻzi qaytadi.\n\n' +
     '<b>3. Brauzer (kompyuter, planshet)</b>\nIlova havolasini oching va xuddi shunday <b>«Telegram orqali kirish»</b>.\n\n' +
     '☁️ Maʼlumotlar serverda saqlanadi: doʻkondagi hamma telefon va kompyuterda bir xil koʻrinadi. Internet uzilsa ham ilova ishlayveradi, internet kelganda oʻzi sinxronlanadi.',

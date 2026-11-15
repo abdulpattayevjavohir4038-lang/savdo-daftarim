@@ -19,8 +19,8 @@ const GUIDE_WORDS = ['yordam', 'help', 'qoʻllanma', "qo'llanma", 'qollanma'];
 // do'kon menyusi tugmalari (hamyon rejimida bosilsa — do'kon menyusiga qaytiladi)
 const SHOP_BTNS = MENU.filter((x) => x !== 'hamyon nazorat' && !GUIDE_WORDS.includes(x));
 // ilovani ochish + qo'llanma tugmalari
-// ikki ilova: Minimarket POS (do'kon) va Hisobchi (shaxsiy kirim-chiqim, qarz)
-const appBtn = async (text = '🏪 Minimarket POS') => { const u = await secret('app_url'); return u ? { inline_keyboard: [[{ text, web_app: { url: u } }, { text: '🧮 Hisobchi', web_app: { url: u + 'hisobchi/' } }], [guideBtn.inline_keyboard[0][0], { text: '🎬 Video darslik', callback_data: 'v:menu' }]] } : undefined; };
+// uchta ilova: Minimarket POS (do'kon), Hisobchi (shaxsiy kirim-chiqim, qarz), Ishlab chiqarish (xomashyo, sotuv, foyda-ziyon)
+const appBtn = async (text = '🏪 Minimarket POS') => { const u = await secret('app_url'); return u ? { inline_keyboard: [[{ text, web_app: { url: u } }], [{ text: '🧮 Hisobchi', web_app: { url: u + 'hisobchi/' } }, { text: '🏭 Ishlab chiqarish', web_app: { url: u + 'ishlab/' } }], [guideBtn.inline_keyboard[0][0], { text: '🎬 Video darslik', callback_data: 'v:menu' }]] } : undefined; };
 const getState = async (chat: number) => (await call<any>('tg_state_get', chat)) || {};
 const setState = (chat: number, st: unknown) => call('tg_state_set', chat, JSON.stringify(st || {}));
 const tgName = (m: any) => [m.from && m.from.first_name, m.from && m.from.last_name].filter(Boolean).join(' ') || (m.chat && m.chat.title) || '';
@@ -146,12 +146,13 @@ async function route(token: string, u: any) {
           : r.why === 'not_linked' ? 'Bu Telegram hisobi doʻkonga ulanmagan.' : '⌛️ Havola muddati oʻtgan. Ilovada «Telegram orqali kirish»ni qayta bosing.' });
       await tg(token, 'answerCallbackQuery', { callback_query_id: cq.id }); return;
     }
-    // Hisobchi ilovasiga (brauzer/telefon) kirishni tasdiqlash
+    // Hisobchi / Ishlab chiqarish ilovasiga (brauzer/telefon) kirishni tasdiqlash
     if (data.startsWith('hb:') || data === 'hbn') {
-      const code = data.slice(3), ok = data !== 'hbn' && /^[0-9a-f]{24}$/.test(code)
-        ? (await sql`update public.w_login set chat = ${chat} where code = ${code} and chat is null and used_at is null and created_at > now() - interval '15 minutes' returning code`).length > 0 : false;
+      const code = data.slice(3);
+      const r: any = data !== 'hbn' && /^[0-9a-f]{24}$/.test(code)
+        ? (await sql`update public.w_login set chat = ${chat} where code = ${code} and chat is null and used_at is null and created_at > now() - interval '15 minutes' returning app`)[0] : null;
       await tg(token, 'editMessageText', { chat_id: chat, message_id: cq.message.message_id, parse_mode: 'HTML',
-        text: data === 'hbn' ? 'Bekor qilindi.' : ok ? '✅ <b>Hisobchi</b> ilovasiga kirish tasdiqlandi. Ilovaga qayting — u oʻzi ochiladi.' : '⌛️ Havola muddati oʻtgan yoki ishlatilgan. Ilovada «Telegram orqali kirish»ni qayta bosing.' });
+        text: data === 'hbn' ? 'Bekor qilindi.' : r ? '✅ <b>' + (r.app === 'ishlab' ? 'Ishlab chiqarish' : 'Hisobchi') + '</b> ilovasiga kirish tasdiqlandi. Ilovaga qayting — u oʻzi ochiladi.' : '⌛️ Havola muddati oʻtgan yoki ishlatilgan. Ilovada «Telegram orqali kirish»ni qayta bosing.' });
       await tg(token, 'answerCallbackQuery', { callback_query_id: cq.id }); return;
     }
     if (data === 'ln') { await tg(token, 'editMessageText', { chat_id: chat, message_id: cq.message.message_id, text: 'Bekor qilindi.' }); await tg(token, 'answerCallbackQuery', { callback_query_id: cq.id }); return; }
@@ -229,8 +230,10 @@ async function route(token: string, u: any) {
     if (arg === 'pay') { await payMenu(token, chat); return; }
     if (arg === 'hamyon') { await walletEnter(token, chat); return; }
     if (arg.startsWith('hb_')) {
-      await send(token, chat, '🔐 <b>Hisobchi ilovasiga kirish</b>\n\nBrauzer yoki telefon ilovasida Hisobchiga sizning Telegram hisobingiz bilan kirilmoqda. Bu siz boʻlsangiz — «Ha, kirish»ni bosing.\n\n<i>Havolani oʻzingiz ochmagan boʻlsangiz, bosmang — aks holda boshqa odam kirim-chiqimingizni koʻradi.</i>',
-        { reply_markup: { inline_keyboard: [[{ text: '✅ Ha, kirish', callback_data: 'hb:' + arg.slice(3, 27) }, { text: '❌ Yoʻq', callback_data: 'hbn' }]] } });
+      const code = arg.slice(3, 27), w: any = /^[0-9a-f]{24}$/.test(code) ? (await sql`select app from public.w_login where code = ${code}`)[0] : null;
+      const app = w && w.app === 'ishlab' ? 'Ishlab chiqarish' : 'Hisobchi';
+      await send(token, chat, '🔐 <b>' + app + ' ilovasiga kirish</b>\n\nBrauzer yoki telefon ilovasida «' + app + '»ga sizning Telegram hisobingiz bilan kirilmoqda. Bu siz boʻlsangiz — «Ha, kirish»ni bosing.\n\n<i>Havolani oʻzingiz ochmagan boʻlsangiz, bosmang — aks holda boshqa odam maʼlumotlaringizni koʻradi.</i>',
+        { reply_markup: { inline_keyboard: [[{ text: '✅ Ha, kirish', callback_data: 'hb:' + code }, { text: '❌ Yoʻq', callback_data: 'hbn' }]] } });
       return;
     }
     if (arg && arg !== 'reg') {
