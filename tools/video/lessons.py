@@ -339,3 +339,75 @@ LESSONS = {
         ('Hisobchi', d5_1), ('Ilovani ochish', d5_2), ('Chiqim yozish', d5_3), ('Tez yozish', d5_4), ('Qarz berdim / oldim', d5_5),
         ('Qarz qaytdi', d5_6), ('Hisobot', d5_7), ('Xulosa', d5_8)]},
 }
+
+# ======================================================================= 6-dars: Ishlab chiqarish
+async def d6_1(c):
+    await show_card(c, card('IC', 'Ishlab chiqarish', 'Pishiriq va boshqa ishlab chiqaruvchilar · bepul', [
+        '<b>Xomashyo</b>: nechta va qanchadan olindi', '<b>Sotuv</b>: necha kg yoki dona sotildi', '<b>Xarajatlar</b>: gaz, ijara, ish haqi', '<b>Oylik foyda-ziyon</b> va tannarx'],
+        '🎁 Ilova — bepul'), 4, gap=1300)
+
+async def d6_2(c):
+    await phone_tg(c, kb=OWNER_KB)
+    await c.wait(600)
+    await c.open_app('ic')
+
+async def d6_3(c):
+    await c.tap('[data-new=buy]', ring=True, after=700)
+    await c.tap('.catb:has-text("Un")', after=400)
+    await c.type('#f-qty', '50', ring=True); await c.unring()
+    await c.wait(300); await c.ring('#f-amt', pad=6); await c.wait(1500); await c.unring()
+    await c.tap('[data-save]', ring=True, after=900)
+    await c.off()
+
+async def d6_4(c):
+    await c.tap('[data-new=sale]', ring=True, after=700)
+    await c.tap('.catb:has-text("Pechenye")', after=400)
+    await c.type('#f-qty', '12', ring=True); await c.unring()
+    await c.wait(500)
+    await c.tap('[data-save]', ring=True, after=900)
+    await c.off()
+
+async def d6_5(c):
+    await c.tap('[data-new=sale]', after=500)
+    await c.tap('.catb:has-text("Tort")', after=200)
+    await c.type('#f-qty', '2,5', delay=60)
+    await c.tap('[data-credit="1"]', ring=True, after=300)
+    await c.type('#f-cust', 'Baraka doʻkoni', delay=40)
+    await c.type('#f-paid', '100000', delay=60)
+    await c.tap('[data-save]', after=700)
+    await c.off()
+
+async def d6_6(c):
+    await c.tap('[data-new=exp]', ring=True, after=700)
+    await c.tap('.catb:has-text("Gaz")', after=300)
+    await c.type('#f-amt', '900000', ring=True); await c.unring()
+    await c.tap('[data-save]', ring=True, after=900)
+    await c.off()
+
+async def d6_7(c):
+    await c.tap('#bnav [data-tab=rep]', after=900)
+    await c.off()
+    await ring_text(c, 'Foyda-ziyon hisobi', up=2, pad=4, hold=3200)
+    await c.js("() => { const m = document.getElementById('fr').contentDocument.getElementById('main'); m.scrollTo({ top: 0, behavior: 'smooth' }); }"); await c.wait(800)
+    await ring_text(c, 'Tushum', up=2, pad=4, hold=1500)
+    await ring_text(c, 'Oy oxiriga', up=2, pad=4, hold=1800)
+
+async def d6_8(c):
+    await c.tap('#bnav [data-tab=home]', after=900)
+    await c.off()
+    sel = await mark(c, '1 kg tannarxi', up=2)
+    if sel:
+        await c.fr().evaluate("() => document.getElementById('vk').scrollIntoView({ block: 'center' })"); await c.wait(500)
+        await c.ring(sel, pad=4); await c.wait(2600); await c.unring()
+    else: print('   topilmadi: tannarx')
+    await c.tap('[data-debts]', ring=True, after=1200)
+    await c.ring('[data-payall]'); await c.wait(1500); await c.off()
+
+async def d6_9(c):
+    await show_card(c, card('IC', 'Xulosa', 'Foyda-ziyon doim koʻz oldingizda', [
+        '<b>«Ilovalar»</b> → Ishlab chiqarish', '<b>Xomashyo</b> va <b>xarajat</b> yozing', '<b>Sotuv</b>: naqd yoki qarzga', '<b>Foyda-ziyon</b> oʻzi hisoblanadi'],
+        'Hisobchi va Minimarketdan alohida, bepul', done=True), 4, gap=900)
+
+LESSONS['dars6'] = {'file': 'ishlab', 'brand': 'Ishlab chiqarish · 6-dars', 'ic': True, 'scenes': [
+    ('Ishlab chiqarish', d6_1), ('Ilovani ochish', d6_2), ('Xomashyo oldim', d6_3), ('Sotdim', d6_4), ('Qarzga sotish', d6_5),
+    ('Xarajat', d6_6), ('Foyda-ziyon', d6_7), ('Tannarx va qarzlar', d6_8), ('Xulosa', d6_9)]}

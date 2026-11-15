@@ -23,7 +23,7 @@ def build_site(root):
     s = open(os.path.join(DOCS, 'index.html'), encoding='utf-8').read()
     s = re.sub(r'/\*CLOUD_CFG\*/.*?/\*END\*/', '/*CLOUD_CFG*/null/*END*/', s, flags=re.S)  # serversiz (shu qurilmada) rejim
     open(os.path.join(root, 'index.html'), 'w', encoding='utf-8').write(s)
-    for d in ('hisobchi', 'ilovalar'): shutil.copytree(os.path.join(DOCS, d), os.path.join(root, d))
+    for d in ('hisobchi', 'ilovalar', 'ishlab'): shutil.copytree(os.path.join(DOCS, d), os.path.join(root, d))
     for f in ('favicon.png', 'icon-192.png', 'icon-512.png', 'manifest.webmanifest'): shutil.copy(os.path.join(DOCS, f), root)
     for f in ('stage.html', 'tg.html'): shutil.copy(os.path.join(HERE, f), root)
 
@@ -152,6 +152,8 @@ class HbMock:
             return {'ok': True, 'v': v, 'closed': d['closed']}
         return {'ok': True}
 
+from icmock import IcMock  # noqa: E402  (Ishlab chiqarish namunasi: tools/video/icmock.py)
+
 # ---------------------------------------------------------------- yozib olish va boshqarish
 class Studio:
     def __init__(self, page, outdir):
@@ -232,12 +234,12 @@ class Ctx:
         """Telegram namunasidan: «Ilovalar» -> ilova tanlash. prep — ilova ko'rinishidan oldin (yashirin holda) bajariladi"""
         await self.tap('#menu', ring=True, after=200)
         await self.js("S.webapp(true, 'Ilovalar')"); await self.load('ilovalar/'); await self.wait(500)
-        sel = '#go-pos' if which == 'pos' else '#go-hb'
+        sel = {'pos': '#go-pos', 'hb': '#go-hb', 'ic': '#go-ic'}[which]
         b, loc = await self.point(sel, ring=True)
         await self.js('([x, y]) => S.tapFx(x, y)', [b['x'] + b['w'] / 2, b['y'] + b['h'] / 2]); await self.wait(250)
         await self.unring(); await self.js("() => { document.getElementById('fr').style.opacity = 0; }"); await self.wait(320)
         await loc.click()
-        await self.js("t => S.webapp(true, t)", 'Minimarket POS' if which == 'pos' else 'Hisobchi')
+        await self.js("t => S.webapp(true, t)", {'pos': 'Minimarket POS', 'hb': 'Hisobchi', 'ic': 'Ishlab chiqarish'}[which])
         await self.wait(350)
         await self.fr().wait_for_load_state('load')
         if prep: await prep(self)
@@ -283,15 +285,20 @@ async def run_lesson(pw, key, ttsdir, outdir, port):
         body = hb.handle(json.loads(r.request.post_data or '{}'))
         await r.fulfill(status=200, content_type='application/json', body=json.dumps(body), headers={'Access-Control-Allow-Origin': '*'})
     await ctx.route('**/functions/v1/hisobchi', hb_route)
+    ic = IcMock()
+    async def ic_route(r):
+        code, body = ic.handle(json.loads(r.request.post_data or '{}'))
+        await r.fulfill(status=code, content_type='application/json', body=json.dumps(body), headers={'Access-Control-Allow-Origin': '*'})
+    await ctx.route('**/functions/v1/ishlab', ic_route)
     page = await ctx.new_page()
     page.on('pageerror', lambda e: print('  pageerror:', e))
     base = 'http://127.0.0.1:%d/' % port
     await page.goto(base + 'stage.html')
     # ilova holati: do'kon ma'lumotlari, mavzu, Hisobchi kaliti
     await page.evaluate("""([db, extra]) => { localStorage.clear(); localStorage.setItem('minimarket_pos_v1', JSON.stringify(db)); localStorage.setItem('minimarket_pos_theme', 'light');
-        localStorage.setItem('hisobchi_token', '1.2.x'); localStorage.setItem('hisobchi_theme', 'light'); for (const k in extra) localStorage.setItem(k, extra[k]); }""",
+        localStorage.setItem('hisobchi_token', '1.2.x'); localStorage.setItem('hisobchi_theme', 'light'); localStorage.setItem('ishlab_token', '1.2.x'); localStorage.setItem('ishlab_theme', 'light'); for (const k in extra) localStorage.setItem(k, extra[k]); }""",
         [pos_db(L.get('db', 'demo')), L.get('ls', {})])
-    await page.evaluate("o => S.setup(o)", {'hb': L.get('hb', False), 'brand': L['brand'], 'steps': len(scenes)})
+    await page.evaluate("o => S.setup(o)", {'hb': L.get('hb', False), 'ic': L.get('ic', False), 'brand': L['brand'], 'steps': len(scenes)})
     c = Ctx(page)
     st = Studio(page, work)
     if L.get('prep'): await L['prep'](c)

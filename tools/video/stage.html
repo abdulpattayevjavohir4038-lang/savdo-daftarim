@@ -10,6 +10,12 @@
   html, body { margin: 0; width: 540px; height: 960px; overflow: hidden; font-family: Inter, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
   body { background: radial-gradient(120% 70% at 50% 0%, #2453d8 0%, #16349b 45%, #0b1b5c 100%); color: #fff; position: relative; }
   body.hb { background: radial-gradient(120% 70% at 50% 0%, #0f8a63 0%, #0b6347 45%, #063a2a 100%); }
+  /* Ishlab chiqarish — qahrabo rang */
+  body.ic { --ic: 180 83 9; background: radial-gradient(120% 70% at 50% 0%, #c2640e 0%, #93460a 45%, #4a2205 100%); }
+  body.ic .brand .lg { color: rgb(var(--ic)); font-size: 10px; }
+  body.ic .ch .lg { background: rgb(var(--ic)); font-size: 22px; letter-spacing: -.04em; }
+  body.ic .li .n { background: #fdf3e1; color: rgb(var(--ic)); }
+  body.ic .li b { color: rgb(var(--ic)); }
   body::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: radial-gradient(60% 40% at 85% 95%, rgb(255 255 255 / .08), transparent 70%); }
   #top { position: absolute; left: 20px; right: 20px; top: 16px; }
   .brand { display: flex; align-items: center; gap: 8px; font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; opacity: .92; }
@@ -102,8 +108,8 @@ const $ = (s) => document.querySelector(s);
 const K = 356 / 360;
 const S = window.S = {
   setup(o) {
-    document.body.classList.toggle('hb', !!o.hb);
-    $('#b-lg').textContent = o.hb ? 'H' : 'M';
+    document.body.classList.toggle('hb', !!o.hb); document.body.classList.toggle('ic', !!o.ic);
+    $('#b-lg').textContent = o.ic ? 'IC' : o.hb ? 'H' : 'M';
     $('#b-t').textContent = o.brand;
     $('#prog').innerHTML = Array.from({ length: o.steps }, () => '<i></i>').join('');
   },

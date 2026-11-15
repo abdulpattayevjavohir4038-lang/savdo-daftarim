@@ -549,6 +549,9 @@ function vSet() {
       item('book', 'warn', 'Qarzga sotilganlar', debtsByCustomer().length + ' ta mijoz', 'data-debts') +
       item('download', 'muted', 'Yuklab olish (CSV / Excel)', 'Barcha sotuv, xomashyo va xarajatlar', 'data-export') +
     '</div>' +
+    '<div class="card" style="overflow:hidden"><div class="sect"><div class="sect-t">Yordam</div></div>' +
+      item('play', 'warn', 'Video darslik (1:52)', 'Xomashyo, sotuv, qarzga sotish, tannarx va foyda-ziyon — Madina ovozida', 'data-video') +
+    '</div>' +
     '<div class="card" style="overflow:hidden"><div class="sect"><div class="sect-t">Koʻrinish</div></div><div class="p4"><div class="seg full" data-theme-group></div></div></div>' +
     '<div class="card" style="overflow:hidden"><div class="sect"><div class="sect-t">Boshqa ilovalar</div></div>' +
       item('grid', 'primary', 'Ilovalar', 'Minimarket POS, Hisobchi va Ishlab chiqarish', 'data-apps') +
@@ -580,6 +583,7 @@ document.addEventListener('click', async (e) => {
   else if (ds.mat !== undefined) namedForm('mat', +ds.mat);
   else if ('debts' in ds) debtsModal();
   else if ('export' in ds) exportCsv();
+  else if ('video' in ds) videoModal();
   else if ('apps' in ds) location.href = '../ilovalar/' + (location.hash || '');
   else if ('logout' in ds) { if (await confirmBox('Chiqish', 'Shu qurilmadan chiqasizmi? Maʼlumotlar oʻchmaydi — keyin Telegram orqali qayta kirasiz.', 'Chiqish', true)) logout(); }
 });
@@ -710,6 +714,15 @@ function debtsModal() {
     const p = e.target.closest('[data-payall]');
     if (p) { const c = p.dataset.payall; closeModal(); if (await confirmBox('Qarz yopildi', '<b>' + esc(c) + '</b> barcha qarzini toʻladimi?', 'Ha, toʻladi')) { const r = await mut('pay_customer', { customer: c }, 'Qarz yopildi ✅'); if (r) debtsModal(); } }
   });
+}
+
+/* ---------- video darslik ---------- */
+const VIDEO = 'ishlab.mp4', VIDEO_BASE = 'https://cdn.jsdelivr.net/gh/abdulpattayevjavohir4038-lang/savdo-daftarim@main/docs/video/', VIDEO_ALT = 'https://raw.githubusercontent.com/abdulpattayevjavohir4038-lang/savdo-daftarim/main/docs/video/';
+function videoModal() {
+  const ov = modal('Video darslik', '<video id="vd" controls playsinline preload="metadata" style="width:100%;max-height:68dvh;aspect-ratio:9/16;border-radius:14px;background:#000" src="' + VIDEO_BASE + VIDEO + '"></video>' +
+    '<p class="hint" style="margin:0">Internet kerak. Ochilmasa — <a class="c-pri fw6" target="_blank" rel="noopener" href="' + VIDEO_ALT + VIDEO + '">faylni yuklab oling</a>.</p>');
+  const v = $('#vd', ov); let alt = false; v.onerror = () => { if (!alt) { alt = true; v.src = VIDEO_ALT + VIDEO; } };
+  ov.addEventListener('click', (e) => { if (e.target === ov || e.target.closest('[data-close]')) try { v.pause(); } catch (er) { /* ignore */ } });
 }
 
 /* ---------- CSV ---------- */

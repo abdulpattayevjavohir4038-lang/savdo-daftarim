@@ -117,10 +117,12 @@ const VIDEOS: Record<string, { file: string; dur: number; caption: string; btn: 
     caption: '🎬 <b>4-dars: Tovar qaytarish</b> (1:07)\n\nTovarni skanerlaysiz yoki nomini yozasiz — ilova chekni oʻzi topadi, tovar omborga, pul hisobdan qaytadi.\nMadina ovozida, ekranda yozma subtitr bilan.' },
   '5': { file: 'hisobchi.mp4', dur: 89, btn: '🎬 5-dars: Hisobchi ilovasi',
     caption: '🎬 <b>5-dars: Hisobchi ilovasi</b> (1:29)\n\nKirim-chiqim, «taksi 25 ming» deb tez yozish, qarz berdim/oldim, hisobot va byudjet. Bepul.\nMadina ovozida, ekranda yozma subtitr bilan.' },
+  '6': { file: 'ishlab.mp4', dur: 112, btn: '🎬 6-dars: Ishlab chiqarish',
+    caption: '🎬 <b>6-dars: Ishlab chiqarish ilovasi</b> (1:52)\n\nPishiriq va boshqa mahsulot tayyorlaydiganlar uchun: xomashyo, necha kg sotildi, qarzga sotish, xarajatlar, 1 kg tannarxi va oylik foyda-ziyon. Bepul.\nMadina ovozida, ekranda yozma subtitr bilan.' },
 };
-const VORDER = ['1', '2', '3', '4', '5'];
+const VORDER = ['1', '2', '3', '4', '5', '6'];
 // barcha video darslar tugmalari (2 tadan qator)
-export const videoRows = () => [[{ text: '🎬 1-dars: Boshlash', callback_data: 'v:1' }, { text: '🎬 2-dars: Foyda', callback_data: 'v:2' }], [{ text: '🎬 3-dars: Kassir', callback_data: 'v:3' }, { text: '🎬 4-dars: Qaytarish', callback_data: 'v:4' }], [{ text: '🎬 5-dars: Hisobchi', callback_data: 'v:5' }]];
+export const videoRows = () => [[{ text: '🎬 1-dars: Boshlash', callback_data: 'v:1' }, { text: '🎬 2-dars: Foyda', callback_data: 'v:2' }], [{ text: '🎬 3-dars: Kassir', callback_data: 'v:3' }, { text: '🎬 4-dars: Qaytarish', callback_data: 'v:4' }], [{ text: '🎬 5-dars: Hisobchi', callback_data: 'v:5' }, { text: '🎬 6-dars: Ishlab chiqarish', callback_data: 'v:6' }]];
 
 // /video — barcha darslar ro'yxati
 export async function sendVideoMenu(token: string, chat: number) {
