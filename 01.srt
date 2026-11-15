@@ -1,0 +1,12 @@
+1
+00:00:00,100 --> 00:00:03,435
+Bitta Telegram botda — uchta foydali ilova!
+
+2
+00:00:03,385 --> 00:00:07,348
+Do'kon kassasi, shaxsiy hisobchi va ishlab chiqarish hisobi.
+
+3
+00:00:07,348 --> 00:00:09,895
+Uchalasi ham telefoningizda!
+

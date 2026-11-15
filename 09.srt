@@ -1,0 +1,8 @@
+1
+00:00:00,100 --> 00:00:05,192
+Hisobchi va Ishlab chiqarish — bepul, Minimarket POS esa birinchi o'ttiz kun bepul.
+
+2
+00:00:05,142 --> 00:00:08,716
+Hoziroq Telegramda «Minimarket kassa bot»ni oching!
+

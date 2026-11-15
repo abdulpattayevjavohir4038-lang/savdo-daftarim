@@ -1,0 +1,8 @@
+1
+00:00:00,100 --> 00:00:06,348
+Kimga qarz berdingiz, kimdan oldingiz, pulingiz qayerga ketyapti — hammasi ko'z oldingizda.
+
+2
+00:00:06,298 --> 00:00:09,906
+Oylik limitdan oshsangiz, ilova ogohlantiradi.
+

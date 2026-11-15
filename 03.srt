@@ -1,0 +1,8 @@
+1
+00:00:00,100 --> 00:00:04,320
+Birinchisi — Minimarket POS, do'koningiz uchun aqlli kassa.
+
+2
+00:00:04,270 --> 00:00:09,470
+Tovarni shtrix-kod yoki nomi bilan toping va naqd, karta yoki nasiyaga soting.
+

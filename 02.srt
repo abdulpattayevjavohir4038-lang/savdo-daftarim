@@ -1,0 +1,12 @@
+1
+00:00:00,100 --> 00:00:04,178
+Botda «Ilovalar» tugmasini bosing — uchala ilova shu yerda.
+
+2
+00:00:04,128 --> 00:00:07,253
+Parol ham, yuklab olish ham kerak emas.
+
+3
+00:00:07,253 --> 00:00:10,484
+Telefon, planshet va kompyuterda ishlaydi.
+
