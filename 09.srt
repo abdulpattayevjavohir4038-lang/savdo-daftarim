@@ -1,0 +1,16 @@
+1
+00:00:00,100 --> 00:00:01,825
+Hammasi shu!
+
+2
+00:00:01,775 --> 00:00:05,187
+Kun oxirida hisobot Telegramga o'zi keladi.
+
+3
+00:00:05,187 --> 00:00:09,362
+Keyingi darslarda foyda, kassir va qaytarishni ko'rasiz.
+
+4
+00:00:09,362 --> 00:00:10,887
+Rahmat!
+

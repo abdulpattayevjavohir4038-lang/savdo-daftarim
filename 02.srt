@@ -1,0 +1,12 @@
+1
+00:00:00,100 --> 00:00:03,962
+Telegramda botni oching va «Boshlash» tugmasini bosing.
+
+2
+00:00:03,912 --> 00:00:08,100
+Keyin pastdagi «Telefon raqamni yuborish» tugmasini bosing.
+
+3
+00:00:08,100 --> 00:00:10,087
+Parol kerak emas.
+

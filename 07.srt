@@ -1,0 +1,12 @@
+1
+00:00:00,100 --> 00:00:01,962
+Endi sotamiz.
+
+2
+00:00:01,912 --> 00:00:05,725
+Savdo» bo'limida tovarni bosing, u savatga tushadi.
+
+3
+00:00:05,725 --> 00:00:08,587
+Yana bossangiz, soni ko'payadi.
+

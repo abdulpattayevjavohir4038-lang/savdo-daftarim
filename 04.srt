@@ -1,0 +1,8 @@
+1
+00:00:00,100 --> 00:00:05,275
+Endi chap pastdagi «Ilovalar» tugmasini bosing va «Minimarket POS»ni tanlang.
+
+2
+00:00:05,225 --> 00:00:07,662
+Ilova parolsiz ochiladi.
+
