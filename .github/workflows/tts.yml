@@ -39,12 +39,20 @@ jobs:
           async def main():
               for it in items:
                   txt = it['text'].replace('ʻ', "'").replace('ʼ', "'")
-                  sub = edge_tts.SubMaker()
-                  c = edge_tts.Communicate(txt, os.environ['VOICE'], rate=os.environ['RATE'])
-                  with open('out/' + it['id'] + '.mp3', 'wb') as f:
-                      async for ch in c.stream():
-                          if ch['type'] == 'audio': f.write(ch['data'])
-                          elif ch['type'] in ('WordBoundary', 'SentenceBoundary'): sub.feed(ch)
+                  # xizmat ba'zan javob bermaydi — har qatorni 5 martagacha qayta urinamiz
+                  for attempt in range(5):
+                      try:
+                          sub = edge_tts.SubMaker()
+                          c = edge_tts.Communicate(txt, os.environ['VOICE'], rate=os.environ['RATE'])
+                          with open('out/' + it['id'] + '.mp3', 'wb') as f:
+                              async for ch in c.stream():
+                                  if ch['type'] == 'audio': f.write(ch['data'])
+                                  elif ch['type'] in ('WordBoundary', 'SentenceBoundary'): sub.feed(ch)
+                          break
+                      except Exception as e:
+                          print(it['id'], 'qayta urinish', attempt + 1, e)
+                          if attempt == 4: raise
+                          await asyncio.sleep(5 * (attempt + 1))
                   open('out/' + it['id'] + '.srt', 'w', encoding='utf-8').write(sub.get_srt())
                   print(it['id'], 'ok')
           try:
