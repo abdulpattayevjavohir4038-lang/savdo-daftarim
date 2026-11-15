@@ -36,21 +36,35 @@ export async function track(token: string, u: any): Promise<boolean> {
 
 export async function statsText() {
   const s: any = await call('admin_tg_stats');
+  const h = s.hb || {};
   const L = [
-    '📈 <b>Bot statistikasi</b>', '',
+    '📈 <b>Toʻliq statistika</b> · ' + dt(Date.now()), '',
+    '🤖 <b>Telegram bot</b>',
     '👥 Foydalanuvchilar: <b>' + s.users + '</b>' + (+s.blocked ? ' (botni toʻxtatganlar: ' + s.blocked + ')' : ''),
     '🟢 Faol: bugun <b>' + s.active1 + '</b> · 7 kunda <b>' + s.active7 + '</b> · 30 kunda ' + s.active30,
     '🆕 Yangi: bugun ' + s.new1 + ' · 7 kunda ' + s.new7,
-    '⏳ Roʻyxatdan oʻtmay qolgan: ' + s.unfinished,
+    '⏳ Doʻkon ochmagan (faqat botga kirgan): ' + s.unfinished,
     '',
-    '🏪 Doʻkonlar: <b>' + s.shops + '</b> (botga ulangan: ' + s.shopsTg + ')',
-    '📱 Ilovada ishlagan: bugun ' + s.shopsApp1 + ' · 7 kunda ' + s.shopsApp7,
+    '🏪 <b>Minimarket POS</b>',
+    'Doʻkonlar: <b>' + s.shops + '</b> (botga ulangan: ' + s.shopsTg + ')',
+    '📱 Ilovada ishlagan: bugun <b>' + s.shopsApp1 + '</b> · 7 kunda ' + s.shopsApp7,
+    '🧾 Cheklar: 24 soatda ' + (s.sales1 || 0) + ' · 7 kunda ' + (s.sales7 || 0),
     '💳 Toʻlagan: ' + s.shopsPaid + ' · 🎁 Sinovda: ' + s.shopsTrial + ' · ⛔️ Muddati tugagan: ' + s.shopsExpired,
     '👤 Ulangan xodimlar: ' + s.staff,
+    '',
+    '🧮 <b>Hisobchi</b> (va botdagi «👛 Hamyon»)',
+    'Ilovani ochganlar: <b>' + (h.app || 0) + '</b> (7 kunda yangi: ' + (h.appNew7 || 0) + ') · jami ochilish: ' + (h.opens || 0),
+    '📱 Ochgan: bugun <b>' + (h.app1 || 0) + '</b> · 7 kunda ' + (h.app7 || 0),
+    '✍️ Yozuv qilgan: bugun <b>' + (h.writers1 || 0) + '</b> · 7 kunda ' + (h.writers7 || 0),
+    '🧾 Yozuvlar: bugun ' + (h.tx1 || 0) + ' · 7 kunda ' + (h.tx7 || 0) + ' · jami ' + (h.tx || 0) + ' · ochiq qarzlar: ' + (h.debtsOpen || 0),
   ];
   if ((s.recentNew || []).length) {
-    L.push('', '🆕 <b>Oxirgi kirganlar</b>');
-    s.recentNew.forEach((x: any, i: number) => L.push((i + 1) + '. ' + who(x.name, x.username) + ' — ' + (x.shop ? esc(x.shop) : 'roʻyxatdan oʻtmagan') + (x.blocked ? ' · 🚪 chiqqan' : '') + ' · ' + dt(+x.ts)));
+    L.push('', '🆕 <b>Botga oxirgi kirganlar</b>');
+    s.recentNew.forEach((x: any, i: number) => L.push((i + 1) + '. ' + who(x.name, x.username) + ' — ' + (x.shop ? esc(x.shop) : 'doʻkon ochmagan') + (x.blocked ? ' · 🚪 chiqqan' : '') + ' · ' + dt(+x.ts)));
+  }
+  if ((s.hbRecent || []).length) {
+    L.push('', '🧮 <b>Hisobchini oxirgi ochganlar</b>');
+    s.hbRecent.forEach((x: any, i: number) => L.push((i + 1) + '. ' + who(x.name, x.username) + ' · ' + dt(+x.ts) + ' · ' + x.n + ' marta'));
   }
   if ((s.recentLeft || []).length) {
     L.push('', '🚪 <b>Oxirgi chiqqanlar</b> (botni toʻxtatgan)');

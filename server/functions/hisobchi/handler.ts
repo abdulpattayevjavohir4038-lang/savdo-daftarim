@@ -68,8 +68,23 @@ async function learnCat(chat: number, note: string | null, cat: string) {
   await sql`update public.w_user set learn = ${sql.json(learn)}, updated_at = now() where chat = ${chat}`;
 }
 
-async function load(chat: number) {
+// ilova ochilishi: statistika uchun; birinchi marta ochganda sotuvchiga darhol xabar
+const escH = (s: unknown) => String(s ?? '').replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c] as string));
+async function trackOpen(chat: number) {
+  const r: any = (await sql`update public.w_user set app_first = coalesce(app_first, now()), app_seen = now(), app_opens = app_opens + 1 where chat = ${chat} returning app_opens`)[0];
+  if (!r || +r.app_opens !== 1) return;
+  const admins: number[] = ((await sql`select public.tg_admin_chats() as v`)[0] as any).v || [];
+  const token = await secret('tg_token');
+  if (!token || !admins.length || admins.includes(chat)) return;
+  const u: any = (await sql`select name, username from public.tg_users where chat_id = ${chat}`)[0] || {};
+  const all = ((await sql`select count(*)::int n from public.w_user where app_first is not null`)[0] as any).n;
+  const text = '🧮 <b>Hisobchini birinchi marta ochdi</b>: ' + (u.name ? escH(u.name) : 'Ismi nomaʼlum') + (u.username ? ' (@' + escH(u.username) + ')' : '') + '\nHisobchi foydalanuvchilari: <b>' + all + '</b>';
+  for (const a of admins) await fetch('https://api.telegram.org/bot' + token + '/sendMessage', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chat_id: a, text, parse_mode: 'HTML' }) }).catch(() => null);
+}
+
+async function load(chat: number, open = false) {
   const u = await wEnsure(chat);
+  if (open) await trackOpen(chat).catch((e) => console.error('trackOpen', e));
   const [tx, debts, who, bal, avg, cnt] = await Promise.all([
     sql`select id, kind, amount::float8 amount, cat, note, debt, ts from public.w_tx where chat = ${chat} order by ts desc, id desc limit 5000`,
     sql`select id, dir, name, amount::float8 amount, paid::float8 paid, closed, note, flow, tx, created_at, closed_at from public.w_debt where chat = ${chat} order by created_at desc`,
@@ -90,7 +105,7 @@ async function load(chat: number) {
 /* ---------- amallar ---------- */
 async function act(chat: number, a: string, b: any): Promise<Response> {
   switch (a) {
-    case 'load': return json(await load(chat));
+    case 'load': return json(await load(chat, !!b.open));
     case 'quick': { // «kofe 38000», «+5 mln oylik» — botdagidek
       const p = parse(txt(b.text, 120));
       if (!p || !amt(p.amount)) return ERR('NO_AMOUNT');

@@ -242,10 +242,10 @@ async function api(action, body) {
 const ERRS = { NET: 'Internet yoʻq — ulanishni tekshiring', AUTH: 'Kirish muddati tugagan — qayta kiring', NO_AMOUNT: 'Summani kiriting', BAD: 'Maʼlumot notoʻgʻri', NOT_FOUND: 'Yozuv topilmadi (oʻchirilgan boʻlishi mumkin)', SERVER: 'Serverda xato — birozdan keyin urinib koʻring' };
 const errText = (e) => ERRS[e && e.code] || 'Xato: ' + ((e && e.code) || 'nomaʼlum');
 
-async function load(quiet) {
+async function load(quiet, open) {
   if (!quiet) { S.loading = true; }
   try {
-    const d = await api('load');
+    const d = await api('load', open ? { open: 1 } : null);
     if (d.token && !TG_INIT) { /* ignore */ }
     if (d.token) { S.auth = d.token; try { localStorage.setItem(TOKEN_KEY, d.token); } catch (e) { /* ignore */ } }
     S.data = d; S.loading = false;
@@ -759,7 +759,7 @@ function boot() {
   $('#bnav').classList.remove('hidden'); $('#topbar').classList.remove('hidden'); $('#sidebar').classList.remove('hidden');
   $('#main').innerHTML = '<div class="center-screen"><div class="spin"></div></div>';
   renderNav();
-  load();
+  load(false, true);
 }
 $('#m-refresh').innerHTML = ic('sync');
 $('#m-refresh').onclick = () => { if (S.data) { load(true).then(() => toast('Yangilandi')); } };

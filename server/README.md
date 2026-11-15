@@ -6,8 +6,9 @@ Maxfiy qiymatlar (bot tokeni, kalitlar) kodda yo'q — ular bazadagi `app_secret
 | Funksiya | Nima |
 |---|---|
 | `functions/tg-webhook/` | Telegram bot: ro'yxatdan o'tish, hisobotlar, obuna, xodimlar, «👛 Hamyon nazorat», Hisobchiga kirish tasdig'i |
+| `functions/tg-cron/` | Har 10 daqiqada: doʻkonlarga kunlik/haftalik hisobot, obuna eslatmasi, Hamyon kechki hisoboti, sotuvchiga 21:00 dagi toʻliq hisobot |
 | `functions/hisobchi/` | «🧮 Hisobchi» ilovasi serveri: kirim-chiqim, qarz oldi-berdi, balans, byudjet (`w_tx`, `w_debt`, `w_user`) |
 
-`tg-webhook` Supabase'ga kichik `index.ts` bilan joylanadi: u shu repozitoriydagi aniq commit'dagi `handler.ts`ni yuklaydi
+`tg-webhook`, `tg-cron` va `hisobchi` Supabase'ga kichik `index.ts` bilan joylanadi: u shu repozitoriydagi aniq commit'dagi `handler.ts`ni yuklaydi
 (`https://raw.githubusercontent.com/abdulpattayevjavohir4038-lang/savdo-daftarim/<commit>/server/functions/tg-webhook/handler.ts`).
 Bot kodini o'zgartirganda: shu yerda tahrirlang → commit/push → `index.ts`dagi commit'ni yangilab qayta joylang.
