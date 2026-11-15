@@ -80,6 +80,32 @@
   .li.ok .n { background: rgb(var(--pos)); color: #fff; }
   .li b { color: rgb(var(--pri)); } body.hb .li b { color: rgb(var(--pos)); }
   .foot { margin-top: 10px; background: #e4f5ed; color: #047857; border-radius: 14px; padding: 12px; text-align: center; font-weight: 700; font-size: 14px; }
+  /* reklama: uchta ilova birga */
+  #trio { position: absolute; left: 0; right: 0; top: 92px; bottom: 150px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; transition: opacity .45s; }
+  #trio.off { opacity: 0; pointer-events: none; }
+  #trio .th { font-size: 40px; font-weight: 900; letter-spacing: -.02em; text-align: center; line-height: 1.05; opacity: 0; transform: scale(.85); transition: all .5s cubic-bezier(.2, 1.4, .4, 1); }
+  #trio .th b { color: #fcd34d; } #trio .th.on { opacity: 1; transform: none; }
+  #trio .ts { font-size: 17px; font-weight: 600; opacity: 0; transition: opacity .5s; margin-top: -10px; } #trio .ts.on { opacity: .9; }
+  #trio .row { display: flex; align-items: flex-end; justify-content: center; gap: 0; height: 430px; }
+  .tph { position: relative; width: 168px; display: flex; flex-direction: column; align-items: center; gap: 12px; opacity: 0; transition: transform .6s cubic-bezier(.2, 1.3, .4, 1), opacity .4s, filter .4s; }
+  .tph .fr { width: 168px; height: 336px; border-radius: 26px; background: #0b0f1a; padding: 6px; box-shadow: 0 24px 44px -14px rgb(0 0 0 / .65), inset 0 0 0 2px #2a3245; }
+  .tph img { width: 100%; height: 100%; object-fit: cover; object-position: top; border-radius: 21px; display: block; background: #fff; }
+  .tph .lb { display: flex; align-items: center; gap: 7px; font-size: 15px; font-weight: 800; white-space: nowrap; background: rgb(0 0 0 / .28); padding: 6px 12px 6px 6px; border-radius: 999px; }
+  .tph .lb i { font-style: normal; width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; font-size: 11px; font-weight: 900; color: #fff; letter-spacing: -.03em; }
+  .tph:nth-child(1) { transform: translate(60px, 120px) rotate(-14deg) scale(.7); z-index: 1; }
+  .tph:nth-child(2) { transform: translateY(160px) scale(.7); z-index: 2; }
+  .tph:nth-child(3) { transform: translate(-60px, 120px) rotate(14deg) scale(.7); z-index: 1; }
+  .tph.on:nth-child(1) { opacity: 1; transform: translate(14px, 18px) rotate(-7deg) scale(.92); }
+  .tph.on:nth-child(2) { opacity: 1; transform: translateY(-6px); }
+  .tph.on:nth-child(3) { opacity: 1; transform: translate(-14px, 18px) rotate(7deg) scale(.92); }
+  #trio.pick .tph { filter: brightness(.55) saturate(.6); }
+  #trio.pick .tph.sel { filter: none; z-index: 3; }
+  #trio.pick .tph.sel:nth-child(1) { transform: translate(14px, 0) rotate(-3deg) scale(1.04); }
+  #trio.pick .tph.sel:nth-child(2) { transform: translateY(-22px) scale(1.08); }
+  #trio.pick .tph.sel:nth-child(3) { transform: translate(-14px, 0) rotate(3deg) scale(1.04); }
+  /* mavzular: kartochka logotipi */
+  body.p3 .brand .lg, body.p3 .ch .lg { font-size: 15px; }
+  body.p3 .ch .lg { background: linear-gradient(135deg, #1f4fd6, #047857 55%, #b45309); font-size: 26px; }
 </style>
 </head>
 <body>
@@ -88,6 +114,7 @@
   <div class="tl"><span id="step">1/6</span><span id="title"></span></div>
 </div>
 <div id="card" class="off"></div>
+<div id="trio" class="off"><div class="th"></div><div class="ts"></div><div class="row"></div></div>
 <div id="phone" class="off">
   <div id="scr">
     <div id="notch"></div>
@@ -122,9 +149,27 @@ const S = window.S = {
     const t = $('#cap-t'); t.style.opacity = 0;
     setTimeout(() => { t.innerHTML = html; t.style.opacity = 1; }, 180);
   },
-  card(html) { const c = $('#card'); c.innerHTML = html; c.classList.remove('off'); $('#phone').classList.add('off'); },
+  // reklama: uchta ilova rasmi (imgs: [{src, name, logo, color}])
+  trio(o) {
+    const t = $('#trio');
+    if (!o) { t.classList.add('off'); return; }
+    t.classList.remove('off', 'pick'); $('#phone').classList.add('off'); $('#card').classList.add('off');
+    t.querySelector('.th').innerHTML = o.head; t.querySelector('.ts').innerHTML = o.sub || '';
+    t.querySelector('.row').innerHTML = o.apps.map((a) => '<div class="tph"><div class="fr"><img src="' + a.src + '"></div><div class="lb"><i style="background:' + a.color + '">' + a.logo + '</i>' + a.name + '</div></div>').join('');
+    t.querySelectorAll('.th,.ts').forEach((e) => e.classList.remove('on'));
+  },
+  trioStep(k) {   // 'h' — sarlavha, 0..2 — telefon chiqadi, 'pick:i' — bittasini ajratish, 'all' — hammasi
+    const t = $('#trio'), ph = t.querySelectorAll('.tph');
+    if (k === 'h') t.querySelector('.th').classList.add('on');
+    else if (k === 's') t.querySelector('.ts').classList.add('on');
+    else if (typeof k === 'number') ph[k].classList.add('on');
+    else if (k.startsWith('pick:')) { t.classList.add('pick'); ph.forEach((p, i) => p.classList.toggle('sel', i === +k.slice(5))); }
+    else if (k === 'all') { t.classList.remove('pick'); ph.forEach((p) => p.classList.remove('sel')); }
+  },
+  theme(name, logo) { ['hb', 'ic', 'p3'].forEach((c) => document.body.classList.toggle(c, c === name)); $('#b-lg').textContent = logo; },
+  card(html) { $('#trio').classList.add('off'); const c = $('#card'); c.innerHTML = html; c.classList.remove('off'); $('#phone').classList.add('off'); },
   cardItem(i, ok) { const el = document.querySelectorAll('#card .li')[i]; if (el) { el.classList.add('on'); if (ok) el.classList.add('ok'); } },
-  phone(on) { $('#phone').classList.toggle('off', !on); if (on) $('#card').classList.add('off'); },
+  phone(on) { $('#phone').classList.toggle('off', !on); if (on) { $('#card').classList.add('off'); $('#trio').classList.add('off'); } },
   webapp(on, title) { $('#scr').classList.toggle('webapp', !!on); $('#sbar').classList.toggle('dark', !!on || S._dark); if (title) $('#wa-t').textContent = title; S.fit(); },
   dark(on) { S._dark = on; $('#sbar').classList.toggle('dark', !!on || $('#scr').classList.contains('webapp')); },
   fit() { const v = $('#view'); $('#fr').style.height = (v.clientHeight / K) + 'px'; },

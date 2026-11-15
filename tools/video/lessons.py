@@ -411,3 +411,96 @@ async def d6_9(c):
 LESSONS['dars6'] = {'file': 'ishlab', 'brand': 'Ishlab chiqarish · 6-dars', 'ic': True, 'scenes': [
     ('Ishlab chiqarish', d6_1), ('Ilovani ochish', d6_2), ('Xomashyo oldim', d6_3), ('Sotdim', d6_4), ('Qarzga sotish', d6_5),
     ('Xarajat', d6_6), ('Foyda-ziyon', d6_7), ('Tannarx va qarzlar', d6_8), ('Xulosa', d6_9)]}
+
+# ======================================================================= Reklama: uchala ilova bitta botda
+import base64  # noqa: E402
+
+APPS3 = [('index.html', 'Minimarket POS', 'M', '#1f4fd6'), ('hisobchi/', 'Hisobchi', 'H', '#047857'), ('ishlab/', 'Ishlab chiqarish', 'IC', '#b45309')]
+
+async def r_prep(c):
+    """yozib olishdan oldin: uchala ilovaning bosh sahifasi rasmi (kirish sahnasi uchun)"""
+    c.shots = []; c.pw = 420
+    await c.js("S.phone(true)"); await c.wait(500)
+    for path, title, logo, color in APPS3:
+        await c.js("t => S.webapp(true, t)", title); await c.load(path)
+        await c.fr().wait_for_load_state('load'); await c.wait(2200)
+        b = await c.page.locator('#fr').screenshot(type='jpeg', quality=88)
+        c.shots.append({'src': 'data:image/jpeg;base64,' + base64.b64encode(b).decode(), 'name': title, 'logo': logo, 'color': color})
+    await c.js("() => { S.phone(false); S.theme('p3', '3'); }"); await c.wait(500)
+
+async def r_1(c):
+    await c.js("o => S.trio(o)", {'head': '3 ilova — <b>1 botda</b>', 'sub': 'Telegram · parolsiz · telefonda', 'apps': c.shots})
+    await c.wait(200); await c.js("S.trioStep('h')"); await c.wait(500)
+    for i in range(3): await c.js("i => S.trioStep(i)", i); await c.wait(260)
+    await c.js("S.trioStep('s')"); await c.wait(1300)
+    for i in range(3): await c.js("k => S.trioStep(k)", 'pick:%d' % i); await c.wait(1150)
+    await c.js("S.trioStep('all')")
+
+async def r_2(c):
+    await phone_tg(c, kb=OWNER_KB)
+    await c.wait(300)
+    await c.open_list()
+    for s in ('#go-pos', '#go-hb', '#go-ic'):
+        await c.ring(s, pad=4); await c.wait(1100)
+    await c.unring()
+
+async def r_3(c):
+    await c.js("() => S.theme('', 'M')")
+    await c.open_app('pos', from_list=True)
+    await c.tap('#bnav [data-tab=kassa]', after=500)
+    await c.tap('.tile:has-text("Coca-Cola")', after=250)
+    await c.tap('.tile:has-text("Non (patir)")', after=250)
+    await c.tap('#cartbar-btn', after=500)
+
+async def r_4(c):
+    await c.tap('.paybtn:has-text("Naqd")', after=250)
+    await c.tap('#k-checkout', ring=True, after=1100)
+    await c.tap('#modal-root button:has-text("Yangi sotuv")', after=400)
+    await c.tap('#bn-more', after=400)
+    await c.tap('#modal-root [data-tab=moliya]', after=700)
+    await c.js("h => S.notify(h)", '📊 <b>Kunlik hisobot</b> — Baraka market<br>Savdo, sof foyda, qarzlar va kam qolgan tovarlar')
+    await ring_text(c, 'SOF FOYDA', up=2, pad=4, hold=2000); await c.off()
+    await c.js("S.notify(null)")
+
+async def r_5(c):
+    await c.js("() => S.theme('hb', 'H')")
+    await c.switch_app('hisobchi/', 'Hisobchi')
+    await c.type('#q-in', 'taksi 25 ming', ring=True, delay=70); await c.unring()
+    await c.tap('#quick button', after=1200)
+    await c.off()
+
+async def r_6(c):
+    await c.tap('#bnav [data-tab=debt]', after=700)
+    await c.ring('[data-debt]', pad=4); await c.wait(1500); await c.unring()
+    await c.tap('#bnav [data-tab=rep]', after=700)
+    await c.scroll_to('.bars'); await c.ring('.bars', pad=10); await c.wait(1300); await c.unring()
+    await c.scroll_to('[data-budget=""]'); await c.ring('[data-budget=""]'); await c.wait(1500); await c.off()
+
+async def r_7(c):
+    await c.js("() => S.theme('ic', 'IC')")
+    await c.switch_app('ishlab/', 'Ishlab chiqarish')
+    await c.tap('[data-new=buy]', ring=True, after=500)
+    await c.tap('.catb:has-text("Un")', after=250)
+    await c.type('#f-qty', '50', delay=70)
+    await c.tap('[data-save]', after=700)
+    for s in ('[data-new=sale]', '[data-new=exp]'):
+        await c.ring(s, pad=4); await c.wait(800)
+    await c.off()
+
+async def r_8(c):
+    await c.tap('#bnav [data-tab=rep]', after=800)
+    await ring_text(c, '1 kg tannarxi', up=2, pad=4, hold=1800)
+    await ring_text(c, 'Foyda-ziyon hisobi', up=2, pad=4, hold=2000)
+    await c.scroll_to('.bars')
+    await ring_text(c, 'Sotilgan mahsulotlar', up=2, pad=4, hold=2000)
+    await c.off()
+
+async def r_9(c):
+    await c.js("() => S.theme('p3', '3')")
+    await show_card(c, card('3', 'Uchala ilova — bitta botda', 'Telegram: @minimarketkassabot', [
+        '🏪 <b>Minimarket POS</b> — kassa, ombor, foyda', '🧮 <b>Hisobchi</b> — kirim-chiqim va qarzlar', '🏭 <b>Ishlab chiqarish</b> — tannarx va foyda-ziyon', '<b>«Ilovalar»</b> tugmasi — parolsiz'],
+        '🎁 Hisobchi va Ishlab chiqarish — bepul · POS — 30 kun bepul', done=True), 4, gap=700, first=600)
+
+LESSONS['reklama3'] = {'file': 'reklama-3-ilova', 'brand': 'Minimarket kassa bot · 3 ilova', 'prep': r_prep, 'scenes': [
+    ('Uchtasi birda', r_1), ('«Ilovalar» tugmasi', r_2), ('Minimarket POS', r_3), ('Hisobot va foyda', r_4), ('Hisobchi', r_5),
+    ('Qarz va hisobot', r_6), ('Ishlab chiqarish', r_7), ('Foyda-ziyon', r_8), ('Hoziroq oching!', r_9)]}

@@ -173,7 +173,7 @@ class Studio:
 
 class Ctx:
     """Bitta dars davomida sahna va telefon ichidagi ilova bilan ishlash"""
-    def __init__(self, page): self.page = page
+    def __init__(self, page): self.page = page; self.pw = 750  # kursor nishonga borgach kutish (ms)
     async def js(self, code, arg=None): return await self.page.evaluate(code, arg)
     def fr(self): return self.page.frame(name='fr')
     async def wait(self, ms): await asyncio.sleep(ms / 1000)
@@ -196,7 +196,7 @@ class Ctx:
         b, loc = await self.box(sel, nth)
         await self.js('([x, y]) => S.cursorTo(x, y)', [b['x'] + b['w'] / 2, b['y'] + b['h'] / 2])
         if ring: await self.js('b => S.ring(b)', b)
-        await self.wait(750)
+        await self.wait(self.pw)
         return b, loc
     async def tap(self, sel, nth=0, ring=False, after=500):
         b, loc = await self.point(sel, nth, ring)
@@ -230,10 +230,23 @@ class Ctx:
             await self.tg('t => TG.inp(t)', text[:i]); await self.wait(70)
         await self.wait(250); await self.tap('#snd', after=150)
         await self.tg('t => { TG.inp(""); TG.me(t); }', text)
-    async def open_app(self, which, prep=None):
-        """Telegram namunasidan: «Ilovalar» -> ilova tanlash. prep — ilova ko'rinishidan oldin (yashirin holda) bajariladi"""
+    async def open_list(self):
+        """Telegram namunasidan: «Ilovalar» tugmasi -> ilovalar ro'yxati"""
         await self.tap('#menu', ring=True, after=200)
         await self.js("S.webapp(true, 'Ilovalar')"); await self.load('ilovalar/'); await self.wait(500)
+    async def switch_app(self, path, title):
+        """reklama: bir ilovadan boshqasiga tez o'tish (xira o'tish bilan)"""
+        await self.off()
+        await self.js("() => { document.getElementById('fr').style.transition = 'opacity .25s'; document.getElementById('fr').style.opacity = 0; }"); await self.wait(280)
+        await self.js("t => S.webapp(true, t)", title); await self.load(path)
+        await self.fr().wait_for_load_state('load')
+        try: await self.fr().wait_for_function("() => { const m = document.getElementById('main'); return m && m.innerText.length > 120; }", timeout=6000)
+        except Exception: pass
+        await self.wait(250)
+        await self.js("() => { document.getElementById('fr').style.opacity = 1; }"); await self.wait(350)
+    async def open_app(self, which, prep=None, from_list=False):
+        """Telegram namunasidan: «Ilovalar» -> ilova tanlash. prep — ilova ko'rinishidan oldin (yashirin holda) bajariladi"""
+        if not from_list: await self.open_list()
         sel = {'pos': '#go-pos', 'hb': '#go-hb', 'ic': '#go-ic'}[which]
         b, loc = await self.point(sel, ring=True)
         await self.js('([x, y]) => S.tapFx(x, y)', [b['x'] + b['w'] / 2, b['y'] + b['h'] / 2]); await self.wait(250)
