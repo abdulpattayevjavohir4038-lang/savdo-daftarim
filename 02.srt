@@ -1,0 +1,8 @@
+1
+00:00:00,100 --> 00:00:05,250
+Botda chap pastdagi «Ilovalar» tugmasini bosing va «Ishlab chiqarish»ni tanlang.
+
+2
+00:00:05,200 --> 00:00:07,175
+Parol so'ralmaydi.
+

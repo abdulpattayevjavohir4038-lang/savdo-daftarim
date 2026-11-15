@@ -1,0 +1,8 @@
+1
+00:00:00,100 --> 00:00:02,962
+Sotganingizda «Sotdim»ni bosing.
+
+2
+00:00:02,912 --> 00:00:08,500
+Mahsulotni tanlang, nechta yoki necha kilogramm sotganingizni yozing va saqlang.
+

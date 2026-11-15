@@ -1,0 +1,12 @@
+1
+00:00:00,100 --> 00:00:06,012
+Bosh sahifada bir kilogramm yoki bir dona mahsulot sizga necha pulga tushgani ko'rinadi.
+
+2
+00:00:05,962 --> 00:00:09,862
+Kim qarzdor ekanini esa «Qarzlar» tugmasidan bilasiz.
+
+3
+00:00:09,862 --> 00:00:13,737
+Mijoz pulni berganda, «Hammasini to'ladi»ni bosing.
+

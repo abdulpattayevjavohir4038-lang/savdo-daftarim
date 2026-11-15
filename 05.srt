@@ -1,0 +1,12 @@
+1
+00:00:00,100 --> 00:00:03,212
+Qarzga bersangiz, «Qarzga»ni tanlang.
+
+2
+00:00:03,162 --> 00:00:07,137
+Mijozning nomini va hozir qancha to'laganini yozing.
+
+3
+00:00:07,137 --> 00:00:09,875
+Qolgan pul qarz bo'lib yoziladi.
+

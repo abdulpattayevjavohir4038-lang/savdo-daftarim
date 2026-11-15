@@ -1,0 +1,8 @@
+1
+00:00:00,100 --> 00:00:06,087
+Gaz va svet, ijara, ish haqi kabi boshqa xarajatlarni «Xarajat» tugmasi bilan yozing.
+
+2
+00:00:06,037 --> 00:00:09,025
+Toifani tanlang va summani kiriting.
+
