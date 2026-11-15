@@ -1,0 +1,8 @@
+1
+00:00:00,100 --> 00:00:04,625
+Keyin yana «Kassir taklif qilish»ni bosing va xodimga nom bering.
+
+2
+00:00:04,575 --> 00:00:08,412
+Masalan: Kassir bir, Kassir ikki yoki Menejer.
+

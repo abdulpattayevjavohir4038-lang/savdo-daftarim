@@ -1,0 +1,8 @@
+1
+00:00:00,100 --> 00:00:05,037
+Xodim chap pastdagi «Ilovalar» tugmasi orqali Minimarket POS'ga kiradi.
+
+2
+00:00:04,987 --> 00:00:09,800
+Unga faqat Savdo, Tovar kirimi va siz ochgan bo'limlar ko'rinadi.
+

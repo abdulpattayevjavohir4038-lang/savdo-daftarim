@@ -1,0 +1,8 @@
+1
+00:00:00,100 --> 00:00:05,650
+So'ng «Taklif havolasini olish» tugmasini bosing va havolani xodimingizga yuboring.
+
+2
+00:00:05,600 --> 00:00:09,950
+Havola yigirma to'rt soat amal qiladi va bir marta ishlaydi.
+

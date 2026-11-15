@@ -1,0 +1,12 @@
+1
+00:00:00,100 --> 00:00:02,187
+Assalomu alaykum!
+
+2
+00:00:02,137 --> 00:00:06,075
+Bu darsda do'koningizga kassir qo'shishni ko'rsatamiz.
+
+3
+00:00:06,075 --> 00:00:12,662
+Kassir ilovaga o'z Telegrami orqali alohida kiradi va faqat siz ochib bergan bo'limlarni ko'radi.
+

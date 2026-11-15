@@ -1,0 +1,4 @@
+1
+00:00:00,100 --> 00:00:06,937
+Diqqat: «Hisobotlar va foyda» bo'limini ochmasangiz, kassir foydani na ilovada, na botda ko'radi.
+

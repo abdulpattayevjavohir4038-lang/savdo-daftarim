@@ -1,0 +1,12 @@
+1
+00:00:00,100 --> 00:00:05,400
+Bo'limlarni istalgan vaqtda botdan o'zgartirasiz yoki xodimni o'chirasiz.
+
+2
+00:00:05,350 --> 00:00:09,375
+Ikkinchi, uchinchi kassirni ham xuddi shunday qo'shasiz.
+
+3
+00:00:09,375 --> 00:00:10,900
+Rahmat!
+
