@@ -3,7 +3,7 @@ name: APK yigʻish
 on:
   push:
     branches: [main]
-    paths: ['docs/index.html', 'app/**', '.github/workflows/apk.yml']
+    paths: ['docs/index.html', 'docs/hisobchi/**', 'docs/ilovalar/**', 'app/**', '.github/workflows/apk.yml']
   workflow_dispatch:
 
 permissions:
