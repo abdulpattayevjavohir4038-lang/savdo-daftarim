@@ -1,0 +1,12 @@
+1
+00:00:00,100 --> 00:00:03,262
+Qaytarish hammaga, kassirga ham ochiq.
+
+2
+00:00:03,212 --> 00:00:08,250
+Har bir qaytarish haqida do'kon egasiga Telegramda darhol xabar boradi.
+
+3
+00:00:08,250 --> 00:00:09,775
+Rahmat!
+

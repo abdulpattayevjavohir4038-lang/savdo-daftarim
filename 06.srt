@@ -1,0 +1,12 @@
+1
+00:00:00,100 --> 00:00:01,562
+Tayyor!
+
+2
+00:00:01,512 --> 00:00:05,225
+Tovar omborga qaytdi, pul esa tushumdan ayrildi.
+
+3
+00:00:05,225 --> 00:00:09,650
+Chekda «qaytarilgan» belgisi chiqadi va hisobotlar to'g'ri qoladi.
+

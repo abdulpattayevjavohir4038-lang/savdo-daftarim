@@ -1,0 +1,8 @@
+1
+00:00:00,100 --> 00:00:04,612
+Qaytgan tovarning shtrix-kodini skanerlang yoki nomini yozing.
+
+2
+00:00:04,562 --> 00:00:08,625
+Oxirgi sotilganlar ro'yxatidan tanlasangiz ham bo'ladi.
+
