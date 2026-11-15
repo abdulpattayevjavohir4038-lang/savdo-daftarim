@@ -1,0 +1,8 @@
+1
+00:00:00,100 --> 00:00:04,300
+Yangi tovar qo'shganda ustama tugmalaridan birini tanlang.
+
+2
+00:00:04,250 --> 00:00:10,062
+Sotish narxi o'zi chiqadi, pastida esa har biridan qancha foyda qilishingiz ko'rinadi.
+

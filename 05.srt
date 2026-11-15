@@ -1,0 +1,12 @@
+1
+00:00:00,100 --> 00:00:03,550
+To'landi» maydoniga bergan pulingizni yozing.
+
+2
+00:00:03,500 --> 00:00:07,312
+To'lanmagan qismi ta'minotchiga qarz bo'lib yoziladi.
+
+3
+00:00:07,312 --> 00:00:11,187
+Keyin «Kirim qilish»ni bosing, qoldiq o'zi ko'payadi.
+

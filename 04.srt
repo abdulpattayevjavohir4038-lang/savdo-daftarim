@@ -1,0 +1,8 @@
+1
+00:00:00,100 --> 00:00:04,762
+Tovar tugay boshlasa, «Kirim qilish» orqali yangi partiya kiriting.
+
+2
+00:00:04,712 --> 00:00:08,587
+Ta'minotchini tanlang, soni va kelish narxini yozing.
+

@@ -1,0 +1,4 @@
+1
+00:00:00,100 --> 00:00:07,075
+Sotganingizda ilova har bir chekning foydasini o'zi hisoblaydi: sotish narxidan kelish narxi ayiriladi.
+

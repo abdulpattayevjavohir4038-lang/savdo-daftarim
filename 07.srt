@@ -1,0 +1,8 @@
+1
+00:00:00,100 --> 00:00:05,325
+Ijara, svet yoki ish haqi kabi xarajatlarni «Xarajatlar» bo'limiga yozing.
+
+2
+00:00:05,275 --> 00:00:07,962
+Ular sof foydadan ayiriladi.
+

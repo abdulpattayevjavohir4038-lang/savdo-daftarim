@@ -1,0 +1,12 @@
+1
+00:00:00,100 --> 00:00:04,387
+Kelish narxi, bu tovarni o'zingiz necha so'mga olganingiz.
+
+2
+00:00:04,337 --> 00:00:08,012
+Ustama, bu narx ustiga qo'shadigan foizingiz.
+
+3
+00:00:08,012 --> 00:00:15,200
+Masalan, to'qqiz ming so'mlik tovarga yigirma foiz qo'shsangiz, sotish narxi o'n ming sakkiz yuz so'm bo'ladi.
+
