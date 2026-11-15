@@ -1,0 +1,8 @@
+1
+00:00:00,100 --> 00:00:03,687
+Do'kon hisobini hali ham daftarda yuritasizmi?
+
+2
+00:00:03,637 --> 00:00:06,275
+Endi hammasi telefoningizda!
+

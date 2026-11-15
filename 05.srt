@@ -1,0 +1,4 @@
+1
+00:00:00,100 --> 00:00:05,362
+Internet uzilsa ham ishlaydi, do'kondagi hamma telefonda ma'lumot bir xil.
+

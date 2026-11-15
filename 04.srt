@@ -1,0 +1,8 @@
+1
+00:00:00,100 --> 00:00:05,637
+Tovar kirimi, ombor, mijozlar qarzi va foyda hisoboti — hammasi bir joyda.
+
+2
+00:00:05,587 --> 00:00:09,012
+Kun oxirida hisobot Telegramga o'zi keladi.
+

@@ -1,0 +1,4 @@
+1
+00:00:00,100 --> 00:00:05,650
+Hoziroq Telegramda Minimarket kassa botni oching va «Ilovalar» tugmasini bosing!
+

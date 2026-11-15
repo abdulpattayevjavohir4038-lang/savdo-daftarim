@@ -1,0 +1,8 @@
+1
+00:00:00,100 --> 00:00:03,950
+Tovarni shtrix-kod, kamera yoki ovoz bilan toping.
+
+2
+00:00:03,900 --> 00:00:08,212
+Naqd, karta yoki nasiyaga soting — qoldiq o'zi kamayadi.
+
