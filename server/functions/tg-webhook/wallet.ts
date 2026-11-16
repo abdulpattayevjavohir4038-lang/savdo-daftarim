@@ -1,12 +1,13 @@
 // «👛 Hamyon nazorat» — bot ichidagi bo'lim: xarajat/kirim yozish, toifa, hisobotlar, byudjet, qarz daftari, hisobni bo'lish.
 // Ro'yxatdan o'tmagan va obunasi tugaganlarga ham ochiq. Do'kon hisobiga (ilovaga) hech qanday ta'sir qilmaydi.
 import { sql, send, tg, esc, fmt } from './tg.ts';
-import { CATS, catOf, cl, nz, parse, detect, isIncome, otherOf, sh, bar, dmy, wUser, wEnsure, sums, homeView, dayView, monthView, historyView, budgetView, budgetNote, type WUser } from './wcore.ts';
+import { CATS, catOf, cl, nz, parse, detect, isIncome, otherOf, sh, bar, dmy, wUser, wEnsure, sums, homeView, dayView, monthView, historyView, budgetView, budgetNote, money, soOf, type WUser } from './wcore.ts';
+import { type Cur, isUsdText, parseUsd, usd } from '../hisobchi/cur.ts';
 import { todayK, addK } from './tg.ts';
 
 export const WKB = {
   keyboard: [[{ text: '➖ Xarajat' }, { text: '➕ Kirim' }], [{ text: '📊 Bugun hisobi' }, { text: '📆 Shu oy' }], [{ text: '🎯 Byudjet' }, { text: '📒 Qarz daftari' }], [{ text: '🕘 Tarix' }, { text: '👛 Hamyon' }], [{ text: '⬅️ Asosiy menyu' }]],
-  resize_keyboard: true, is_persistent: true, input_field_placeholder: 'kofe 38000 · taksi 25 ming · +5 mln oylik',
+  resize_keyboard: true, is_persistent: true, input_field_placeholder: 'kofe 38000 · taksi 25 ming · netflix 12$',
 };
 export const isWalletEntry = (text: string) => nz(text) === 'hamyon nazorat' || /^\/hamyon\b/i.test(text);
 export const isWalletExit = (text: string) => nz(text) === 'asosiy menyu';
@@ -52,14 +53,15 @@ function catGrid(id: number, kind: string, cur: string) {
 }
 async function txView(chat: number, id: number, grid = false) {
   const u = await wUser(chat);
-  const r: any = (await sql`select id, kind, amount::float8 amount, cat, note, ts from public.w_tx where id = ${id} and chat = ${chat}`)[0];
+  const r: any = (await sql`select id, kind, amount::float8 amount, cur, cat, note, ts from public.w_tx where id = ${id} and chat = ${chat}`)[0];
   if (!r || !u) return null;
   const t = today(), [d, m] = await Promise.all([sums(chat, t, addK(t, 1)), sums(chat, t.slice(0, 8) + '01', addK(t, 1))]);
   const unknown = r.cat === otherOf(r.kind);
-  const L = ['✅ ' + (r.kind === 'out' ? 'Xarajat' : 'Kirim') + ': <b>' + (r.kind === 'out' ? '−' : '+') + fmt(r.amount) + '</b>' + SO + ' · ' + cl(r.cat)];
+  const L = ['✅ ' + (r.kind === 'out' ? 'Xarajat' : 'Kirim') + ': <b>' + (r.kind === 'out' ? '−' : '+') + money(r.amount, r.cur) + '</b>' + soOf(r.cur) + ' · ' + cl(r.cat)];
   if (r.note) L.push('📝 ' + esc(r.note));
-  L.push('📅 Bugun: −' + fmt(d.out) + (d.inn ? ' · +' + fmt(d.inn) : '') + ' · Shu oy: −' + fmt(m.out));
-  if (r.kind === 'out') { const b = await budgetNote(u, r.cat); if (b) L.push(b); }
+  if (r.cur === 'USD') L.push('💵 Bugun dollar: ' + (d.uOut ? '−' + usd(d.uOut) : '') + (d.uOut && d.uIn ? ' · ' : '') + (d.uIn ? '+' + usd(d.uIn) : '') + ' · Shu oy: −' + usd(m.uOut));
+  else L.push('📅 Bugun: −' + fmt(d.out) + (d.inn ? ' · +' + fmt(d.inn) : '') + ' · Shu oy: −' + fmt(m.out));
+  if (r.kind === 'out' && r.cur !== 'USD') { const b = await budgetNote(u, r.cat); if (b) L.push(b); }
   if (unknown || grid) L.push('', '🗂 <b>Toifani tanlang</b> 👇');
   const rows: any[] = [];
   if (unknown || grid) rows.push(...catGrid(r.id, r.kind, r.cat));
@@ -68,35 +70,36 @@ async function txView(chat: number, id: number, grid = false) {
     rows.push([{ text: '✅ ' + catOf(r.cat).e + ' ' + catOf(r.cat).n, callback_data: 'wk:' + r.id }, ...alt.map((c) => ({ text: catOf(c).e + ' ' + catOf(c).n, callback_data: 'wc:' + r.id + ':' + c }))]);
     rows.push([{ text: '🗂 Boshqa toifa', callback_data: 'wk:' + r.id }]);
   }
-  rows.push([...(r.kind === 'out' ? [{ text: '👥 Hisobni boʻlish', callback_data: 'ws:' + r.id }] : []), { text: '🗑 Oʻchirish', callback_data: 'wd:' + r.id }]);
+  rows.push([...(r.kind === 'out' && r.cur !== 'USD' ? [{ text: '👥 Hisobni boʻlish', callback_data: 'ws:' + r.id }] : []), { text: '🗑 Oʻchirish', callback_data: 'wd:' + r.id }]);
   return { text: L.join('\n'), markup: { inline_keyboard: rows } };
 }
 
 /* ---------- qarz daftari ---------- */
 async function debtsView(chat: number, closed = false) {
-  const rows: any[] = await sql`select id, dir, name, amount::float8 amount, paid::float8 paid, created_at, closed_at from public.w_debt where chat = ${chat} and closed = ${closed} order by created_at desc limit 40`;
+  const rows: any[] = await sql`select id, dir, name, amount::float8 amount, paid::float8 paid, cur, created_at, closed_at from public.w_debt where chat = ${chat} and closed = ${closed} order by created_at desc limit 40`;
   const L = [closed ? '📁 <b>Yopilgan qarzlar</b>' : '📒 <b>Qarz daftari</b>', ''];
   if (!closed) {
-    const me = rows.filter((x) => x.dir === 'me').reduce((s, x) => s + x.amount - x.paid, 0), i = rows.filter((x) => x.dir === 'i').reduce((s, x) => s + x.amount - x.paid, 0);
-    L.push('🟢 Menga qarz: <b>' + fmt(me) + '</b>' + SO, '🔴 Men qarzdorman: <b>' + fmt(i) + '</b>' + SO, '⚖️ Sof: <b>' + (me - i >= 0 ? '+' : '') + fmt(me - i) + '</b>');
+    const tot = (dir: string, cur: string) => rows.filter((x) => x.dir === dir && x.cur === cur).reduce((s, x) => s + x.amount - x.paid, 0);
+    const me = tot('me', 'UZS'), i = tot('i', 'UZS'), uMe = tot('me', 'USD'), uI = tot('i', 'USD');
+    L.push('🟢 Menga qarz: <b>' + fmt(me) + '</b>' + SO + (uMe ? ' + <b>' + usd(uMe) + '</b>' : ''), '🔴 Men qarzdorman: <b>' + fmt(i) + '</b>' + SO + (uI ? ' + <b>' + usd(uI) + '</b>' : ''), '⚖️ Sof: <b>' + (me - i >= 0 ? '+' : '') + fmt(me - i) + '</b>' + (uMe || uI ? ' · <b>' + (uMe - uI >= 0 ? '+' : '') + usd(uMe - uI) + '</b>' : ''));
     if (!rows.length) L.push('', 'Ochiq qarz yoʻq. Pastdagi tugmalar bilan qoʻshing.');
   } else if (!rows.length) L.push('Yopilgan qarz yoʻq.');
   for (const dir of ['me', 'i']) {
     const a = rows.filter((x) => x.dir === dir); if (!a.length) continue;
     L.push('', dir === 'me' ? '<b>Menga qarz</b>' : '<b>Men qarzdorman</b>');
-    a.forEach((x, n) => L.push((n + 1) + '. ' + esc(x.name) + ' — <b>' + fmt(closed ? x.amount : x.amount - x.paid) + '</b>' + (!closed && x.paid ? ' (' + fmt(x.amount) + ' dan)' : '') + ' · ' + dmy(closed ? x.closed_at : x.created_at)));
+    a.forEach((x, n) => L.push((n + 1) + '. ' + esc(x.name) + ' — <b>' + money(closed ? x.amount : x.amount - x.paid, x.cur) + '</b>' + (!closed && x.paid ? ' (' + money(x.amount, x.cur) + ' dan)' : '') + ' · ' + dmy(closed ? x.closed_at : x.created_at)));
   }
-  const kb: any[] = rows.slice(0, 20).map((x) => [{ text: (x.dir === 'me' ? '🟢 ' : '🔴 ') + x.name + ' · ' + sh(closed ? x.amount : x.amount - x.paid), callback_data: 'wqv:' + x.id }]);
+  const kb: any[] = rows.slice(0, 20).map((x) => [{ text: (x.dir === 'me' ? '🟢 ' : '🔴 ') + x.name + ' · ' + (x.cur === 'USD' ? usd(closed ? x.amount : x.amount - x.paid) : sh(closed ? x.amount : x.amount - x.paid)), callback_data: 'wqv:' + x.id }]);
   if (!closed) kb.push([{ text: '➕ Qarz berdim', callback_data: 'wqa:me' }, { text: '➕ Qarz oldim', callback_data: 'wqa:i' }], [{ text: '📁 Yopilganlar', callback_data: 'wqz:' }]);
   else kb.push([{ text: '⬅️ Ochiq qarzlar', callback_data: 'wq:' }]);
   return { text: L.join('\n').slice(0, 4000), markup: { inline_keyboard: kb } };
 }
 async function debtView(chat: number, id: number, fresh = false) {
-  const d: any = (await sql`select id, dir, name, amount::float8 amount, paid::float8 paid, closed, note, flow, created_at, closed_at from public.w_debt where id = ${id} and chat = ${chat}`)[0];
+  const d: any = (await sql`select id, dir, name, amount::float8 amount, paid::float8 paid, cur, closed, note, flow, created_at, closed_at from public.w_debt where id = ${id} and chat = ${chat}`)[0];
   if (!d) return null;
   const left = d.amount - d.paid, p = Math.round((d.paid * 100) / d.amount);
   const L = [(d.dir === 'me' ? '🟢 <b>' + esc(d.name) + '</b> — menga qarz' : '🔴 <b>' + esc(d.name) + '</b> — men qarzdorman')];
-  L.push('Jami: ' + fmt(d.amount) + ' · ' + (d.dir === 'me' ? 'Qaytardi' : 'Toʻladim') + ': ' + fmt(d.paid) + ' · Qoldi: <b>' + fmt(left) + '</b>' + SO);
+  L.push('Jami: ' + money(d.amount, d.cur) + ' · ' + (d.dir === 'me' ? 'Qaytardi' : 'Toʻladim') + ': ' + money(d.paid, d.cur) + ' · Qoldi: <b>' + money(left, d.cur) + '</b>' + soOf(d.cur));
   L.push(bar(p) + ' ' + p + '%');
   L.push('📅 ' + dmy(d.created_at) + (d.note ? ' · 📝 ' + esc(d.note) : '') + (d.closed ? '\n✅ Yopilgan: ' + dmy(d.closed_at) : ''));
   if (fresh && d.flow) L.push('', '<i>Pul ' + (d.dir === 'me' ? 'hozir berildi deb balansdan ayirdim' : 'hozir olindi deb balansga qoʻshdim') + '. Bu eski qarz boʻlsa — pastdagi tugmani bosing.</i>');
@@ -106,10 +109,10 @@ async function debtView(chat: number, id: number, fresh = false) {
   kb.push([{ text: '🗑 Oʻchirish', callback_data: 'wqx:' + d.id }, { text: '⬅️ Qarzlar', callback_data: d.closed ? 'wqz:' : 'wq:' }]);
   return { text: L.join('\n'), markup: { inline_keyboard: kb } };
 }
-async function debtCreate(chat: number, dir: string, name: string, amount: number, note: string | null, txId: number | null) {
+async function debtCreate(chat: number, dir: string, name: string, amount: number, note: string | null, txId: number | null, cur: Cur = 'UZS') {
   return await sql.begin(async (q: any) => {
-    const d: any = (await q`insert into public.w_debt (chat, dir, name, amount, note, tx) values (${chat}, ${dir}, ${name}, ${amount}, ${note}, ${txId}) returning id`)[0];
-    const f: any = (await q`insert into public.w_tx (chat, kind, amount, cat, note, debt) values (${chat}, ${dir === 'me' ? 'out' : 'in'}, ${amount}, 'qarz', ${(dir === 'me' ? 'Qarz berildi: ' : 'Qarz olindi: ') + name}, ${d.id}) returning id`)[0];
+    const d: any = (await q`insert into public.w_debt (chat, dir, name, amount, cur, note, tx) values (${chat}, ${dir}, ${name}, ${amount}, ${cur}, ${note}, ${txId}) returning id`)[0];
+    const f: any = (await q`insert into public.w_tx (chat, kind, amount, cur, cat, note, debt) values (${chat}, ${dir === 'me' ? 'out' : 'in'}, ${amount}, ${cur}, 'qarz', ${(dir === 'me' ? 'Qarz berildi: ' : 'Qarz olindi: ') + name}, ${d.id}) returning id`)[0];
     await q`update public.w_debt set flow = ${f.id} where id = ${d.id}`;
     return +d.id;
   });
@@ -121,10 +124,10 @@ async function debtPay(chat: number, id: number, x: number | null) {
     if (!d) return null;
     const left = +d.amount - +d.paid, v = Math.min(left, x == null ? left : x);
     if (v <= 0) return null;
-    await q`insert into public.w_tx (chat, kind, amount, cat, note, debt) values (${chat}, ${d.dir === 'me' ? 'in' : 'out'}, ${v}, 'qarz', ${(d.dir === 'me' ? 'Qarz qaytdi: ' : 'Qarz toʻlandi: ') + d.name}, ${id})`;
+    await q`insert into public.w_tx (chat, kind, amount, cur, cat, note, debt) values (${chat}, ${d.dir === 'me' ? 'in' : 'out'}, ${v}, ${d.cur}, 'qarz', ${(d.dir === 'me' ? 'Qarz qaytdi: ' : 'Qarz toʻlandi: ') + d.name}, ${id})`;
     const closed = +d.paid + v >= +d.amount;
     await q`update public.w_debt set paid = paid + ${v}, closed = ${closed}, closed_at = ${closed ? new Date() : null} where id = ${id}`;
-    return { v, closed };
+    return { v, closed, cur: d.cur as string };
   });
 }
 
@@ -167,24 +170,27 @@ export async function walletText(token: string, chat: number, text: string, u: W
     return true;
   }
   if (step.s === 'debt' && (step.dir === 'me' || step.dir === 'i')) {
-    if (!p) { await reply('Ism va summani yozing, masalan: <code>Alisher 200000</code>'); return true; }
-    const name = (p.note || 'Nomaʼlum').slice(0, 40);
+    const uq = isUsdText(text) ? parseUsd(text) : null, dp = uq || p;
+    if (!dp) { await reply('Ism va summani yozing, masalan: <code>Alisher 200000</code> yoki <code>Alisher 100$</code>'); return true; }
+    const name = (dp.note || 'Nomaʼlum').slice(0, 40);
     await setStep(chat, {});
-    const id = await debtCreate(chat, step.dir, name, p.amount, null, null);
+    const id = await debtCreate(chat, step.dir, name, dp.amount, null, null, uq ? 'USD' : 'UZS');
     await reply('📒 Qarz daftariga yozildi.');
     const v = await debtView(chat, id, true); if (v) await show(token, chat, v);
     return true;
   }
   if (step.s === 'dpay' && step.id) {
-    if (!p) { await reply('Summani yozing, masalan: <code>100000</code>'); return true; }
+    const dc: any = (await sql`select cur from public.w_debt where id = ${+step.id} and chat = ${chat}`)[0];
+    const pp = dc && dc.cur === 'USD' ? parseUsd(text) : p; // dollar qarz — summa dollarda
+    if (!pp) { await reply('Summani yozing, masalan: <code>' + (dc && dc.cur === 'USD' ? '50' : '100000') + '</code>'); return true; }
     await setStep(chat, {});
-    const r = await debtPay(chat, +step.id, p.amount);
-    await reply(r ? '💸 ' + fmt(r.v) + SO + ' yozildi' + (r.closed ? ' — qarz toʻliq yopildi ✅' : '') : 'Qarz topilmadi yoki allaqachon yopilgan.');
+    const r = await debtPay(chat, +step.id, pp.amount);
+    await reply(r ? '💸 ' + money(r.v, r.cur) + soOf(r.cur) + ' yozildi' + (r.closed ? ' — qarz toʻliq yopildi ✅' : '') : 'Qarz topilmadi yoki allaqachon yopilgan.');
     const v = await debtView(chat, +step.id); if (v) await show(token, chat, v);
     return true;
   }
   if (step.s === 'split' && step.tx) {
-    const tx: any = (await sql`select id, amount::float8 amount, cat, note from public.w_tx where id = ${+step.tx} and chat = ${chat} and kind = 'out' and cat <> 'qarz'`)[0];
+    const tx: any = (await sql`select id, amount::float8 amount, cat, note from public.w_tx where id = ${+step.tx} and chat = ${chat} and kind = 'out' and cat <> 'qarz' and cur = 'UZS'`)[0];
     if (!tx) { await setStep(chat, {}); await reply('Bu yozuv topilmadi.'); return true; }
     if (!p || p.amount <= 0 || p.amount >= tx.amount) { await reply('Hisob: <b>' + fmt(tx.amount) + '</b>' + SO + '. Oʻz ulushingizni (undan kam summa) va kim qaytarishini yozing, masalan: <code>140000 Hamkasblar</code>'); return true; }
     const rest = tx.amount - p.amount, name = (p.note || 'Doʻstlar').slice(0, 40);
@@ -202,17 +208,19 @@ export async function walletText(token: string, chat: number, text: string, u: W
     return true;
   }
 
-  // --- oddiy yozuv: «kofe 38000»
-  if (!p || p.amount <= 0) {
+  // --- oddiy yozuv: «kofe 38000», «netflix 12$»
+  const uq = isUsdText(text) ? parseUsd(text) : null, cur: Cur = uq ? 'USD' : 'UZS';
+  const q = uq ? { ...uq, x1000: false } : p;
+  if (!q || q.amount <= 0) {
     await reply('🤔 Summani topolmadim. Masalan: <code>kofe 38000</code>, <code>taksi 25 ming</code>, <code>+5 mln oylik</code>.\n\nDoʻkon menyusiga qaytish — «⬅️ Asosiy menyu».');
     return true;
   }
-  const kind: 'out' | 'in' = step.s === 'in' ? 'in' : step.s === 'out' ? 'out' : p.sign === '+' || (p.sign !== '-' && isIncome(p.note)) ? 'in' : 'out';
-  const cat = detect(p.note, kind, u.learn || {}) || otherOf(kind);
+  const kind: 'out' | 'in' = step.s === 'in' ? 'in' : step.s === 'out' ? 'out' : q.sign === '+' || (q.sign !== '-' && isIncome(q.note)) ? 'in' : 'out';
+  const cat = detect(q.note, kind, u.learn || {}) || otherOf(kind);
   if (step.s) await setStep(chat, {});
-  const r: any = (await sql`insert into public.w_tx (chat, kind, amount, cat, note) values (${chat}, ${kind}, ${p.amount}, ${cat}, ${p.note || null}) returning id`)[0];
+  const r: any = (await sql`insert into public.w_tx (chat, kind, amount, cur, cat, note) values (${chat}, ${kind}, ${q.amount}, ${cur}, ${cat}, ${q.note || null}) returning id`)[0];
   const v = await txView(chat, +r.id);
-  if (v) await send(token, chat, v.text + (p.x1000 ? '\n<i>(' + fmt(p.amount / 1000) + ' → ' + fmt(p.amount) + SO + ' deb oldim)</i>' : ''), { reply_markup: v.markup });
+  if (v) await send(token, chat, v.text + (q.x1000 ? '\n<i>(' + fmt(q.amount / 1000) + ' → ' + fmt(q.amount) + SO + ' deb oldim)</i>' : ''), { reply_markup: v.markup });
   return true;
 }
 
@@ -249,13 +257,13 @@ export async function walletCallback(token: string, cq: any, data: string) {
     }
     case 'wk': { await ans(); const v = await txView(chat, id, true); if (v) await show(token, chat, v, mid); return; }
     case 'wd': {
-      const r: any = (await sql`delete from public.w_tx where id = ${id} and chat = ${chat} and cat <> 'qarz' returning kind, amount::float8 amount, cat`)[0];
+      const r: any = (await sql`delete from public.w_tx where id = ${id} and chat = ${chat} and cat <> 'qarz' returning kind, amount::float8 amount, cur, cat`)[0];
       await ans(r ? 'Oʻchirildi' : 'Topilmadi');
-      if (r) await tg(token, 'editMessageText', { chat_id: chat, message_id: mid, parse_mode: 'HTML', text: '🗑 <s>' + (r.kind === 'out' ? '−' : '+') + fmt(r.amount) + SO + ' · ' + cl(r.cat) + '</s> — oʻchirildi' });
+      if (r) await tg(token, 'editMessageText', { chat_id: chat, message_id: mid, parse_mode: 'HTML', text: '🗑 <s>' + (r.kind === 'out' ? '−' : '+') + money(r.amount, r.cur) + soOf(r.cur) + ' · ' + cl(r.cat) + '</s> — oʻchirildi' });
       return;
     }
     case 'ws': {
-      const r: any = (await sql`select amount::float8 amount from public.w_tx where id = ${id} and chat = ${chat} and kind = 'out' and cat <> 'qarz'`)[0];
+      const r: any = (await sql`select amount::float8 amount from public.w_tx where id = ${id} and chat = ${chat} and kind = 'out' and cat <> 'qarz' and cur = 'UZS'`)[0];
       if (!r) { await ans('Topilmadi'); return; }
       await ans();
       await sql`update public.w_user set mode = true, step = ${sql.json({ s: 'split', tx: id })} where chat = ${chat}`;
@@ -298,11 +306,11 @@ export async function walletCallback(token: string, cq: any, data: string) {
     }
     case 'wqv': { await ans(); const v = await debtView(chat, id); if (v) await show(token, chat, v, mid); else await show(token, chat, await debtsView(chat), mid); return; }
     case 'wqp': {
-      const d: any = (await sql`select dir, name, (amount - paid)::float8 left from public.w_debt where id = ${id} and chat = ${chat} and not closed`)[0];
+      const d: any = (await sql`select dir, name, cur, (amount - paid)::float8 left from public.w_debt where id = ${id} and chat = ${chat} and not closed`)[0];
       if (!d) { await ans('Topilmadi'); return; }
       await ans();
       await sql`update public.w_user set mode = true, step = ${sql.json({ s: 'dpay', id })} where chat = ${chat}`;
-      await send(token, chat, '💸 <b>' + esc(d.name) + '</b> — ' + (d.dir === 'me' ? 'qancha qaytardi?' : 'qancha toʻladingiz?') + '\nQoldi: ' + fmt(d.left) + SO + '\n\nSummani yozing, masalan: <code>' + Math.min(100000, d.left) + '</code>', { reply_markup: WKB });
+      await send(token, chat, '💸 <b>' + esc(d.name) + '</b> — ' + (d.dir === 'me' ? 'qancha qaytardi?' : 'qancha toʻladingiz?') + '\nQoldi: ' + money(d.left, d.cur) + soOf(d.cur) + '\n\nSummani yozing, masalan: <code>' + (d.cur === 'USD' ? Math.min(50, d.left / 100) + '$' : Math.min(100000, d.left)) + '</code>', { reply_markup: WKB });
       return;
     }
     case 'wqc': {

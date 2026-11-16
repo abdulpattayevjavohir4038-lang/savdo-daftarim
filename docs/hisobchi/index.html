@@ -227,6 +227,9 @@
   .big-in { font-size: 1.75rem; font-weight: 700; text-align: center; min-height: 60px; letter-spacing: -.01em; }
   .seg.full { display: flex; width: 100%; }
   .seg.full > button { flex: 1; }
+  .seg.sm > button { min-height: 30px; padding: 0 .75rem; font-size: .8125rem; }
+  .lrow { display: flex; align-items: center; justify-content: space-between; gap: .5rem; margin-bottom: .375rem; } .lrow .label { margin: 0; }
+  .curbar { display: flex; flex-direction: column; gap: .375rem; } .curbar .hint { margin: 0; text-align: center; }
   .seg > button.s-out[aria-pressed="true"] { color: rgb(var(--neg)); }
   .seg > button.s-in[aria-pressed="true"] { color: rgb(var(--pos)); }
   .prog { height: 8px; border-radius: 999px; background: rgb(var(--subtle)); overflow: hidden; }
@@ -304,6 +307,28 @@ const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
 const esc = (s) => String(s == null ? '' : s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const fmt = (n) => { const x = Math.round(+n || 0); const s = Math.abs(x).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' '); return (x < 0 ? '−' : '') + s; };
 const SO = 'soʻm';
+/* ---------- valyuta: soʻm va dollar ($). Dollar summalari ilovada dollarda (12.5), serverda sentda ---------- */
+const usdN = (n) => { const c = Math.round(Math.abs(+n || 0) * 100), d = Math.floor(c / 100), r = c % 100; return String(d).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + (r ? ',' + String(r).padStart(2, '0') : ''); };
+const usd = (n) => (n < 0 ? '−' : '') + '$' + usdN(n);
+const mny = (n, cur) => (cur === 'USD' ? usd(n) : fmt(n)); // summa o'z valyutasida
+const unitOf = (cur) => (cur === 'USD' ? '' : ' ' + SO);
+const rate = () => (S.data && S.data.usd && +S.data.usd.rate) || 0;
+const hasUsd = () => !!S.data && (S.data.tx.some((x) => x.cur === 'USD') || S.data.debts.some((d) => d.cur === 'USD'));
+// ko'rinish: ALL — hammasi so'mda (dollar kurs bo'yicha), UZS — faqat so'm, USD — faqat dollar
+const view = () => (!hasUsd() ? 'UZS' : S.view === 'ALL' && !rate() ? 'UZS' : S.view);
+// summa ko'rinish valyutasida; null — bu ko'rinishga kirmaydi
+const vv = (n, cur, v) => { v = v || view(); if (v === 'USD') return cur === 'USD' ? n : null; if (v === 'UZS') return cur === 'USD' ? null : n; return cur === 'USD' ? n * rate() : n; };
+const vf = (n) => (view() === 'USD' ? usd(n) : fmt(n));
+const lastCur = () => { try { return localStorage.getItem('hisobchi_lastcur') === 'USD' ? 'USD' : 'UZS'; } catch (e) { return 'UZS'; } };
+const setLastCur = (c) => { try { localStorage.setItem('hisobchi_lastcur', c); } catch (e) { /* ignore */ } };
+const rateTxt = () => { const u = S.data && S.data.usd; return u && u.rate ? '1 $ = ' + fmt(u.rate) + ' ' + SO + ' · Markaziy bank' + (u.day ? ', ' + u.day.split('-').reverse().slice(0, 2).join('.') : '') : ''; };
+// ko'rinish tanlagichi (dollar yozuvi bo'lsa chiqadi)
+function curBar() {
+  if (!hasUsd()) return '';
+  const v = view(), opts = (rate() ? [['ALL', 'Hammasi']] : []).concat([['UZS', 'Soʻm'], ['USD', 'Dollar $']]);
+  return '<div class="curbar"><div class="seg full sm" role="group" aria-label="Valyuta">' + opts.map(([k, l]) => '<button data-view="' + k + '" aria-pressed="' + (v === k) + '">' + l + '</button>').join('') + '</div>' +
+    (v === 'ALL' ? '<div class="hint fs12">Dollar soʻmga aylantirildi: ' + rateTxt() + '</div>' : '') + '</div>';
+}
 const sh = (n) => { const a = Math.abs(n), s = n < 0 ? '−' : ''; const d1 = (x) => (Math.round(x * 10) / 10).toString().replace('.', ','); if (a >= 1e6) return s + d1(a / 1e6) + ' mln'; if (a >= 1e3) return s + (a < 1e5 ? d1(a / 1e3) : Math.round(a / 1e3)) + ' ming'; return s + fmt(a); };
 const ICONS = {
   home: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20h14V9.5"/><path d="M10 20v-6h4v6"/>',
@@ -348,7 +373,7 @@ const hhmm = (ts) => new Date(ts + TZ).toISOString().slice(11, 16);
 const dmy = (ts) => keyOf(ts).split('-').reverse().join('.');
 
 /* ---------- holat ---------- */
-const S = { tab: 'home', data: null, auth: null, per: 'today', anchor: todayK(), rPer: 'month', rAnchor: todayK(), txF: 'all', txQ: '', txPer: 'month', txAnchor: todayK(), dF: 'open', busy: false };
+const S = { tab: 'home', data: null, auth: null, per: 'today', anchor: todayK(), rPer: 'month', rAnchor: todayK(), txF: 'all', txQ: '', txPer: 'month', txAnchor: todayK(), dF: 'open', busy: false, view: (() => { try { return localStorage.getItem('hisobchi_view') || 'ALL'; } catch (e) { return 'ALL'; } })() };
 const NAV = [
   { id: 'home', t: 'Bosh sahifa', s: 'Bosh', i: 'home' },
   { id: 'tx', t: 'Kirim-chiqim', s: 'Amallar', i: 'list' },
@@ -426,21 +451,24 @@ function shift(per, anchor, n) {
   return anchor;
 }
 const inR = (ts, r) => ts >= dayStart(r.a) && ts < dayStart(r.b);
-function sums(r) {
+// davr yig'indisi ko'rinish valyutasida (v — majburiy ko'rinish, masalan byudjet uchun 'UZS')
+function sums(r, v) {
   let inn = 0, out = 0, n = 0, qIn = 0, qOut = 0; const byO = {}, byI = {};
   for (const x of S.data.tx) {
     if (!inR(x.ts, r)) continue;
-    if (x.cat === 'qarz') { if (x.kind === 'in') qIn += x.amount; else qOut += x.amount; continue; }
+    const a = vv(x.amount, x.cur, v); if (a == null) continue;
+    if (x.cat === 'qarz') { if (x.kind === 'in') qIn += a; else qOut += a; continue; }
     n++;
-    if (x.kind === 'in') { inn += x.amount; byI[x.cat] = (byI[x.cat] || 0) + x.amount; } else { out += x.amount; byO[x.cat] = (byO[x.cat] || 0) + x.amount; }
+    if (x.kind === 'in') { inn += a; byI[x.cat] = (byI[x.cat] || 0) + a; } else { out += a; byO[x.cat] = (byO[x.cat] || 0) + a; }
   }
   return { inn, out, n, byO, byI, qIn, qOut };
 }
 function debtTotals() {
   let me = 0, i = 0, meN = 0, iN = 0;
-  for (const d of S.data.debts) if (!d.closed) { const l = d.amount - d.paid; if (d.dir === 'me') { me += l; meN++; } else { i += l; iN++; } }
+  for (const d of S.data.debts) if (!d.closed) { const l = vv(d.amount - d.paid, d.cur); if (l == null) continue; if (d.dir === 'me') { me += l; meN++; } else { i += l; iN++; } }
   return { me, i, meN, iN };
 }
+const inView = (cur) => vv(1, cur) != null;
 
 /* ---------- mavzu ---------- */
 const getTheme = () => { try { return localStorage.getItem(THEME_KEY) || 'system'; } catch (e) { return 'system'; } };
@@ -478,15 +506,25 @@ function confirmBox(title, text, okLabel, danger) {
   });
 }
 // summa maydoni: yozilganda 1 250 000 ko'rinishida
-function bindMoney(inp) {
+// curFn — valyuta (dollar bo'lsa kasr: 12,50)
+function fmtIn(raw, cur) {
+  if (cur !== 'USD') { const d = String(raw).replace(/\D/g, '').replace(/^0+(?=\d)/, '').slice(0, 13); return d ? fmt(+d) : ''; }
+  const s = String(raw).replace(/[^\d.,]/g, ''), m = /^(\d*)(?:[.,](\d{0,2}))?/.exec(s), sep = /[.,]/.test(s);
+  const i = (m[1] || '').replace(/^0+(?=\d)/, '').slice(0, 10);
+  return (i ? i.replace(/\B(?=(\d{3})+(?!\d))/g, ' ') : sep ? '0' : '') + (sep ? ',' + (m[2] || '') : '');
+}
+function bindMoney(inp, curFn) {
   inp.addEventListener('input', () => {
     const pos = inp.value.length - inp.selectionStart;
-    const d = inp.value.replace(/\D/g, '').replace(/^0+(?=\d)/, '').slice(0, 13);
-    inp.value = d ? fmt(+d) : '';
+    inp.value = fmtIn(inp.value, curFn ? curFn() : 'UZS');
     const p = Math.max(0, inp.value.length - pos); try { inp.setSelectionRange(p, p); } catch (e) { /* ignore */ }
   });
 }
-const money = (inp) => +String(inp.value || '').replace(/\D/g, '') || 0;
+const money = (inp, cur) => (cur === 'USD' ? Math.round((+String(inp.value || '').replace(/\s/g, '').replace(',', '.') || 0) * 100) / 100 : +String(inp.value || '').replace(/\D/g, '') || 0);
+// summa maydoni uchun boshlang'ich qiymat
+const inVal = (n, cur) => (cur === 'USD' ? usdN(n) : fmt(n));
+// soʻm | $ tanlagichi (oynalarda)
+const curSeg = (id, cur) => '<div class="seg sm" id="' + id + '" role="group" aria-label="Valyuta"><button type="button" data-cur="UZS" aria-pressed="' + (cur !== 'USD') + '">soʻm</button><button type="button" data-cur="USD" aria-pressed="' + (cur === 'USD') + '">$ dollar</button></div>';
 
 /* ---------- navigatsiya ---------- */
 function renderNav() {
@@ -515,17 +553,17 @@ function render() {
 /* ---------- bo'laklar ---------- */
 const perChips = (key, cur, list) => '<div class="chips" role="group">' + list.map(([v, l]) => '<button class="chip" data-' + key + '="' + v + '" aria-pressed="' + (cur === v) + '">' + l + '</button>').join('') + '</div>';
 const kpi = (icon, tone, title, val, sub, extra) => '<div class="card kpi-card' + (extra || '') + '"><div class="h"><span class="ico t-' + tone + '">' + ic(icon) + '</span><span>' + title + '</span></div>' +
-  '<div class="kpi"><span class="kpi-v num">' + val + '</span> <span class="kpi-u">' + SO + '</span></div>' + (sub ? '<div class="s">' + sub + '</div>' : '') + '</div>';
+  '<div class="kpi"><span class="kpi-v num">' + val + '</span> <span class="kpi-u">' + (view() === 'USD' ? '' : SO) + '</span></div>' + (sub ? '<div class="s">' + sub + '</div>' : '') + '</div>';
 function txRow(x) {
   const c = catOf(x.cat), q = x.cat === 'qarz', inn = x.kind === 'in';
   return '<button class="li" data-tx="' + x.id + '"><span class="emo">' + c.e + '</span><span class="grow"><span class="fw6 trunc" style="display:block">' + esc(x.note || c.n) + '</span>' +
-    '<span class="fs13 faint">' + (q ? 'Qarz' : esc(c.n)) + ' · ' + hhmm(x.ts) + '</span></span><span class="amt ' + (inn ? 'c-pos' : 'c-neg') + '">' + (inn ? '+' : '−') + fmt(x.amount) + '</span></button>';
+    '<span class="fs13 faint">' + (q ? 'Qarz' : esc(c.n)) + ' · ' + hhmm(x.ts) + '</span></span><span class="amt ' + (inn ? 'c-pos' : 'c-neg') + '">' + (inn ? '+' : '−') + mny(x.amount, x.cur) + '</span></button>';
 }
 function catBars(by, total, max) {
   const a = Object.entries(by).sort((x, y) => y[1] - x[1]).slice(0, max || 20);
   if (!a.length) return '<div class="empty">Bu davrda yozuv yoʻq</div>';
   return a.map(([id, v]) => { const c = catOf(id), p = total ? Math.round(v * 100 / total) : 0;
-    return '<div class="li" style="flex-wrap:wrap;gap:.5rem .75rem"><span class="emo" style="width:34px;height:34px;font-size:1.05rem">' + c.e + '</span><span class="grow"><span class="row between"><span class="fw6 trunc">' + esc(c.n) + '</span><span class="amt">' + fmt(v) + ' <span class="faint fw6 fs12">' + p + '%</span></span></span>' +
+    return '<div class="li" style="flex-wrap:wrap;gap:.5rem .75rem"><span class="emo" style="width:34px;height:34px;font-size:1.05rem">' + c.e + '</span><span class="grow"><span class="row between"><span class="fw6 trunc">' + esc(c.n) + '</span><span class="amt">' + vf(v) + ' <span class="faint fw6 fs12">' + p + '%</span></span></span>' +
       '<span class="prog" style="display:block;margin-top:6px"><i style="width:' + Math.max(2, p) + '%;background:rgb(var(--primary))"></i></span></span></div>'; }).join('');
 }
 
@@ -538,7 +576,8 @@ function vHome() {
   const net = s.inn - s.out;
   const bal = u.balanceNow;
   const lasts = bal != null && u.avgDaily > 0 ? (bal <= 0 ? 'Balans tugagan' : 'Kuniga ~' + sh(u.avgDaily) + ' bilan ' + Math.floor(bal / u.avgDaily) + ' kunga yetadi') : (bal == null ? 'Sozlamalarda kiriting' : 'qoʻlingizdagi pul');
-  const recent = d.tx.slice(0, 6);
+  const recent = d.tx.filter((x) => inView(x.cur)).slice(0, 6), V = view();
+  let usdAll = 0; if (V === 'USD') for (const x of d.tx) if (x.cur === 'USD') usdAll += x.kind === 'in' ? x.amount : -x.amount;
   const canNav = ['day', 'week', 'month', 'year'].includes(S.per);
   return '<div class="greet">' + greet + '</div>' +
     '<div class="grid4">' +
@@ -548,17 +587,18 @@ function vHome() {
       '<button class="qa" data-newdebt="i"><span class="ico t-primary">' + ic('take', 22) + '</span>Qarz oldim</button>' +
     '</div>' +
     '<form class="card p4" id="quick" style="display:flex;flex-direction:column;gap:.5rem"><label class="label" for="q-in" style="margin:0">Tez yozish</label>' +
-      '<div class="qin"><input id="q-in" class="input" autocomplete="off" placeholder="kofe 38000 · taksi 25 ming · +5 mln oylik" enterkeyhint="done"><button class="btn btn-primary btn-icon" style="width:48px;min-height:44px" aria-label="Yozish">' + ic('send') + '</button></div>' +
-      '<div class="hint" style="margin:0">Toifa oʻzi aniqlanadi. «+» bilan boshlansa — kirim.</div></form>' +
-    '<div class="card p4">' + perChips('per', S.per, [['today', 'Bugun'], ['yest', 'Kecha'], ['week', 'Hafta'], ['month', 'Oy'], ['year', 'Yil']]) +
+      '<div class="qin"><input id="q-in" class="input" autocomplete="off" placeholder="kofe 38000 · taksi 25 ming · netflix 12$" enterkeyhint="done"><button class="btn btn-primary btn-icon" style="width:48px;min-height:44px" aria-label="Yozish">' + ic('send') + '</button></div>' +
+      '<div class="hint" style="margin:0">Toifa oʻzi aniqlanadi. «+» bilan boshlansa — kirim. «$» yoki «dollar» yozsangiz — dollarda.</div></form>' +
+    '<div class="card p4" style="display:flex;flex-direction:column;gap:.75rem">' + curBar() + perChips('per', S.per, [['today', 'Bugun'], ['yest', 'Kecha'], ['week', 'Hafta'], ['month', 'Oy'], ['year', 'Yil']]) +
       '<div class="pnav"><button class="btn btn-ghost btn-icon btn-sm" data-pshift="-1" ' + (canNav ? '' : 'disabled') + ' aria-label="Oldingi">' + ic('left', 18) + '</button><div class="lbl">' + r.lbl + '</div><button class="btn btn-ghost btn-icon btn-sm" data-pshift="1" ' + (canNav && r.b <= t ? '' : 'disabled') + ' aria-label="Keyingi">' + ic('right', 18) + '</button></div></div>' +
     '<div class="grid2 k3">' +
-      kpi('down', 'pos', 'Kirim', fmt(s.inn), Object.keys(s.byI).length ? Object.keys(s.byI).length + ' ta manba' : 'bu davrda kirim yoʻq') +
-      kpi('up', 'neg', 'Chiqim', fmt(s.out), s.n ? s.n + ' ta yozuv' : 'bu davrda chiqim yoʻq') +
-      kpi('trend', net >= 0 ? 'pos' : 'neg', 'Farq', (net > 0 ? '+' : '') + fmt(net), 'kirim − chiqim' + (s.inn || s.out ? (net >= 0 ? ' · tejaldi' : ' · ortiqcha sarf') : '')) +
-      kpi('wallet', 'primary', 'Balans', bal == null ? '—' : fmt(bal), lasts) +
-      kpi('give', 'warn', 'Menga qarz', fmt(dt.me), dt.meN + ' ta odam · hozirgi') +
-      kpi('take', 'neg', 'Men qarzdorman', fmt(dt.i), dt.iN + ' ta odam · hozirgi') +
+      kpi('down', 'pos', 'Kirim', vf(s.inn), Object.keys(s.byI).length ? Object.keys(s.byI).length + ' ta manba' : 'bu davrda kirim yoʻq') +
+      kpi('up', 'neg', 'Chiqim', vf(s.out), s.n ? s.n + ' ta yozuv' : 'bu davrda chiqim yoʻq') +
+      kpi('trend', net >= 0 ? 'pos' : 'neg', 'Farq', (net > 0 ? '+' : '') + vf(net), 'kirim − chiqim' + (s.inn || s.out ? (net >= 0 ? ' · tejaldi' : ' · ortiqcha sarf') : '')) +
+      (V === 'USD' ? kpi('wallet', 'primary', 'Dollar (jami)', usd(usdAll), 'barcha dollar kirim − chiqim (qarzlar bilan)')
+        : kpi('wallet', 'primary', 'Balans' + (hasUsd() ? ' (soʻm)' : ''), bal == null ? '—' : fmt(bal), lasts)) +
+      kpi('give', 'warn', 'Menga qarz', vf(dt.me), dt.meN + ' ta odam · hozirgi') +
+      kpi('take', 'neg', 'Men qarzdorman', vf(dt.i), dt.iN + ' ta odam · hozirgi') +
     '</div>' +
     '<div class="two-col" style="display:grid;gap:1rem">' +
       '<div class="card"><div class="sect"><div class="sect-t">Oxirgi amallar</div><button class="btn btn-text btn-sm" data-tab="tx">Hammasi ' + ic('right', 16) + '</button></div>' +
@@ -570,21 +610,21 @@ function vHome() {
 /* ---------- Kirim-chiqim (amallar) ---------- */
 function vTx() {
   const r = rangeOf(S.txPer, S.txAnchor), q = S.txQ.trim().toLowerCase();
-  const list = S.data.tx.filter((x) => inR(x.ts, r) && (S.txF === 'all' || (S.txF === 'qarz' ? x.cat === 'qarz' : x.cat !== 'qarz' && x.kind === S.txF)) &&
+  const list = S.data.tx.filter((x) => inR(x.ts, r) && inView(x.cur) && (S.txF === 'all' || (S.txF === 'qarz' ? x.cat === 'qarz' : x.cat !== 'qarz' && x.kind === S.txF)) &&
     (!q || (x.note + ' ' + catOf(x.cat).n).toLowerCase().includes(q) || String(x.amount).includes(q.replace(/\s/g, ''))));
-  let inn = 0, out = 0; for (const x of list) { if (x.kind === 'in') inn += x.amount; else out += x.amount; }
+  let inn = 0, out = 0; for (const x of list) { const a = vv(x.amount, x.cur); if (x.kind === 'in') inn += a; else out += a; }
   const days = {}; for (const x of list) (days[keyOf(x.ts)] = days[keyOf(x.ts)] || []).push(x);
-  const body = Object.keys(days).sort().reverse().map((k) => { const a = days[k]; let i = 0, o = 0; a.forEach((x) => { if (x.kind === 'in') i += x.amount; else o += x.amount; });
-    return '<div class="dayh"><span>' + cap(dLabel(k)) + '</span><span class="num">' + (i ? '<span class="c-pos">+' + fmt(i) + '</span> ' : '') + (o ? '<span class="c-neg">−' + fmt(o) + '</span>' : '') + '</span></div>' + a.map(txRow).join(''); }).join('');
+  const body = Object.keys(days).sort().reverse().map((k) => { const a = days[k]; let i = 0, o = 0; a.forEach((x) => { const v = vv(x.amount, x.cur); if (x.kind === 'in') i += v; else o += v; });
+    return '<div class="dayh"><span>' + cap(dLabel(k)) + '</span><span class="num">' + (i ? '<span class="c-pos">+' + vf(i) + '</span> ' : '') + (o ? '<span class="c-neg">−' + vf(o) + '</span>' : '') + '</span></div>' + a.map(txRow).join(''); }).join('');
   const canNav = S.txPer !== 'all';
   return '<div class="row" style="gap:.5rem"><button class="btn btn-soft" data-new="in" style="color:rgb(var(--pos));background:rgb(var(--pos-soft))">' + ic('plus', 18) + 'Kirim</button><button class="btn btn-soft" data-new="out" style="color:rgb(var(--neg));background:rgb(var(--neg-soft))">' + ic('plus', 18) + 'Chiqim</button>' +
     '<div class="grow"></div><button class="btn btn-ghost btn-icon" data-export title="Yuklab olish (CSV / Excel)" aria-label="Yuklab olish (CSV / Excel)">' + ic('download', 18) + '</button></div>' +
-    '<div class="card p4" style="display:flex;flex-direction:column;gap:.75rem">' +
+    '<div class="card p4" style="display:flex;flex-direction:column;gap:.75rem">' + curBar() +
       '<div class="seg full" role="group">' + [['all', 'Hammasi'], ['in', 'Kirim'], ['out', 'Chiqim'], ['qarz', 'Qarz']].map(([v, l]) => '<button data-txf="' + v + '" aria-pressed="' + (S.txF === v) + '">' + l + '</button>').join('') + '</div>' +
       perChips('txper', S.txPer, [['day', 'Kun'], ['week', 'Hafta'], ['month', 'Oy'], ['year', 'Yil'], ['all', 'Hammasi']]) +
       '<div class="pnav" style="margin:0"><button class="btn btn-ghost btn-icon btn-sm" data-txshift="-1" ' + (canNav ? '' : 'disabled') + ' aria-label="Oldingi">' + ic('left', 18) + '</button><div class="lbl">' + r.lbl + '</div><button class="btn btn-ghost btn-icon btn-sm" data-txshift="1" ' + (canNav && r.b <= todayK() ? '' : 'disabled') + ' aria-label="Keyingi">' + ic('right', 18) + '</button></div>' +
       '<div style="position:relative"><span style="position:absolute;left:12px;top:12px;color:rgb(var(--faint))">' + ic('search', 18) + '</span><input id="tx-q" class="input" style="padding-left:2.4rem" placeholder="Qidirish: izoh, toifa yoki summa" value="' + esc(S.txQ) + '"></div>' +
-      '<div class="row between fs14"><span class="muted">' + list.length + ' ta yozuv</span><span class="num fw7"><span class="c-pos">+' + fmt(inn) + '</span> · <span class="c-neg">−' + fmt(out) + '</span></span></div>' +
+      '<div class="row between fs14"><span class="muted">' + list.length + ' ta yozuv</span><span class="num fw7"><span class="c-pos">+' + vf(inn) + '</span> · <span class="c-neg">−' + vf(out) + '</span></span></div>' +
     '</div>' +
     '<div class="card" style="overflow:hidden">' + (body || '<div class="empty">Bu davrda yozuv yoʻq</div>') + '</div>' +
     (S.data.more ? '<div class="hint" style="text-align:center">Oxirgi 5 000 ta yozuv koʻrsatilmoqda</div>' : '');
@@ -594,21 +634,22 @@ function vTx() {
 function debtRow(d) {
   const left = d.amount - d.paid, p = Math.round(d.paid * 100 / d.amount), me = d.dir === 'me';
   return '<button class="li" data-debt="' + d.id + '"><span class="ico ' + (me ? 't-warn' : 't-neg') + '" style="width:40px;height:40px;border-radius:12px">' + ic(me ? 'give' : 'take') + '</span>' +
-    '<span class="grow"><span class="row between" style="gap:.5rem"><span class="fw6 trunc">' + esc(d.name) + '</span><span class="amt ' + (d.closed ? 'faint' : me ? 'c-warn' : 'c-neg') + '">' + fmt(d.closed ? d.amount : left) + '</span></span>' +
-    '<span class="fs13 faint" style="display:block;margin-top:2px">' + (me ? 'Menga qarz' : 'Men qarzdorman') + ' · ' + dmy(d.at) + (d.closed ? ' · ✅ yopilgan' + (d.closedAt ? ' ' + dmy(d.closedAt) : '') : d.paid ? ' · ' + fmt(d.amount) + ' dan' : '') + (d.note ? ' · ' + esc(d.note) : '') + '</span>' +
+    '<span class="grow"><span class="row between" style="gap:.5rem"><span class="fw6 trunc">' + esc(d.name) + '</span><span class="amt ' + (d.closed ? 'faint' : me ? 'c-warn' : 'c-neg') + '">' + mny(d.closed ? d.amount : left, d.cur) + '</span></span>' +
+    '<span class="fs13 faint" style="display:block;margin-top:2px">' + (me ? 'Menga qarz' : 'Men qarzdorman') + ' · ' + dmy(d.at) + (d.closed ? ' · ✅ yopilgan' + (d.closedAt ? ' ' + dmy(d.closedAt) : '') : d.paid ? ' · ' + mny(d.amount, d.cur) + ' dan' : '') + (d.note ? ' · ' + esc(d.note) : '') + '</span>' +
     (!d.closed && d.paid ? '<span class="prog" style="display:block;margin-top:6px"><i style="width:' + p + '%;background:rgb(var(--pos))"></i></span>' : '') + '</span></button>';
 }
 function vDebt() {
   const dt = debtTotals(), net = dt.me - dt.i;
-  const all = S.data.debts.filter((d) => (S.dF === 'open' ? !d.closed : d.closed));
+  const all = S.data.debts.filter((d) => inView(d.cur) && (S.dF === 'open' ? !d.closed : d.closed));
   const me = all.filter((d) => d.dir === 'me'), i = all.filter((d) => d.dir === 'i');
   const sec = (title, arr) => arr.length ? '<div class="card" style="overflow:hidden"><div class="sect"><div class="sect-t">' + title + '</div><span class="fs13 faint">' + arr.length + ' ta</span></div>' + arr.map(debtRow).join('') + '</div>' : '';
   return '<div class="grid2">' +
       '<button class="qa" data-newdebt="me" style="min-height:76px;flex-direction:row;gap:.75rem"><span class="ico t-warn">' + ic('give', 22) + '</span>Qarz berdim</button>' +
       '<button class="qa" data-newdebt="i" style="min-height:76px;flex-direction:row;gap:.75rem"><span class="ico t-primary">' + ic('take', 22) + '</span>Qarz oldim</button>' +
     '</div>' +
-    '<div class="grid2 k3">' + kpi('give', 'warn', 'Menga qarz', fmt(dt.me), dt.meN + ' ta odam qaytarishi kerak') + kpi('take', 'neg', 'Men qarzdorman', fmt(dt.i), dt.iN + ' ta odamga qaytarishim kerak') +
-      kpi('trend', net >= 0 ? 'pos' : 'neg', 'Sof holat', (net > 0 ? '+' : '') + fmt(net), net >= 0 ? 'sizga koʻproq qarz' : 'siz koʻproq qarzdorsiz', ' kpi-net') + '</div>' +
+    (hasUsd() ? '<div class="card p4">' + curBar() + '</div>' : '') +
+    '<div class="grid2 k3">' + kpi('give', 'warn', 'Menga qarz', vf(dt.me), dt.meN + ' ta odam qaytarishi kerak') + kpi('take', 'neg', 'Men qarzdorman', vf(dt.i), dt.iN + ' ta odamga qaytarishim kerak') +
+      kpi('trend', net >= 0 ? 'pos' : 'neg', 'Sof holat', (net > 0 ? '+' : '') + vf(net), net >= 0 ? 'sizga koʻproq qarz' : 'siz koʻproq qarzdorsiz', ' kpi-net') + '</div>' +
     '<div class="seg full" role="group"><button data-df="open" aria-pressed="' + (S.dF === 'open') + '">Ochiq qarzlar</button><button data-df="closed" aria-pressed="' + (S.dF === 'closed') + '">Yopilganlar</button></div>' +
     (all.length ? sec('Menga qarz (men berganman)', me) + sec('Men qarzdorman (men olganman)', i) : '<div class="card"><div class="empty">' + (S.dF === 'open' ? 'Ochiq qarz yoʻq. «Qarz berdim» yoki «Qarz oldim»ni bosing.' : 'Yopilgan qarz yoʻq.') + '</div></div>');
 }
@@ -619,17 +660,17 @@ function chart(r, per) {
   if (per === 'year') for (let m = 0; m < 12; m++) { const a = r.a.slice(0, 5) + String(m + 1).padStart(2, '0') + '-01'; cols.push({ a: a, b: addM(a, 1), l: MONTHS[m].slice(0, 3), t: mLabel(a) }); }
   else { let k = r.a; while (k < r.b) { cols.push({ a: k, b: addK(k, 1), l: per === 'week' ? WD[kd(k).getUTCDay()].slice(0, 2) : String(+k.slice(8)), t: dShort(k) }); k = addK(k, 1); } }
   for (const c of cols) { c.i = 0; c.o = 0; }
-  for (const x of S.data.tx) { if (x.cat === 'qarz') continue; for (const c of cols) if (x.ts >= dayStart(c.a) && x.ts < dayStart(c.b)) { if (x.kind === 'in') c.i += x.amount; else c.o += x.amount; break; } }
+  for (const x of S.data.tx) { if (x.cat === 'qarz') continue; const a = vv(x.amount, x.cur); if (a == null) continue; for (const c of cols) if (x.ts >= dayStart(c.a) && x.ts < dayStart(c.b)) { if (x.kind === 'in') c.i += a; else c.o += a; break; } }
   const max = Math.max(1, ...cols.map((c) => Math.max(c.i, c.o)));
   const step = cols.length > 16 ? 5 : 1;
-  return '<div class="chart-wrap"><div class="bars">' + cols.map((c) => '<div class="b" data-t="' + esc(c.t + '\n+' + fmt(c.i) + '\n−' + fmt(c.o)) + '"><i style="height:' + (c.i / max * 100) + '%;background:rgb(var(--pos))"></i><i style="height:' + (c.o / max * 100) + '%;background:rgb(var(--neg))"></i></div>').join('') + '</div>' +
+  return '<div class="chart-wrap"><div class="bars">' + cols.map((c) => '<div class="b" data-t="' + esc(c.t + '\n+' + vf(c.i) + '\n−' + vf(c.o)) + '"><i style="height:' + (c.i / max * 100) + '%;background:rgb(var(--pos))"></i><i style="height:' + (c.o / max * 100) + '%;background:rgb(var(--neg))"></i></div>').join('') + '</div>' +
     '<div class="bars-x">' + cols.map((c, i) => '<span>' + (i % step === 0 || i === cols.length - 1 ? c.l : '') + '</span>').join('') + '</div>' +
     '<div class="lg"><span><i style="background:rgb(var(--pos))"></i>Kirim</span><span><i style="background:rgb(var(--neg))"></i>Chiqim</span></div></div>';
 }
 function budgetRows(r) {
   const b = S.data.user.budgets || {}, ids = Object.keys(b).filter((k) => +b[k] > 0);
   if (!ids.length) return '<div class="empty">Byudjet qoʻyilmagan. Toifaga oylik limit qoʻysangiz, oshib ketishidan oldin ogohlantiraman.</div>';
-  const m = rangeOf('month', todayK()), s = sums(m), t = todayK(), dom = +t.slice(8, 10), D = dim(t);
+  const m = rangeOf('month', todayK()), s = sums(m, 'UZS'), t = todayK(), dom = +t.slice(8, 10), D = dim(t);
   return ids.map((id) => { const c = catOf(id), lim = +b[id], sp = s.byO[id] || 0, p = Math.round(sp * 100 / lim), fc = sp / dom * D;
     const tone = p >= 100 ? 'neg' : fc > lim ? 'warn' : 'pos';
     return '<button class="li" data-budget="' + id + '" style="flex-wrap:wrap"><span class="emo" style="width:34px;height:34px;font-size:1.05rem">' + c.e + '</span><span class="grow"><span class="row between"><span class="fw6">' + esc(c.n) + '</span><span class="amt fs14">' + fmt(sp) + ' / ' + fmt(lim) + '</span></span>' +
@@ -641,17 +682,17 @@ function vRep() {
   const days = Math.max(1, Math.round((Math.min(dayStart(r.b), dayStart(addK(t, 1))) - dayStart(r.a)) / 864e5));
   const avg = s.out / days;
   const curM = S.rPer === 'month' && mStart(S.rAnchor) === mStart(t), fc = curM ? s.out / +t.slice(8, 10) * dim(t) : 0;
-  return '<div class="card p4">' + perChips('rper', S.rPer, [['week', 'Hafta'], ['month', 'Oy'], ['year', 'Yil']]) +
+  return '<div class="card p4" style="display:flex;flex-direction:column;gap:.75rem">' + curBar() + perChips('rper', S.rPer, [['week', 'Hafta'], ['month', 'Oy'], ['year', 'Yil']]) +
       '<div class="pnav"><button class="btn btn-ghost btn-icon btn-sm" data-rshift="-1" aria-label="Oldingi">' + ic('left', 18) + '</button><div class="lbl">' + r.lbl + '</div><button class="btn btn-ghost btn-icon btn-sm" data-rshift="1" ' + (r.b <= t ? '' : 'disabled') + ' aria-label="Keyingi">' + ic('right', 18) + '</button></div></div>' +
-    '<div class="grid2 k3">' + kpi('down', 'pos', 'Kirim', fmt(s.inn), '') + kpi('up', 'neg', 'Chiqim', fmt(s.out), 'kuniga oʻrtacha ' + sh(avg)) +
-      kpi('trend', net >= 0 ? 'pos' : 'neg', 'Farq', (net > 0 ? '+' : '') + fmt(net), s.inn ? 'kirimning ' + Math.round(Math.abs(net) * 100 / s.inn) + '% ' + (net >= 0 ? 'tejaldi' : 'ortiqcha sarflandi') : 'kirim − chiqim') +
-      (curM ? kpi('calendar', 'warn', 'Oy oxiriga prognoz', fmt(fc), 'shu tezlikda chiqim') : '') +
+    '<div class="grid2 k3">' + kpi('down', 'pos', 'Kirim', vf(s.inn), '') + kpi('up', 'neg', 'Chiqim', vf(s.out), 'kuniga oʻrtacha ' + (view() === 'USD' ? usd(avg) : sh(avg))) +
+      kpi('trend', net >= 0 ? 'pos' : 'neg', 'Farq', (net > 0 ? '+' : '') + vf(net), s.inn ? 'kirimning ' + Math.round(Math.abs(net) * 100 / s.inn) + '% ' + (net >= 0 ? 'tejaldi' : 'ortiqcha sarflandi') : 'kirim − chiqim') +
+      (curM ? kpi('calendar', 'warn', 'Oy oxiriga prognoz', vf(fc), 'shu tezlikda chiqim') : '') +
       '</div>' +
     '<div class="card"><div class="sect"><div class="sect-t">Kirim va chiqim</div><span class="fs13 faint">' + r.lbl + '</span></div>' + chart(r, S.rPer) + '</div>' +
     '<div class="two-col" style="display:grid;gap:1rem">' +
-      '<div class="card"><div class="sect"><div class="sect-t">Chiqim — toifalar</div><span class="amt c-neg">' + fmt(s.out) + '</span></div>' + catBars(s.byO, s.out) + '</div>' +
-      '<div style="display:flex;flex-direction:column;gap:1rem"><div class="card"><div class="sect"><div class="sect-t">Kirim — manbalar</div><span class="amt c-pos">' + fmt(s.inn) + '</span></div>' + catBars(s.byI, s.inn) + '</div>' +
-      '<div class="card"><div class="sect"><div class="sect-t">Byudjet (shu oy)</div><button class="btn btn-text btn-sm" data-budget="">' + ic('plus', 16) + 'Qoʻshish</button></div>' + budgetRows(r) + '</div></div>' +
+      '<div class="card"><div class="sect"><div class="sect-t">Chiqim — toifalar</div><span class="amt c-neg">' + vf(s.out) + '</span></div>' + catBars(s.byO, s.out) + '</div>' +
+      '<div style="display:flex;flex-direction:column;gap:1rem"><div class="card"><div class="sect"><div class="sect-t">Kirim — manbalar</div><span class="amt c-pos">' + vf(s.inn) + '</span></div>' + catBars(s.byI, s.inn) + '</div>' +
+      '<div class="card"><div class="sect"><div class="sect-t">Byudjet (shu oy' + (hasUsd() ? ', soʻmda' : '') + ')</div><button class="btn btn-text btn-sm" data-budget="">' + ic('plus', 16) + 'Qoʻshish</button></div>' + budgetRows(r) + '</div></div>' +
     '</div>' +
     '<div class="hint" style="text-align:center">Qarz berish/olish va qaytarishlar kirim-chiqim hisobotiga kirmaydi, lekin balansga taʼsir qiladi.</div>';
 }
@@ -663,6 +704,7 @@ function vSet() {
   return '<div class="card" style="overflow:hidden"><div class="sect"><div class="sect-t">Hisob</div></div>' +
       item('wallet', 'primary', 'Balans', bal == null ? 'Kiritilmagan — qoʻlingizdagi pulni (karta + naqd) kiriting' : 'Hozir: <b class="num">' + fmt(bal) + ' ' + SO + '</b> · har kirim/chiqim oʻzi qoʻshiladi', 'data-balance') +
       item('target', 'warn', 'Byudjet (oylik limitlar)', Object.keys(u.budgets || {}).length + ' ta toifaga limit qoʻyilgan', 'data-tab="rep"') +
+      '<div class="li"><span class="ico t-pos" style="font-weight:800;font-size:1.05rem">$</span><span class="grow"><span class="fw6" style="display:block">Dollar ($)</span><span class="fs13 faint">Kirim, chiqim va qarzni dollarda ham yozish mumkin: oynada «$ dollar»ni tanlang yoki <b>netflix 12$</b> deb yozing.' + (rateTxt() ? '<br>' + rateTxt() : '') + '</span></span></div>' +
       '<label class="li" style="cursor:pointer"><span class="ico t-pos">' + ic('bell') + '</span><span class="grow"><span class="fw6" style="display:block">Kechki hisobot (21:00)</span><span class="fs13 faint">Har kuni Telegram botga kunlik hisobot keladi</span></span><input type="checkbox" class="switch" id="sw-daily"' + (u.daily ? ' checked' : '') + '></label>' +
       item('download', 'muted', 'Yuklab olish (CSV / Excel)', 'Barcha kirim-chiqim va qarzlar', 'data-export') +
     '</div>' +
@@ -683,7 +725,7 @@ function bindView() {
   applyThemeGroups();
   const q = $('#quick');
   if (q) q.onsubmit = async (e) => { e.preventDefault(); const inp = $('#q-in'); const v = inp.value.trim(); if (!v) { inp.focus(); return; }
-    const r = await mut('quick', { text: v }); if (r) { inp.value = ''; const c = catOf(r.cat); toast((r.kind === 'in' ? 'Kirim: +' : 'Chiqim: −') + fmt(r.amount) + ' · ' + c.e + ' ' + c.n + (r.x1000 ? ' (' + fmt(r.amount / 1000) + ' → ' + fmt(r.amount) + ')' : '')); } };
+    const r = await mut('quick', { text: v }); if (r) { inp.value = ''; const c = catOf(r.cat); toast((r.kind === 'in' ? 'Kirim: +' : 'Chiqim: −') + mny(r.amount, r.cur) + ' · ' + c.e + ' ' + c.n + (r.x1000 ? ' (' + fmt(r.amount / 1000) + ' → ' + fmt(r.amount) + ')' : '')); } };
   const tq = $('#tx-q');
   if (tq) tq.oninput = () => { S.txQ = tq.value; const pos = tq.selectionStart; render(); const n = $('#tx-q'); n.focus(); try { n.setSelectionRange(pos, pos); } catch (e) { /* ignore */ } };
   const sw = $('#sw-daily');
@@ -693,7 +735,8 @@ function applyThemeGroups() { const t = getTheme(); $$('[data-theme-group]').for
 document.addEventListener('click', async (e) => {
   const el = e.target.closest('button,[data-export],[data-balance]'); if (!el || el.closest('#modal')) return;
   const ds = el.dataset;
-  if (ds.per) { S.per = ds.per; S.anchor = todayK(); render(); }
+  if (ds.view) { S.view = ds.view; try { localStorage.setItem('hisobchi_view', ds.view); } catch (er) { /* ignore */ } render(); }
+  else if (ds.per) { S.per = ds.per; S.anchor = todayK(); render(); }
   else if (ds.pshift) { if (S.per === 'today' || S.per === 'yest') S.per = 'day'; S.anchor = shift(S.per, S.anchor, +ds.pshift); render(); }
   else if (ds.txper) { S.txPer = ds.txper; S.txAnchor = todayK(); render(); }
   else if (ds.txshift) { S.txAnchor = shift(S.txPer, S.txAnchor, +ds.txshift); render(); }
@@ -720,11 +763,11 @@ function catGrid(kind, cur) {
   return '<div class="catg">' + cats().filter((c) => c.kind === kind).map((c) => '<button type="button" class="catb" data-cat="' + c.id + '" aria-pressed="' + (c.id === cur) + '"><span>' + c.e + '</span><span>' + esc(c.n) + '</span></button>').join('') + '</div>';
 }
 function txForm(x, kind0) {
-  const edit = !!x; let kind = x ? x.kind : kind0 || 'out', cat = x ? x.cat : '';
+  const edit = !!x; let kind = x ? x.kind : kind0 || 'out', cat = x ? x.cat : '', cur = x ? x.cur || 'UZS' : lastCur();
   const dateV = x ? keyOf(x.ts) : todayK();
   const ov = modal(edit ? 'Yozuvni tahrirlash' : (kind === 'in' ? 'Yangi kirim' : 'Yangi chiqim'),
     '<div class="seg full" role="group"><button type="button" class="s-out" data-k="out">' + ic('up', 16) + 'Chiqim</button><button type="button" class="s-in" data-k="in">' + ic('down', 16) + 'Kirim</button></div>' +
-    '<div><label class="label" for="f-amt">Summa (soʻm)</label><input id="f-amt" class="input big-in num" inputmode="numeric" autocomplete="off" placeholder="0" value="' + (x ? fmt(x.amount) : '') + '"></div>' +
+    '<div><div class="lrow"><label class="label" for="f-amt">Summa</label>' + curSeg('f-cur', cur) + '</div><input id="f-amt" class="input big-in num" inputmode="decimal" autocomplete="off" placeholder="0" value="' + (x ? inVal(x.amount, cur) : '') + '"></div>' +
     '<div><label class="label" for="f-note">Izoh</label><input id="f-note" class="input" maxlength="80" autocomplete="off" placeholder="masalan: tushlik, taksi, oylik" value="' + esc(x ? x.note : '') + '"></div>' +
     '<div><div class="label">Toifa <span class="faint fw6" id="f-auto"></span></div><div id="f-cats"></div></div>' +
     '<div><label class="label" for="f-date">Sana</label><input id="f-date" type="date" class="input" max="' + todayK() + '" value="' + dateV + '"></div>',
@@ -736,19 +779,20 @@ function txForm(x, kind0) {
     $('#f-auto', ov).textContent = cat ? '' : '(tanlanmasa — izohdan oʻzi aniqlanadi)';
     if (!edit) $('.sheet-h .grow', ov).textContent = kind === 'in' ? 'Yangi kirim' : 'Yangi chiqim';
   };
-  paint(); bindMoney($('#f-amt', ov));
+  paint(); bindMoney($('#f-amt', ov), () => cur);
   ov.addEventListener('click', async (e) => {
+    const cb = e.target.closest('[data-cur]'); if (cb) { cur = cb.dataset.cur; $$('#f-cur [data-cur]', ov).forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.cur === cur))); const a = $('#f-amt', ov); a.value = fmtIn(a.value, cur); a.focus(); return; }
     const k = e.target.closest('[data-k]'); if (k) { if (kind !== k.dataset.k) { kind = k.dataset.k; cat = ''; paint(); } return; }
     const c = e.target.closest('[data-cat]'); if (c) { cat = cat === c.dataset.cat ? '' : c.dataset.cat; paint(); return; }
     if (e.target.closest('[data-save]')) {
-      const amount = money($('#f-amt', ov)); if (!amount) { toast('Summani kiriting', true); $('#f-amt', ov).focus(); return; }
-      const body = { kind: kind, amount: amount, cat: cat, note: $('#f-note', ov).value, date: $('#f-date', ov).value };
+      const amount = money($('#f-amt', ov), cur); if (!amount) { toast('Summani kiriting', true); $('#f-amt', ov).focus(); return; }
+      const body = { kind: kind, amount: amount, cur: cur, cat: cat, note: $('#f-note', ov).value, date: $('#f-date', ov).value };
       if (edit && !cat) body.cat = kind === x.kind ? x.cat : '';
       const r = edit ? await mut('tx_edit', Object.assign({ id: x.id }, body), 'Saqlandi') : await mut('tx_add', body);
-      if (r) { closeModal(); if (!edit) { const cc = catOf(r.cat); toast((kind === 'in' ? 'Kirim: +' : 'Chiqim: −') + fmt(amount) + ' · ' + cc.e + ' ' + cc.n); } }
+      if (r) { closeModal(); setLastCur(cur); if (!edit) { const cc = catOf(r.cat); toast((kind === 'in' ? 'Kirim: +' : 'Chiqim: −') + mny(amount, cur) + ' · ' + cc.e + ' ' + cc.n); } }
       return;
     }
-    if (e.target.closest('[data-del]')) { closeModal(); if (await confirmBox('Oʻchirish', '<b>' + (x.kind === 'in' ? '+' : '−') + fmt(x.amount) + ' ' + SO + '</b> · ' + esc(x.note || catOf(x.cat).n) + ' — oʻchirilsinmi?', 'Oʻchirish', true)) await mut('tx_del', { id: x.id }, 'Oʻchirildi'); }
+    if (e.target.closest('[data-del]')) { closeModal(); if (await confirmBox('Oʻchirish', '<b>' + (x.kind === 'in' ? '+' : '−') + mny(x.amount, x.cur) + unitOf(x.cur) + '</b> · ' + esc(x.note || catOf(x.cat).n) + ' — oʻchirilsinmi?', 'Oʻchirish', true)) await mut('tx_del', { id: x.id }, 'Oʻchirildi'); }
   });
   $('#f-amt', ov).addEventListener('keydown', (e) => { if (e.key === 'Enter') $('#f-note', ov).focus(); });
   $('#f-note', ov).addEventListener('keydown', (e) => { if (e.key === 'Enter') $('[data-save]', ov).click(); });
@@ -756,11 +800,11 @@ function txForm(x, kind0) {
 
 /* ---------- oynalar: qarz ---------- */
 function debtForm(dir) {
-  const names = Array.from(new Set(S.data.debts.map((d) => d.name))).slice(0, 50);
+  const names = Array.from(new Set(S.data.debts.map((d) => d.name))).slice(0, 50); let cur = lastCur();
   const ov = modal(dir === 'me' ? 'Qarz berdim' : 'Qarz oldim',
     '<div class="seg full" role="group"><button type="button" data-dir="me">' + ic('give', 16) + 'Qarz berdim</button><button type="button" data-dir="i">' + ic('take', 16) + 'Qarz oldim</button></div>' +
     '<div><label class="label" for="d-name" id="d-name-l">Kimga?</label><input id="d-name" class="input" maxlength="40" list="d-names" autocomplete="off" placeholder="Ism"><datalist id="d-names">' + names.map((n) => '<option value="' + esc(n) + '">').join('') + '</datalist></div>' +
-    '<div><label class="label" for="d-amt">Summa (soʻm)</label><input id="d-amt" class="input big-in num" inputmode="numeric" autocomplete="off" placeholder="0"></div>' +
+    '<div><div class="lrow"><label class="label" for="d-amt">Summa</label>' + curSeg('d-cur', cur) + '</div><input id="d-amt" class="input big-in num" inputmode="decimal" autocomplete="off" placeholder="0"></div>' +
     '<div><label class="label" for="d-note">Izoh (ixtiyoriy)</label><input id="d-note" class="input" maxlength="80" autocomplete="off" placeholder="masalan: qaytarish muddati — 1-dekabr"></div>' +
     '<div><label class="label" for="d-date">Sana</label><input id="d-date" type="date" class="input" max="' + todayK() + '" value="' + todayK() + '"></div>' +
     '<label class="row" style="gap:.625rem;align-items:flex-start;cursor:pointer"><input type="checkbox" class="switch" id="d-flow" checked><span class="fs14"><b id="d-flow-t"></b><span class="faint" style="display:block;margin-top:2px">Oʻchirsangiz — eski qarz deb yoziladi, balansga taʼsir qilmaydi.</span></span></label>',
@@ -771,15 +815,16 @@ function debtForm(dir) {
     $('#d-name-l', ov).textContent = dir === 'me' ? 'Kimga berdingiz?' : 'Kimdan oldingiz?';
     $('#d-flow-t', ov).textContent = dir === 'me' ? 'Pul hozir berildi — balansdan ayirilsin' : 'Pul hozir olindi — balansga qoʻshilsin';
   };
-  paint(); bindMoney($('#d-amt', ov));
+  paint(); bindMoney($('#d-amt', ov), () => cur);
   ov.addEventListener('click', async (e) => {
+    const cb = e.target.closest('[data-cur]'); if (cb) { cur = cb.dataset.cur; $$('#d-cur [data-cur]', ov).forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.cur === cur))); const a = $('#d-amt', ov); a.value = fmtIn(a.value, cur); a.focus(); return; }
     const d = e.target.closest('[data-dir]'); if (d) { dir = d.dataset.dir; paint(); return; }
     if (e.target.closest('[data-save]')) {
-      const name = $('#d-name', ov).value.trim(), amount = money($('#d-amt', ov));
+      const name = $('#d-name', ov).value.trim(), amount = money($('#d-amt', ov), cur);
       if (!name) { toast('Ismni yozing', true); $('#d-name', ov).focus(); return; }
       if (!amount) { toast('Summani kiriting', true); $('#d-amt', ov).focus(); return; }
-      const r = await mut('debt_add', { dir: dir, name: name, amount: amount, note: $('#d-note', ov).value, date: $('#d-date', ov).value, flow: $('#d-flow', ov).checked }, 'Qarz daftariga yozildi');
-      if (r) { closeModal(); if (S.tab !== 'debt' && S.tab !== 'home') go('debt'); }
+      const r = await mut('debt_add', { dir: dir, name: name, amount: amount, cur: cur, note: $('#d-note', ov).value, date: $('#d-date', ov).value, flow: $('#d-flow', ov).checked }, 'Qarz daftariga yozildi');
+      if (r) { closeModal(); setLastCur(cur); if (S.tab !== 'debt' && S.tab !== 'home') go('debt'); }
     }
   });
 }
@@ -790,25 +835,25 @@ function debtView(id) {
   const ov = modal(esc(d.name),
     '<div class="row"><span class="ico ' + (me ? 't-warn' : 't-neg') + '" style="width:44px;height:44px;border-radius:12px">' + ic(me ? 'give' : 'take', 22) + '</span><div class="grow"><div class="fw7">' + (me ? 'Menga qarz (men berganman)' : 'Men qarzdorman (men olganman)') + '</div><div class="fs13 faint">' + dmy(d.at) + (d.closed ? ' · ✅ yopilgan' + (d.closedAt ? ' ' + dmy(d.closedAt) : '') : '') + '</div></div></div>' +
     '<div class="grid2" style="grid-template-columns:repeat(3,minmax(0,1fr));gap:.5rem">' +
-      '<div class="card" style="padding:.625rem .75rem"><div class="fs12 faint fw6">Jami</div><div class="amt">' + fmt(d.amount) + '</div></div>' +
-      '<div class="card" style="padding:.625rem .75rem"><div class="fs12 faint fw6">' + (me ? 'Qaytardi' : 'Toʻladim') + '</div><div class="amt c-pos">' + fmt(d.paid) + '</div></div>' +
-      '<div class="card" style="padding:.625rem .75rem"><div class="fs12 faint fw6">Qoldi</div><div class="amt ' + (left ? (me ? 'c-warn' : 'c-neg') : 'c-pos') + '">' + fmt(left) + '</div></div></div>' +
+      '<div class="card" style="padding:.625rem .75rem"><div class="fs12 faint fw6">Jami</div><div class="amt">' + mny(d.amount, d.cur) + '</div></div>' +
+      '<div class="card" style="padding:.625rem .75rem"><div class="fs12 faint fw6">' + (me ? 'Qaytardi' : 'Toʻladim') + '</div><div class="amt c-pos">' + mny(d.paid, d.cur) + '</div></div>' +
+      '<div class="card" style="padding:.625rem .75rem"><div class="fs12 faint fw6">Qoldi</div><div class="amt ' + (left ? (me ? 'c-warn' : 'c-neg') : 'c-pos') + '">' + mny(left, d.cur) + '</div></div></div>' +
     '<div class="prog"><i style="width:' + Math.max(2, p) + '%;background:rgb(var(--pos))"></i></div>' +
     (d.note ? '<div class="fs14 muted">📝 ' + esc(d.note) + '</div>' : '') +
     (d.split ? '<div class="fs13 faint">Hisobni boʻlishdan yozilgan qarz</div>' : '') +
     (!d.flow && !d.paid ? '<div class="fs13 faint">Eski qarz — berilgan/olingan pul balansga taʼsir qilmagan.</div>' : '') +
-    (hist.length ? '<div><div class="label">Harakatlar</div><div class="card" style="overflow:hidden">' + hist.map((x) => '<div class="li" style="padding:.5rem .75rem"><span class="grow fs14">' + esc(x.note) + '<span class="faint fs12" style="display:block">' + dmy(x.ts) + ' ' + hhmm(x.ts) + '</span></span><span class="amt fs14 ' + (x.kind === 'in' ? 'c-pos' : 'c-neg') + '">' + (x.kind === 'in' ? '+' : '−') + fmt(x.amount) + '</span></div>').join('') + '</div></div>' : '') +
-    (!d.closed ? '<div id="pay-box" class="card p4" style="display:flex;flex-direction:column;gap:.5rem"><label class="label" for="p-amt" style="margin:0">' + (me ? 'Qancha qaytardi?' : 'Qancha toʻladingiz?') + '</label><div class="qin"><input id="p-amt" class="input num" inputmode="numeric" autocomplete="off" placeholder="' + fmt(left) + '"><button class="btn btn-primary" data-pay>' + (me ? 'Qabul qilish' : 'Toʻladim') + '</button></div></div>' : ''),
+    (hist.length ? '<div><div class="label">Harakatlar</div><div class="card" style="overflow:hidden">' + hist.map((x) => '<div class="li" style="padding:.5rem .75rem"><span class="grow fs14">' + esc(x.note) + '<span class="faint fs12" style="display:block">' + dmy(x.ts) + ' ' + hhmm(x.ts) + '</span></span><span class="amt fs14 ' + (x.kind === 'in' ? 'c-pos' : 'c-neg') + '">' + (x.kind === 'in' ? '+' : '−') + mny(x.amount, x.cur) + '</span></div>').join('') + '</div></div>' : '') +
+    (!d.closed ? '<div id="pay-box" class="card p4" style="display:flex;flex-direction:column;gap:.5rem"><label class="label" for="p-amt" style="margin:0">' + (me ? 'Qancha qaytardi?' : 'Qancha toʻladingiz?') + (d.cur === 'USD' ? ' ($)' : '') + '</label><div class="qin"><input id="p-amt" class="input num" inputmode="decimal" autocomplete="off" placeholder="' + inVal(left, d.cur) + '"><button class="btn btn-primary" data-pay>' + (me ? 'Qabul qilish' : 'Toʻladim') + '</button></div></div>' : ''),
     '<button class="btn btn-dghost btn-icon" data-ddel aria-label="Oʻchirish" title="Oʻchirish">' + ic('trash') + '</button>' +
     (d.flow && !d.paid ? '<button class="btn btn-ghost" data-noflow title="Balansga taʼsir qilmasin">Eski qarz</button>' : '') +
     (!d.closed ? '<button class="btn btn-primary" data-close-debt>' + ic('check', 18) + 'Toʻliq yopish</button>' : '<button class="btn btn-ghost" data-close>Yopish</button>'));
-  const pa = $('#p-amt', ov); if (pa) bindMoney(pa);
+  const pa = $('#p-amt', ov); if (pa) bindMoney(pa, () => d.cur);
   ov.addEventListener('click', async (e) => {
-    if (e.target.closest('[data-pay]')) { const v = money(pa); if (!v) { toast('Summani kiriting', true); pa.focus(); return; }
-      const r = await mut('debt_pay', { id: id, amount: v }); if (r) { toast(fmt(r.v) + ' ' + SO + ' yozildi' + (r.closed ? ' — qarz yopildi ✅' : '')); debtView(id); } return; }
+    if (e.target.closest('[data-pay]')) { const v = money(pa, d.cur); if (!v) { toast('Summani kiriting', true); pa.focus(); return; }
+      const r = await mut('debt_pay', { id: id, amount: v }); if (r) { toast(mny(r.v, d.cur) + unitOf(d.cur) + ' yozildi' + (r.closed ? ' — qarz yopildi ✅' : '')); debtView(id); } return; }
     if (e.target.closest('[data-close-debt]')) { const r = await mut('debt_pay', { id: id }); if (r) { toast('Qarz toʻliq yopildi ✅'); debtView(id); } return; }
     if (e.target.closest('[data-noflow]')) { const r = await mut('debt_noflow', { id: id }, 'Balansga taʼsir qilmaydigan qilindi'); if (r) debtView(id); return; }
-    if (e.target.closest('[data-ddel]')) { closeModal(); if (await confirmBox('Qarzni oʻchirish', '<b>' + esc(d.name) + '</b> — ' + fmt(d.amount) + ' ' + SO + '. Unga bogʻliq toʻlovlar ham oʻchadi.', 'Oʻchirish', true)) await mut('debt_del', { id: id }, 'Oʻchirildi'); }
+    if (e.target.closest('[data-ddel]')) { closeModal(); if (await confirmBox('Qarzni oʻchirish', '<b>' + esc(d.name) + '</b> — ' + mny(d.amount, d.cur) + unitOf(d.cur) + '. Unga bogʻliq toʻlovlar ham oʻchadi.', 'Oʻchirish', true)) await mut('debt_del', { id: id }, 'Oʻchirildi'); }
   });
 }
 
@@ -851,10 +896,11 @@ function videoModal() {
 /* ---------- CSV ---------- */
 function exportCsv() {
   const q = (s) => '"' + String(s == null ? '' : s).replace(/"/g, '""') + '"';
-  const L = [['Sana', 'Vaqt', 'Turi', 'Toifa', 'Izoh', 'Summa'].map(q).join(';')];
-  S.data.tx.slice().sort((a, b) => a.ts - b.ts).forEach((x) => L.push([dmy(x.ts), hhmm(x.ts), x.kind === 'in' ? 'Kirim' : 'Chiqim', catOf(x.cat).n, x.note, (x.kind === 'in' ? '' : '-') + x.amount].map(q).join(';')));
-  L.push('', [q('Qarzlar')].join(';'), ['Sana', 'Kim', 'Turi', 'Jami', 'Toʻlangan', 'Qoldi', 'Holat', 'Izoh'].map(q).join(';'));
-  S.data.debts.forEach((d) => L.push([dmy(d.at), d.name, d.dir === 'me' ? 'Menga qarz' : 'Men qarzdorman', d.amount, d.paid, d.amount - d.paid, d.closed ? 'Yopilgan' : 'Ochiq', d.note].map(q).join(';')));
+  const n = (v) => String(Math.round(v * 100) / 100).replace('.', ','), cu = (c) => (c === 'USD' ? 'USD' : 'soʻm');
+  const L = [['Sana', 'Vaqt', 'Turi', 'Toifa', 'Izoh', 'Summa', 'Valyuta'].map(q).join(';')];
+  S.data.tx.slice().sort((a, b) => a.ts - b.ts).forEach((x) => L.push([dmy(x.ts), hhmm(x.ts), x.kind === 'in' ? 'Kirim' : 'Chiqim', catOf(x.cat).n, x.note, (x.kind === 'in' ? '' : '-') + n(x.amount), cu(x.cur)].map(q).join(';')));
+  L.push('', [q('Qarzlar')].join(';'), ['Sana', 'Kim', 'Turi', 'Jami', 'Toʻlangan', 'Qoldi', 'Valyuta', 'Holat', 'Izoh'].map(q).join(';'));
+  S.data.debts.forEach((d) => L.push([dmy(d.at), d.name, d.dir === 'me' ? 'Menga qarz' : 'Men qarzdorman', n(d.amount), n(d.paid), n(d.amount - d.paid), cu(d.cur), d.closed ? 'Yopilgan' : 'Ochiq', d.note].map(q).join(';')));
   const blob = new Blob(['﻿' + L.join('\r\n')], { type: 'text/csv;charset=utf-8' });
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'hisobchi-' + todayK() + '.csv';
   document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);

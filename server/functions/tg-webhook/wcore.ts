@@ -1,6 +1,10 @@
 // «👛 Hamyon nazorat» — umumiy qism (tg-webhook va tg-cron): toifalar, summa o'qish, hisob-kitob va hisobot matnlari.
 // Do'kon (ilova) ma'lumotlariga tegmaydi: faqat w_user, w_tx, w_debt jadvallari (chat_id bo'yicha).
 import { sql, send, fmt, esc, local, todayK, addK, dayStart, secret } from './tg.ts';
+import { usd } from '../hisobchi/cur.ts';
+// summa o'z valyutasida: so'm — «1 250 000», dollar (sentda) — «$1 250»
+export const money = (n: number, cur?: string) => (cur === 'USD' ? usd(n) : fmt(n));
+export const soOf = (cur?: string) => (cur === 'USD' ? '' : ' soʻm');
 
 /* ---------- toifalar ---------- */
 type Cat = { id: string; e: string; n: string; kind: 'out' | 'in'; kw: string[] };
@@ -112,23 +116,28 @@ export type WUser = { chat: number; mode: boolean; step: any; balance: string | 
 export async function wUser(chat: number): Promise<WUser | null> { return ((await sql`select * from public.w_user where chat = ${chat}`)[0] as any) || null; }
 export async function wEnsure(chat: number): Promise<WUser> { await sql`insert into public.w_user (chat) values (${chat}) on conflict (chat) do nothing`; return (await wUser(chat)) as WUser; }
 
-// davr bo'yicha yig'indi (qarz harakatlari statistikaga kirmaydi)
+// davr bo'yicha yig'indi (qarz harakatlari statistikaga kirmaydi). out/inn/by — so'mda; uOut/uIn — dollar (sentda)
 export async function sums(chat: number, fromK: string, toK: string) {
-  const r = await sql`select kind, cat, sum(amount)::float8 s, count(*)::int n from public.w_tx
-    where chat = ${chat} and ts >= ${D(fromK)} and ts < ${D(toK)} and cat <> 'qarz' group by 1, 2`;
-  let out = 0, inn = 0, n = 0; const by: Record<string, number> = {};
-  for (const x of r as any[]) { if (x.kind === 'out') { out += x.s; by[x.cat] = (by[x.cat] || 0) + x.s; } else inn += x.s; n += x.n; }
-  return { out, inn, n, by };
+  const r = await sql`select kind, cat, cur, sum(amount)::float8 s, count(*)::int n from public.w_tx
+    where chat = ${chat} and ts >= ${D(fromK)} and ts < ${D(toK)} and cat <> 'qarz' group by 1, 2, 3`;
+  let out = 0, inn = 0, n = 0, uOut = 0, uIn = 0, uN = 0; const by: Record<string, number> = {};
+  for (const x of r as any[]) {
+    if (x.cur === 'USD') { if (x.kind === 'out') uOut += x.s; else uIn += x.s; uN += x.n; continue; }
+    if (x.kind === 'out') { out += x.s; by[x.cat] = (by[x.cat] || 0) + x.s; } else inn += x.s; n += x.n;
+  }
+  return { out, inn, n, by, uOut, uIn, uN };
 }
-// hozirgi balans: kiritilgan balans + o'shandan keyingi barcha kirim − xarajat (qarz harakatlari ham)
+// dollar satri (bo'lsa)
+const usdLine = (s: { uOut: number; uIn: number }, pre = '💵 Dollar: ') => (s.uOut || s.uIn ? pre + (s.uOut ? 'chiqim <b>−' + usd(s.uOut) + '</b>' : '') + (s.uOut && s.uIn ? ' · ' : '') + (s.uIn ? 'kirim <b>+' + usd(s.uIn) + '</b>' : '') : '');
+// hozirgi balans (so'mda): kiritilgan balans + o'shandan keyingi barcha so'mdagi kirim − xarajat (qarz harakatlari ham). Dollar alohida
 export async function balanceOf(u: WUser | null): Promise<number | null> {
   if (!u || u.balance == null || !u.balance_at) return null;
-  const r = await sql`select coalesce(sum(case when kind = 'in' then amount else -amount end), 0)::float8 v from public.w_tx where chat = ${u.chat} and ts >= ${u.balance_at}`;
+  const r = await sql`select coalesce(sum(case when kind = 'in' then amount else -amount end), 0)::float8 v from public.w_tx where chat = ${u.chat} and cur = 'UZS' and ts >= ${u.balance_at}`;
   return +u.balance + (r[0] as any).v;
 }
 // kunlik o'rtacha xarajat (oxirgi 30 kun, yozuv boshlangandan beri)
 export async function avgDaily(chat: number): Promise<number> {
-  const r: any = (await sql`select coalesce(sum(amount), 0)::float8 s, min(ts) f from public.w_tx where chat = ${chat} and kind = 'out' and cat <> 'qarz' and ts >= now() - interval '30 days'`)[0];
+  const r: any = (await sql`select coalesce(sum(amount), 0)::float8 s, min(ts) f from public.w_tx where chat = ${chat} and kind = 'out' and cat <> 'qarz' and cur = 'UZS' and ts >= now() - interval '30 days'`)[0];
   if (!r.f || !r.s) return 0;
   const days = Math.min(30, Math.max(1, Math.round((dayStart(todayK()) - dayStart(dayK(r.f))) / 864e5) + 1));
   return r.s / days;
@@ -169,6 +178,7 @@ export async function homeView(chat: number) {
   if (mon.out) L.push('🔮 Oy oxiriga prognoz: ~' + fmt(fc));
   if (bal != null && avg > 0) { const l = lasts(bal, avg, true); L.push(l.startsWith('⚠️') ? l : '⏳ ' + l); }
   L.push('📅 Bugun: sarflandi <b>' + fmt(day.out) + '</b> · tushdi ' + fmt(day.inn));
+  const ul = usdLine(mon, '💵 ' + mShort(t) + ' oyida dollar: '); if (ul) L.push(ul);
   if (mon.out) L.push('', '🗂 <b>Toifalar</b> (' + mShort(t).toLowerCase() + ')', ...catLines(mon.by, mon.out, 6));
   const w = budgetLines(u, mon.by, t, false);
   if (w.length) L.push('', '🎯 <b>Byudjet</b>', ...w);
@@ -187,18 +197,22 @@ export async function homeView(chat: number) {
 // kunlik hisobot (tugma va 21:00 da). forecast — oylik prognoz qismi bilan
 export async function dayView(chat: number, k: string, forecast = false) {
   const u = await wUser(chat), t = todayK();
-  const rows: any[] = await sql`select kind, amount::float8 amount, cat, note, ts from public.w_tx where chat = ${chat} and ts >= ${D(k)} and ts < ${D(addK(k, 1))} and cat <> 'qarz' order by ts`;
-  let out = 0, inn = 0; const by: Record<string, number> = {};
-  for (const r of rows) { if (r.kind === 'out') { out += r.amount; by[r.cat] = (by[r.cat] || 0) + r.amount; } else inn += r.amount; }
+  const rows: any[] = await sql`select kind, amount::float8 amount, cur, cat, note, ts from public.w_tx where chat = ${chat} and ts >= ${D(k)} and ts < ${D(addK(k, 1))} and cat <> 'qarz' order by ts`;
+  let out = 0, inn = 0, uOut = 0, uIn = 0; const by: Record<string, number> = {};
+  for (const r of rows) {
+    if (r.cur === 'USD') { if (r.kind === 'out') uOut += r.amount; else uIn += r.amount; continue; }
+    if (r.kind === 'out') { out += r.amount; by[r.cat] = (by[r.cat] || 0) + r.amount; } else inn += r.amount;
+  }
   const L = ['📊 <b>' + (k === t ? 'Bugun, ' : k === addK(t, -1) ? 'Kecha, ' : '') + dLabel(k) + ' — hisobot</b>', ''];
   if (!rows.length) L.push('Bu kunda yozuv yoʻq.');
   else {
     L.push('Xarajat: <b>−' + fmt(out) + '</b>' + SO);
     if (inn) L.push('Kirim: <b>+' + fmt(inn) + '</b>' + SO);
+    const ul = usdLine({ uOut, uIn }); if (ul) L.push(ul);
     L.push('Amaliyotlar: ' + rows.length + ' ta');
     if (out) L.push('', '🗂 <b>Qayerga ketdi</b>', ...catLines(by, out));
     L.push('', '🧾 <b>Yozuvlar</b>');
-    for (const r of rows.slice(-25)) L.push(hhmm(r.ts) + '  ' + (r.kind === 'out' ? '−' : '+') + fmt(r.amount) + ' ' + catOf(r.cat).e + (r.note ? ' ' + esc(String(r.note).slice(0, 28)) : ' ' + catOf(r.cat).n));
+    for (const r of rows.slice(-25)) L.push(hhmm(r.ts) + '  ' + (r.kind === 'out' ? '−' : '+') + money(r.amount, r.cur) + ' ' + catOf(r.cat).e + (r.note ? ' ' + esc(String(r.note).slice(0, 28)) : ' ' + catOf(r.cat).n));
   }
   if (forecast || k === t) {
     const ms = mStart(k), mon = await sums(chat, ms, nextM(ms));
@@ -223,12 +237,13 @@ export async function monthView(chat: number, k: string) {
   const s = await sums(chat, ms, nextM(ms));
   const days = cur ? +t.slice(8, 10) : dim(ms);
   const L = ['📆 <b>' + mName(ms) + ' — hamyon</b>', ''];
-  if (!s.n) L.push('Bu oyda yozuv yoʻq.');
+  if (!s.n && !s.uN) L.push('Bu oyda yozuv yoʻq.');
   else {
     L.push('📉 Xarajat: <b>−' + fmt(s.out) + '</b>' + SO);
     L.push('📈 Kirim: <b>+' + fmt(s.inn) + '</b>' + SO);
     L.push('⚖️ Farq: <b>' + (s.inn - s.out >= 0 ? '+' : '') + fmt(s.inn - s.out) + '</b>');
-    L.push('🧾 Amaliyotlar: ' + s.n + ' ta · kuniga oʻrtacha ' + fmt(s.out / days));
+    const ul = usdLine(s); if (ul) L.push(ul);
+    L.push('🧾 Amaliyotlar: ' + (s.n + s.uN) + ' ta · kuniga oʻrtacha ' + fmt(s.out / days));
     if (cur && s.out) L.push('🔮 Oy oxiriga prognoz: ~' + fmt((s.out / days) * dim(ms)) + ' (' + (dim(ms) - days) + ' kun qoldi)');
     if (s.out) L.push('', '🗂 <b>Toifalar</b>', ...catLines(s.by, s.out, 12));
   }
@@ -241,14 +256,14 @@ export async function monthView(chat: number, k: string) {
 
 export async function historyView(chat: number, off = 0) {
   const P = 15;
-  const rows: any[] = await sql`select id, kind, amount::float8 amount, cat, note, ts from public.w_tx where chat = ${chat} order by ts desc, id desc limit ${P + 1} offset ${off}`;
+  const rows: any[] = await sql`select id, kind, amount::float8 amount, cur, cat, note, ts from public.w_tx where chat = ${chat} order by ts desc, id desc limit ${P + 1} offset ${off}`;
   const L = ['🕘 <b>Tarix</b>' + (off ? ' (' + (off + 1) + '–' + (off + Math.min(P, rows.length)) + ')' : ''), ''];
   if (!rows.length) L.push('Hali yozuv yoʻq.');
   let last = '';
   for (const r of rows.slice(0, P)) {
     const k = dayK(r.ts);
     if (k !== last) { L.push((last ? '\n' : '') + '<b>' + dLabel(k) + '</b>'); last = k; }
-    L.push(hhmm(r.ts) + '  ' + (r.kind === 'out' ? '−' : '+') + fmt(r.amount) + '  ' + cl(r.cat) + (r.note ? ' · ' + esc(String(r.note).slice(0, 30)) : ''));
+    L.push(hhmm(r.ts) + '  ' + (r.kind === 'out' ? '−' : '+') + money(r.amount, r.cur) + '  ' + cl(r.cat) + (r.note ? ' · ' + esc(String(r.note).slice(0, 30)) : ''));
   }
   const nav: any[] = [];
   if (off > 0) nav.push({ text: '⬅️ Yangiroq', callback_data: 'wh:' + Math.max(0, off - P) });

@@ -81,15 +81,15 @@ export type WUser = { chat: number; mode: boolean; step: any; balance: string | 
 export async function wUser(chat: number): Promise<WUser | null> { return ((await sql`select * from public.w_user where chat = ${chat}`)[0] as any) || null; }
 export async function wEnsure(chat: number): Promise<WUser> { await sql`insert into public.w_user (chat) values (${chat}) on conflict (chat) do nothing`; return (await wUser(chat)) as WUser; }
 
-// hozirgi balans: kiritilgan balans + o'shandan keyingi barcha kirim − xarajat (qarz harakatlari ham)
+// hozirgi balans (so'mda): kiritilgan balans + o'shandan keyingi barcha so'mdagi kirim − xarajat (qarz harakatlari ham). Dollar alohida
 export async function balanceOf(u: WUser | null): Promise<number | null> {
   if (!u || u.balance == null || !u.balance_at) return null;
-  const r = await sql`select coalesce(sum(case when kind = 'in' then amount else -amount end), 0)::float8 v from public.w_tx where chat = ${u.chat} and ts >= ${u.balance_at}`;
+  const r = await sql`select coalesce(sum(case when kind = 'in' then amount else -amount end), 0)::float8 v from public.w_tx where chat = ${u.chat} and cur = 'UZS' and ts >= ${u.balance_at}`;
   return +u.balance + (r[0] as any).v;
 }
 // kunlik o'rtacha xarajat (oxirgi 30 kun, yozuv boshlangandan beri)
 export async function avgDaily(chat: number): Promise<number> {
-  const r: any = (await sql`select coalesce(sum(amount), 0)::float8 s, min(ts) f from public.w_tx where chat = ${chat} and kind = 'out' and cat <> 'qarz' and ts >= now() - interval '30 days'`)[0];
+  const r: any = (await sql`select coalesce(sum(amount), 0)::float8 s, min(ts) f from public.w_tx where chat = ${chat} and kind = 'out' and cat <> 'qarz' and cur = 'UZS' and ts >= now() - interval '30 days'`)[0];
   if (!r.f || !r.s) return 0;
   const days = Math.min(30, Math.max(1, Math.round((dayStart(todayK()) - dayStart(dayK(r.f))) / 864e5) + 1));
   return r.s / days;

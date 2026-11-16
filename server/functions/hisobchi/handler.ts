@@ -5,10 +5,15 @@
 import { sql, json, cors, secret, setSecret, dayStart, todayK, local } from './tg.ts';
 import { CATS, nz, parse, detect, isIncome, otherOf, wEnsure, wUser, balanceOf, avgDaily } from './wcore.ts';
 import { checkInit, makeToken, checkToken, hex } from './auth.ts';
+import { type Cur, curOf, isUsdText, parseUsd, usdRate } from './cur.ts';
 
 /* ---------- yordamchilar ---------- */
 const ERR = (code: string, status = 400) => json({ error: code }, status);
 const amt = (v: unknown) => { const n = Math.round(+(v as number)); return isFinite(n) && n > 0 && n <= 1e12 ? n : 0; };
+// ilovadan kelgan summa: so'm — butun, dollar — kasr ($12.5) -> bazada sent
+const amtC = (v: unknown, cur: Cur) => (cur === 'USD' ? amt(Math.round(+(v as number) * 100)) : amt(v));
+// bazadan ilovaga: dollar — sentdan dollarga
+const out = (n: unknown, cur: string) => (cur === 'USD' ? Math.round(+(n as number)) / 100 : +(n as number));
 const txt = (v: unknown, n: number) => String(v ?? '').replace(/[\u0000-\u001f]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, n);
 const okId = (v: unknown) => { const n = +(v as number); return Number.isSafeInteger(n) && n > 0 ? n : 0; };
 const isKey = (k: unknown) => typeof k === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(k) && !isNaN(dayStart(k));
@@ -48,20 +53,22 @@ async function trackOpen(chat: number) {
 async function load(chat: number, open = false) {
   const u = await wEnsure(chat);
   if (open) await trackOpen(chat).catch((e) => console.error('trackOpen', e));
-  const [tx, debts, who, bal, avg, cnt] = await Promise.all([
-    sql`select id, kind, amount::float8 amount, cat, note, debt, ts from public.w_tx where chat = ${chat} order by ts desc, id desc limit 5000`,
-    sql`select id, dir, name, amount::float8 amount, paid::float8 paid, closed, note, flow, tx, created_at, closed_at from public.w_debt where chat = ${chat} order by created_at desc`,
+  const [tx, debts, who, bal, avg, cnt, fx] = await Promise.all([
+    sql`select id, kind, amount::float8 amount, cur, cat, note, debt, ts from public.w_tx where chat = ${chat} order by ts desc, id desc limit 5000`,
+    sql`select id, dir, name, amount::float8 amount, paid::float8 paid, cur, closed, note, flow, tx, created_at, closed_at from public.w_debt where chat = ${chat} order by created_at desc`,
     sql`select name, username from public.tg_users where chat_id = ${chat}`,
     balanceOf(u), avgDaily(chat),
     sql`select count(*)::int n from public.w_tx where chat = ${chat}`,
+    usdRate(sql).catch(() => null),
   ]);
   return {
     ok: true, now: Date.now(), today: todayK(), bot: await secret('tg_bot'),
     user: { name: (who[0] as any)?.name || '', username: (who[0] as any)?.username || '', balance: u.balance == null ? null : +u.balance, balanceAt: ms(u.balance_at), balanceNow: bal, avgDaily: avg, budgets: u.budgets || {}, daily: u.daily !== false },
     cats: CATS.map((c) => ({ id: c.id, e: c.e, n: c.n, kind: c.kind })),
-    tx: (tx as any[]).map((r) => ({ id: +r.id, kind: r.kind, amount: r.amount, cat: r.cat, note: r.note || '', debt: r.debt ? +r.debt : null, ts: ms(r.ts) })),
+    usd: fx, // { rate: 1 $ necha so'm, day: Markaziy bank sanasi }
+    tx: (tx as any[]).map((r) => ({ id: +r.id, kind: r.kind, amount: out(r.amount, r.cur), cur: r.cur, cat: r.cat, note: r.note || '', debt: r.debt ? +r.debt : null, ts: ms(r.ts) })),
     more: ((cnt[0] as any)?.n || 0) > 5000,
-    debts: (debts as any[]).map((d) => ({ id: +d.id, dir: d.dir, name: d.name, amount: d.amount, paid: d.paid, closed: d.closed, note: d.note || '', flow: d.flow ? +d.flow : null, split: !!d.tx, at: ms(d.created_at), closedAt: ms(d.closed_at) })),
+    debts: (debts as any[]).map((d) => ({ id: +d.id, dir: d.dir, name: d.name, amount: out(d.amount, d.cur), paid: out(d.paid, d.cur), cur: d.cur, closed: d.closed, note: d.note || '', flow: d.flow ? +d.flow : null, split: !!d.tx, at: ms(d.created_at), closedAt: ms(d.closed_at) })),
   };
 }
 
@@ -70,30 +77,31 @@ async function act(chat: number, a: string, b: any): Promise<Response> {
   switch (a) {
     case 'load': return json(await load(chat, !!b.open));
     case 'quick': { // «kofe 38000», «+5 mln oylik» — botdagidek
-      const p = parse(txt(b.text, 120));
+      const text = txt(b.text, 120), cur: Cur = isUsdText(text) ? 'USD' : 'UZS';
+      const p = cur === 'USD' ? parseUsd(text) : parse(text);
       if (!p || !amt(p.amount)) return ERR('NO_AMOUNT');
       const u = await wEnsure(chat);
       const kind: 'in' | 'out' = b.kind === 'in' || b.kind === 'out' ? b.kind : p.sign === '+' || (p.sign !== '-' && isIncome(p.note)) ? 'in' : 'out';
       const cat = detect(p.note, kind, u.learn || {}) || otherOf(kind);
-      const r: any = (await sql`insert into public.w_tx (chat, kind, amount, cat, note, ts) values (${chat}, ${kind}, ${amt(p.amount)}, ${cat}, ${p.note || null}, ${tsOf(b.date)}) returning id`)[0];
-      return json({ ok: true, id: +r.id, kind, amount: amt(p.amount), cat, note: p.note, x1000: p.x1000 });
+      const r: any = (await sql`insert into public.w_tx (chat, kind, amount, cur, cat, note, ts) values (${chat}, ${kind}, ${amt(p.amount)}, ${cur}, ${cat}, ${p.note || null}, ${tsOf(b.date)}) returning id`)[0];
+      return json({ ok: true, id: +r.id, kind, amount: out(amt(p.amount), cur), cur, cat, note: p.note, x1000: cur === 'UZS' && (p as any).x1000 });
     }
     case 'tx_add': {
-      const kind = b.kind === 'in' ? 'in' : 'out', v = amt(b.amount);
+      const kind = b.kind === 'in' ? 'in' : 'out', cur = curOf(b.cur), v = amtC(b.amount, cur);
       if (!v) return ERR('NO_AMOUNT');
       const u = await wEnsure(chat), note = txt(b.note, 80) || null;
       const cat = catFor(b.cat, kind) || detect(note || '', kind, u.learn || {}) || otherOf(kind);
       if (catFor(b.cat, kind)) await learnCat(chat, note, cat);
-      const r: any = (await sql`insert into public.w_tx (chat, kind, amount, cat, note, ts) values (${chat}, ${kind}, ${v}, ${cat}, ${note}, ${tsOf(b.date)}) returning id`)[0];
+      const r: any = (await sql`insert into public.w_tx (chat, kind, amount, cur, cat, note, ts) values (${chat}, ${kind}, ${v}, ${cur}, ${cat}, ${note}, ${tsOf(b.date)}) returning id`)[0];
       return json({ ok: true, id: +r.id, cat });
     }
     case 'tx_edit': {
-      const id = okId(b.id), kind = b.kind === 'in' ? 'in' : 'out', v = amt(b.amount);
+      const id = okId(b.id), kind = b.kind === 'in' ? 'in' : 'out', cur = curOf(b.cur), v = amtC(b.amount, cur);
       if (!id || !v) return ERR('BAD');
       const old: any = (await sql`select cat, note from public.w_tx where id = ${id} and chat = ${chat} and cat <> 'qarz'`)[0];
       if (!old) return ERR('NOT_FOUND', 404);
       const u = await wEnsure(chat), note = txt(b.note, 80) || null, cat = catFor(b.cat, kind) || detect(note || '', kind, u.learn || {}) || otherOf(kind);
-      await sql`update public.w_tx set kind = ${kind}, amount = ${v}, cat = ${cat}, note = ${note}${isKey(b.date) ? sql`, ts = ${tsOf(b.date)}` : sql``} where id = ${id} and chat = ${chat}`;
+      await sql`update public.w_tx set kind = ${kind}, amount = ${v}, cur = ${cur}, cat = ${cat}, note = ${note}${isKey(b.date) ? sql`, ts = ${tsOf(b.date)}` : sql``} where id = ${id} and chat = ${chat}`;
       if (cat !== old.cat) await learnCat(chat, note, cat);
       return json({ ok: true });
     }
@@ -103,14 +111,14 @@ async function act(chat: number, a: string, b: any): Promise<Response> {
       return r.length ? json({ ok: true }) : ERR('NOT_FOUND', 404);
     }
     case 'debt_add': { // dir: 'me' — qarz berdim (menga qarz), 'i' — qarz oldim (men qarzdorman)
-      const dir = b.dir === 'i' ? 'i' : b.dir === 'me' ? 'me' : '', v = amt(b.amount), name = txt(b.name, 40);
+      const dir = b.dir === 'i' ? 'i' : b.dir === 'me' ? 'me' : '', cur = curOf(b.cur), v = amtC(b.amount, cur), name = txt(b.name, 40);
       if (!dir || !v || !name) return ERR('BAD');
       await wEnsure(chat);
       const note = txt(b.note, 80) || null, flow = b.flow !== false, ts = tsOf(b.date);
       const id = await sql.begin(async (q: any) => {
-        const d: any = (await q`insert into public.w_debt (chat, dir, name, amount, note, created_at) values (${chat}, ${dir}, ${name}, ${v}, ${note}, ${ts}) returning id`)[0];
+        const d: any = (await q`insert into public.w_debt (chat, dir, name, amount, cur, note, created_at) values (${chat}, ${dir}, ${name}, ${v}, ${cur}, ${note}, ${ts}) returning id`)[0];
         if (flow) {
-          const f: any = (await q`insert into public.w_tx (chat, kind, amount, cat, note, debt, ts) values (${chat}, ${dir === 'me' ? 'out' : 'in'}, ${v}, 'qarz', ${(dir === 'me' ? 'Qarz berildi: ' : 'Qarz olindi: ') + name}, ${d.id}, ${ts}) returning id`)[0];
+          const f: any = (await q`insert into public.w_tx (chat, kind, amount, cur, cat, note, debt, ts) values (${chat}, ${dir === 'me' ? 'out' : 'in'}, ${v}, ${cur}, 'qarz', ${(dir === 'me' ? 'Qarz berildi: ' : 'Qarz olindi: ') + name}, ${d.id}, ${ts}) returning id`)[0];
           await q`update public.w_debt set flow = ${f.id} where id = ${d.id}`;
         }
         return +d.id;
@@ -118,17 +126,19 @@ async function act(chat: number, a: string, b: any): Promise<Response> {
       return json({ ok: true, id });
     }
     case 'debt_pay': { // amount bo'lmasa — qolganini to'liq yopish
-      const id = okId(b.id), x = b.amount == null ? null : amt(b.amount);
-      if (!id || x === 0) return ERR('BAD');
+      const id = okId(b.id);
+      if (!id || (b.amount != null && !(+b.amount > 0))) return ERR('BAD');
       const r = await sql.begin(async (q: any) => {
         const d: any = (await q`select * from public.w_debt where id = ${id} and chat = ${chat} and not closed for update`)[0];
         if (!d) return null;
+        const x = b.amount == null ? null : amtC(b.amount, curOf(d.cur)); // summa qarz valyutasida
+        if (x === 0) return null;
         const left = +d.amount - +d.paid, v = Math.min(left, x == null ? left : x);
         if (v <= 0) return null;
-        await q`insert into public.w_tx (chat, kind, amount, cat, note, debt, ts) values (${chat}, ${d.dir === 'me' ? 'in' : 'out'}, ${v}, 'qarz', ${(d.dir === 'me' ? 'Qarz qaytdi: ' : 'Qarz toʻlandi: ') + d.name}, ${id}, ${tsOf(b.date)})`;
+        await q`insert into public.w_tx (chat, kind, amount, cur, cat, note, debt, ts) values (${chat}, ${d.dir === 'me' ? 'in' : 'out'}, ${v}, ${d.cur}, 'qarz', ${(d.dir === 'me' ? 'Qarz qaytdi: ' : 'Qarz toʻlandi: ') + d.name}, ${id}, ${tsOf(b.date)})`;
         const closed = +d.paid + v >= +d.amount;
         await q`update public.w_debt set paid = paid + ${v}, closed = ${closed}, closed_at = ${closed ? new Date() : null} where id = ${id}`;
-        return { v, closed };
+        return { v: out(v, d.cur), cur: d.cur, closed };
       });
       return r ? json({ ok: true, ...r }) : ERR('NOT_FOUND', 404);
     }
