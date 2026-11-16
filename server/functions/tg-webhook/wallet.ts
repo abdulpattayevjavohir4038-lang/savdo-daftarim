@@ -67,7 +67,7 @@ async function txView(chat: number, id: number, grid = false) {
   if (r.kind === 'out') {
     const ms = t.slice(0, 8) + '01', me = addK(ms, 32).slice(0, 8) + '01';
     const st = r.alloc ? await allocState(sql, chat, +r.alloc, new Date(dayStart(ms)), new Date(dayStart(me))) : null;
-    if (st) L.push(allocLine(st, fmt));
+    if (st) L.push(allocLine(st, fmt, ' (oylik reja, shu oy)'));
   }
   if (unknown || grid) L.push('', '🗂 <b>Toifani tanlang</b> 👇');
   const rows: any[] = [];
@@ -223,9 +223,10 @@ export async function walletText(token: string, chat: number, text: string, u: W
     return true;
   }
   const kind: 'out' | 'in' = step.s === 'in' ? 'in' : step.s === 'out' ? 'out' : q.sign === '+' || (q.sign !== '-' && isIncome(q.note)) ? 'in' : 'out';
-  const cat = detect(q.note, kind, u.learn || {}) || otherOf(kind);
+  let cat = detect(q.note, kind, u.learn || {}) || otherOf(kind);
   if (step.s) await setStep(chat, {});
   const alloc = kind === 'out' ? await matchAlloc(sql, chat, q.note, cur, cat) : null;
+  if (alloc && cat === otherOf(kind)) cat = 'reja'; // «ayolimga 1 mln» — oylik rejaga berilgan pul
   const r: any = (await sql`insert into public.w_tx (chat, kind, amount, cur, cat, note, alloc) values (${chat}, ${kind}, ${q.amount}, ${cur}, ${cat}, ${q.note || null}, ${alloc}) returning id`)[0];
   const v = await txView(chat, +r.id);
   if (v) await send(token, chat, v.text + (q.x1000 ? '\n<i>(' + fmt(q.amount / 1000) + ' → ' + fmt(q.amount) + SO + ' deb oldim)</i>' : ''), { reply_markup: v.markup });

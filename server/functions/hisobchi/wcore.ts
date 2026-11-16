@@ -28,7 +28,9 @@ export const CATS: Cat[] = [
   C('boshqain', '📦', 'Boshqa kirim', 'in', ''),
 ];
 const QARZ: Cat = { id: 'qarz', e: '📒', n: 'Qarz', kind: 'out', kw: [] };
-export const catOf = (id: string): Cat => CATS.find((c) => c.id === id) || (id === 'qarz' ? QARZ : (CATS.find((c) => c.id === 'boshqa') as Cat));
+// «Oylik reja»: yo'nalishga berilgan pul (Hisobchi ilovasi)
+const REJA: Cat = { id: 'reja', e: '📥', n: 'Oylik reja', kind: 'out', kw: [] };
+export const catOf = (id: string): Cat => CATS.find((c) => c.id === id) || (id === 'qarz' ? QARZ : id === 'reja' ? REJA : (CATS.find((c) => c.id === 'boshqa') as Cat));
 export const cl = (id: string) => { const c = catOf(id); return c.e + ' ' + c.n; };
 export const otherOf = (kind: string) => (kind === 'in' ? 'boshqain' : 'boshqa');
 
@@ -81,13 +83,11 @@ export type WUser = { chat: number; mode: boolean; step: any; balance: string | 
 export async function wUser(chat: number): Promise<WUser | null> { return ((await sql`select * from public.w_user where chat = ${chat}`)[0] as any) || null; }
 export async function wEnsure(chat: number): Promise<WUser> { await sql`insert into public.w_user (chat) values (${chat}) on conflict (chat) do nothing`; return (await wUser(chat)) as WUser; }
 
-// hozirgi balans — asosiy kassa (so'mda): kiritilgan balans + o'shandan keyingi kirim − xarajat (qarz harakatlari ham).
-// «Oylik reja»: yo'nalishga ajratilgan pul (w_fund) kassadan chiqadi; yo'nalishga yozilgan chiqim (alloc) kassadan emas, yo'nalish pulidan. Dollar alohida
+// hozirgi balans — asosiy kassa (so'mda): kiritilgan balans + o'shandan keyingi kirim − xarajat (qarz harakatlari va oylik rejaga berilgan pul ham). Dollar alohida
 export async function balanceOf(u: WUser | null): Promise<number | null> {
   if (!u || u.balance == null || !u.balance_at) return null;
-  const r = await sql`select coalesce(sum(case when kind = 'in' then amount when alloc is null then -amount else 0 end), 0)::float8 v from public.w_tx where chat = ${u.chat} and cur = 'UZS' and ts >= ${u.balance_at}`;
-  const f = await sql`select coalesce(sum(amount), 0)::float8 v from public.w_fund where chat = ${u.chat} and cur = 'UZS' and ts >= ${u.balance_at}`;
-  return +u.balance + (r[0] as any).v - (f[0] as any).v;
+  const r = await sql`select coalesce(sum(case when kind = 'in' then amount else -amount end), 0)::float8 v from public.w_tx where chat = ${u.chat} and cur = 'UZS' and ts >= ${u.balance_at}`;
+  return +u.balance + (r[0] as any).v;
 }
 // kunlik o'rtacha xarajat (oxirgi 30 kun, yozuv boshlangandan beri)
 export async function avgDaily(chat: number): Promise<number> {

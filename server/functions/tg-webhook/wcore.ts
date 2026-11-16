@@ -2,6 +2,7 @@
 // Do'kon (ilova) ma'lumotlariga tegmaydi: faqat w_user, w_tx, w_debt jadvallari (chat_id bo'yicha).
 import { sql, send, fmt, esc, local, todayK, addK, dayStart, secret } from './tg.ts';
 import { usd } from '../hisobchi/cur.ts';
+import { allocMonth, allocLine } from '../hisobchi/alloc.ts';
 // summa o'z valyutasida: so'm — «1 250 000», dollar (sentda) — «$1 250»
 export const money = (n: number, cur?: string) => (cur === 'USD' ? usd(n) : fmt(n));
 export const soOf = (cur?: string) => (cur === 'USD' ? '' : ' soʻm');
@@ -32,7 +33,9 @@ export const CATS: Cat[] = [
   C('boshqain', '📦', 'Boshqa kirim', 'in', ''),
 ];
 const QARZ: Cat = { id: 'qarz', e: '📒', n: 'Qarz', kind: 'out', kw: [] };
-export const catOf = (id: string): Cat => CATS.find((c) => c.id === id) || (id === 'qarz' ? QARZ : (CATS.find((c) => c.id === 'boshqa') as Cat));
+// «Oylik reja»: yo'nalishga berilgan pul (Hisobchi ilovasi)
+const REJA: Cat = { id: 'reja', e: '📥', n: 'Oylik reja', kind: 'out', kw: [] };
+export const catOf = (id: string): Cat => CATS.find((c) => c.id === id) || (id === 'qarz' ? QARZ : id === 'reja' ? REJA : (CATS.find((c) => c.id === 'boshqa') as Cat));
 export const cl = (id: string) => { const c = catOf(id); return c.e + ' ' + c.n; };
 export const otherOf = (kind: string) => (kind === 'in' ? 'boshqain' : 'boshqa');
 
@@ -129,13 +132,11 @@ export async function sums(chat: number, fromK: string, toK: string) {
 }
 // dollar satri (bo'lsa)
 const usdLine = (s: { uOut: number; uIn: number }, pre = '💵 Dollar: ') => (s.uOut || s.uIn ? pre + (s.uOut ? 'chiqim <b>−' + usd(s.uOut) + '</b>' : '') + (s.uOut && s.uIn ? ' · ' : '') + (s.uIn ? 'kirim <b>+' + usd(s.uIn) + '</b>' : '') : '');
-// hozirgi balans — asosiy kassa (so'mda): kiritilgan balans + o'shandan keyingi kirim − xarajat (qarz harakatlari ham).
-// «Oylik reja»: yo'nalishga ajratilgan pul (w_fund) kassadan chiqadi; yo'nalishga yozilgan chiqim (alloc) kassadan emas, yo'nalish pulidan. Dollar alohida
+// hozirgi balans — asosiy kassa (so'mda): kiritilgan balans + o'shandan keyingi kirim − xarajat (qarz harakatlari va oylik rejaga berilgan pul ham). Dollar alohida
 export async function balanceOf(u: WUser | null): Promise<number | null> {
   if (!u || u.balance == null || !u.balance_at) return null;
-  const r = await sql`select coalesce(sum(case when kind = 'in' then amount when alloc is null then -amount else 0 end), 0)::float8 v from public.w_tx where chat = ${u.chat} and cur = 'UZS' and ts >= ${u.balance_at}`;
-  const f = await sql`select coalesce(sum(amount), 0)::float8 v from public.w_fund where chat = ${u.chat} and cur = 'UZS' and ts >= ${u.balance_at}`;
-  return +u.balance + (r[0] as any).v - (f[0] as any).v;
+  const r = await sql`select coalesce(sum(case when kind = 'in' then amount else -amount end), 0)::float8 v from public.w_tx where chat = ${u.chat} and cur = 'UZS' and ts >= ${u.balance_at}`;
+  return +u.balance + (r[0] as any).v;
 }
 // kunlik o'rtacha xarajat (oxirgi 30 kun, yozuv boshlangandan beri)
 export async function avgDaily(chat: number): Promise<number> {
@@ -251,6 +252,8 @@ export async function monthView(chat: number, k: string) {
   }
   const b = budgetLines(u, s.by, ms, true);
   if (b.length) L.push('', '🎯 <b>Byudjet</b>', ...b);
+  const al = await allocMonth(sql, chat, D(ms), D(nextM(ms)));
+  if (al.length) L.push('', '📥 <b>Oylik reja — kimga/qayerga qancha berildi</b>', ...al.map((x) => allocLine(x, fmt)));
   const nav = [{ text: '⬅️ ' + mShort(prevM(ms)), callback_data: 'wm:' + prevM(ms).slice(0, 7) }];
   if (!cur) nav.push({ text: mShort(nextM(ms)) + ' ➡️', callback_data: 'wm:' + nextM(ms).slice(0, 7) });
   return { text: L.join('\n').slice(0, 4000), markup: { inline_keyboard: [nav] } };
@@ -310,6 +313,8 @@ export async function walletDigest(token: string) {
       v.markup.inline_keyboard.push([{ text: '🔕 Kechki hisobotni oʻchirish', callback_data: 'wr:' }] as any);
       const res: any = await send(token, +r.chat, v.text, { reply_markup: v.markup });
       if (res && res.ok) n++;
+      // oyning oxirgi kuni — oylik hisobot (oylik reja bo'yicha kimga qancha berilgani bilan)
+      if (addK(t, 1).slice(8, 10) === '01') { const m = await monthView(+r.chat, t); await send(token, +r.chat, m.text, { reply_markup: m.markup }); }
     } catch (e) { console.error('wallet digest', r.chat, e); }
   }
   return n;
