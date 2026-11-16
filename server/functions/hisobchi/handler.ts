@@ -60,7 +60,7 @@ async function trackOpen(chat: number) {
 async function load(chat: number, open = false) {
   const u = await wEnsure(chat);
   if (open) await trackOpen(chat).catch((e) => console.error('trackOpen', e));
-  const [tx, debts, who, bal, avg, cnt, fx, allocs] = await Promise.all([
+  const [tx, debts, who, bal, avg, cnt, fx, allocs, funds] = await Promise.all([
     sql`select id, kind, amount::float8 amount, cur, cat, note, debt, alloc, ts from public.w_tx where chat = ${chat} order by ts desc, id desc limit 5000`,
     sql`select id, dir, name, amount::float8 amount, paid::float8 paid, cur, closed, note, flow, tx, created_at, closed_at from public.w_debt where chat = ${chat} order by created_at desc`,
     sql`select name, username from public.tg_users where chat_id = ${chat}`,
@@ -68,6 +68,7 @@ async function load(chat: number, open = false) {
     sql`select count(*)::int n from public.w_tx where chat = ${chat}`,
     usdRate(sql).catch(() => null),
     sql`select id, name, emoji, amount::float8 amount, cur, cat, sort from public.w_alloc where chat = ${chat} order by sort, id`,
+    sql`select id, alloc, amount::float8 amount, cur, note, ts from public.w_fund where chat = ${chat} order by ts desc, id desc limit 5000`,
   ]);
   return {
     ok: true, now: Date.now(), today: todayK(), bot: await secret('tg_bot'),
@@ -76,6 +77,7 @@ async function load(chat: number, open = false) {
     usd: fx, // { rate: 1 $ necha so'm, day: Markaziy bank sanasi }
     tx: (tx as any[]).map((r) => ({ id: +r.id, kind: r.kind, amount: out(r.amount, r.cur), cur: r.cur, cat: r.cat, note: r.note || '', debt: r.debt ? +r.debt : null, alloc: r.alloc ? +r.alloc : null, ts: ms(r.ts) })),
     allocs: (allocs as any[]).map((a) => ({ id: +a.id, name: a.name, emoji: a.emoji || '', amount: out(a.amount, a.cur), cur: a.cur, cat: a.cat || '' })),
+    funds: (funds as any[]).map((f) => ({ id: +f.id, alloc: +f.alloc, amount: out(f.amount, f.cur), cur: f.cur, note: f.note || '', ts: ms(f.ts) })),
     more: ((cnt[0] as any)?.n || 0) > 5000,
     debts: (debts as any[]).map((d) => ({ id: +d.id, dir: d.dir, name: d.name, amount: out(d.amount, d.cur), paid: out(d.paid, d.cur), cur: d.cur, closed: d.closed, note: d.note || '', flow: d.flow ? +d.flow : null, split: !!d.tx, at: ms(d.created_at), closedAt: ms(d.closed_at) })),
   };
@@ -92,7 +94,7 @@ async function act(chat: number, a: string, b: any): Promise<Response> {
       const u = await wEnsure(chat);
       const kind: 'in' | 'out' = b.kind === 'in' || b.kind === 'out' ? b.kind : p.sign === '+' || (p.sign !== '-' && isIncome(p.note)) ? 'in' : 'out';
       const cat = detect(p.note, kind, u.learn || {}) || otherOf(kind);
-      const alloc = kind === 'out' ? await matchAlloc(sql, chat, p.note, cur) : null;
+      const alloc = kind === 'out' ? await matchAlloc(sql, chat, p.note, cur, cat) : null;
       const r: any = (await sql`insert into public.w_tx (chat, kind, amount, cur, cat, note, alloc, ts) values (${chat}, ${kind}, ${amt(p.amount)}, ${cur}, ${cat}, ${p.note || null}, ${alloc}, ${tsOf(b.date)}) returning id`)[0];
       return json({ ok: true, id: +r.id, kind, amount: out(amt(p.amount), cur), cur, cat, note: p.note, alloc, x1000: cur === 'UZS' && (p as any).x1000 });
     }
@@ -102,7 +104,7 @@ async function act(chat: number, a: string, b: any): Promise<Response> {
       const u = await wEnsure(chat), note = txt(b.note, 80) || null;
       const cat = catFor(b.cat, kind) || detect(note || '', kind, u.learn || {}) || otherOf(kind);
       if (catFor(b.cat, kind)) await learnCat(chat, note, cat);
-      const alloc = kind === 'out' ? await allocOk(chat, b.alloc, cur) : null;
+      const alloc = kind !== 'out' ? null : b.alloc === undefined ? await matchAlloc(sql, chat, note || '', cur, cat) : await allocOk(chat, b.alloc, cur);
       const r: any = (await sql`insert into public.w_tx (chat, kind, amount, cur, cat, note, alloc, ts) values (${chat}, ${kind}, ${v}, ${cur}, ${cat}, ${note}, ${alloc}, ${tsOf(b.date)}) returning id`)[0];
       return json({ ok: true, id: +r.id, cat, alloc });
     }
@@ -112,7 +114,7 @@ async function act(chat: number, a: string, b: any): Promise<Response> {
       const old: any = (await sql`select cat, note from public.w_tx where id = ${id} and chat = ${chat} and cat <> 'qarz'`)[0];
       if (!old) return ERR('NOT_FOUND', 404);
       const u = await wEnsure(chat), note = txt(b.note, 80) || null, cat = catFor(b.cat, kind) || detect(note || '', kind, u.learn || {}) || otherOf(kind);
-      const alloc = kind === 'out' ? await allocOk(chat, b.alloc, cur) : null;
+      const alloc = kind !== 'out' ? null : b.alloc === undefined ? await matchAlloc(sql, chat, note || '', cur, cat) : await allocOk(chat, b.alloc, cur);
       await sql`update public.w_tx set kind = ${kind}, amount = ${v}, cur = ${cur}, cat = ${cat}, alloc = ${alloc}, note = ${note}${isKey(b.date) ? sql`, ts = ${tsOf(b.date)}` : sql``} where id = ${id} and chat = ${chat}`;
       if (cat !== old.cat) await learnCat(chat, note, cat);
       return json({ ok: true });
@@ -187,6 +189,26 @@ async function act(chat: number, a: string, b: any): Promise<Response> {
       if (n.n >= 50) return ERR('LIMIT');
       const r: any = (await sql`insert into public.w_alloc (chat, name, emoji, amount, cur, cat, sort) values (${chat}, ${name}, ${emoji}, ${v}, ${cur}, ${cat}, ${n.m + 1}) returning id`)[0];
       return json({ ok: true, id: +r.id });
+    }
+    case 'fund': { // kassadan yo'nalishga pul ajratish (+) yoki kassaga qaytarish (−). amount — yo'nalish valyutasida
+      const a: any = (await sql`select id, cur from public.w_alloc where id = ${okId(b.alloc)} and chat = ${chat}`)[0];
+      if (!a) return ERR('NOT_FOUND', 404);
+      const sign = +b.amount < 0 ? -1 : 1, v = amtC(Math.abs(+b.amount), curOf(a.cur));
+      if (!v) return ERR('NO_AMOUNT');
+      const r: any = (await sql`insert into public.w_fund (chat, alloc, amount, cur, note, ts) values (${chat}, ${a.id}, ${sign * v}, ${a.cur}, ${txt(b.note, 80) || null}, ${tsOf(b.date)}) returning id`)[0];
+      return json({ ok: true, id: +r.id });
+    }
+    case 'fund_all': { // oy boshi: bir nechta yo'nalishga birdan. items: [{ alloc, amount }]
+      const items = Array.isArray(b.items) ? b.items.slice(0, 50) : [];
+      const own: any[] = await sql`select id, cur from public.w_alloc where chat = ${chat}`;
+      const rows = items.map((x: any) => { const a = own.find((y) => +y.id === okId(x && x.alloc)); const v = a ? amtC(+x.amount, curOf(a.cur)) : 0; return a && v ? { chat, alloc: +a.id, amount: v, cur: a.cur, note: 'Oy boshi' } : null; }).filter(Boolean);
+      if (!rows.length) return ERR('NO_AMOUNT');
+      await sql`insert into public.w_fund ${sql(rows, 'chat', 'alloc', 'amount', 'cur', 'note')}`;
+      return json({ ok: true, n: rows.length });
+    }
+    case 'fund_del': { // xato kiritilgan ajratishni bekor qilish
+      const r = await sql`delete from public.w_fund where id = ${okId(b.id)} and chat = ${chat} returning id`;
+      return r.length ? json({ ok: true }) : ERR('NOT_FOUND', 404);
     }
     case 'alloc_del': {
       const r = await sql`delete from public.w_alloc where id = ${okId(b.id)} and chat = ${chat} returning id`;

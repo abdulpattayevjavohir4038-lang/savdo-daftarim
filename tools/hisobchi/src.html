@@ -462,7 +462,7 @@ function vHome() {
       kpi('up', 'neg', 'Chiqim', vf(s.out), s.n ? s.n + ' ta yozuv' : 'bu davrda chiqim yoʻq') +
       kpi('trend', net >= 0 ? 'pos' : 'neg', 'Farq', (net > 0 ? '+' : '') + vf(net), 'kirim − chiqim' + (s.inn || s.out ? (net >= 0 ? ' · tejaldi' : ' · ortiqcha sarf') : '')) +
       (V === 'USD' ? kpi('wallet', 'primary', 'Dollar (jami)', usd(usdAll), 'barcha dollar kirim − chiqim (qarzlar bilan)')
-        : kpi('wallet', 'primary', 'Balans' + (hasUsd() ? ' (soʻm)' : ''), bal == null ? '—' : fmt(bal), lasts)) +
+        : kpi('wallet', 'primary', allocs().length ? 'Kassa' + (hasUsd() ? ' (soʻm)' : '') : 'Balans' + (hasUsd() ? ' (soʻm)' : ''), bal == null ? '—' : fmt(bal), lasts + (bal != null && allocs().some((a) => a.cur === 'UZS') ? ' · rejada yana ' + sh(envUZS()) : ''), '', SO)) +
       kpi('give', 'warn', 'Menga qarz', vf(dt.me), dt.meN + ' ta odam · hozirgi') +
       kpi('take', 'neg', 'Men qarzdorman', vf(dt.i), dt.iN + ' ta odam · hozirgi') +
     '</div>' + planCard() +
@@ -613,6 +613,7 @@ document.addEventListener('click', async (e) => {
   else if (ds.new) txForm(null, ds.new);
   else if (ds.newalloc !== undefined) allocForm(null, ds.newalloc === '' ? null : PRESETS[+ds.newalloc]);
   else if (ds.alloc) allocView(+ds.alloc);
+  else if ('fundall' in ds) fundAllForm();
   else if (ds.pmshift) { S.pAnchor = addM(S.pAnchor, +ds.pmshift); render(); }
   else if (ds.newdebt) debtForm(ds.newdebt);
   else if (ds.tx) { const x = S.data.tx.find((y) => y.id === +ds.tx); if (!x) return; if (x.cat === 'qarz' && x.debt) debtView(x.debt); else txForm(x); }
@@ -640,7 +641,7 @@ function txForm(x, kind0, pre) {
     '<div class="seg full" role="group"><button type="button" class="s-out" data-k="out">' + ic('up', 16) + 'Chiqim</button><button type="button" class="s-in" data-k="in">' + ic('down', 16) + 'Kirim</button></div>' +
     '<div><div class="lrow"><label class="label" for="f-amt">Summa</label>' + curSeg('f-cur', cur) + '</div><input id="f-amt" class="input big-in num" inputmode="decimal" autocomplete="off" placeholder="0" value="' + (x ? inVal(x.amount, cur) : '') + '"></div>' +
     '<div><label class="label" for="f-note">Izoh</label><input id="f-note" class="input" maxlength="80" autocomplete="off" placeholder="masalan: tushlik, taksi, oylik" value="' + esc(x ? x.note : '') + '"></div>' +
-    '<div id="f-alw"><div class="label">Oylik rejadan <span class="faint fw6">(ixtiyoriy)</span></div><div class="alg" id="f-al"></div></div>' +
+    '<div id="f-alw"><div class="label">Oylik rejadan <span class="faint fw6">(ixtiyoriy)</span></div><div class="alg" id="f-al"></div><div class="hint" style="margin:.375rem 0 0">Tanlansa — pul kassadan emas, shu yoʻnalish pulidan ayiriladi.</div></div>' +
     '<div><div class="label">Toifa <span class="faint fw6" id="f-auto"></span></div><div id="f-cats"></div></div>' +
     '<div><label class="label" for="f-date">Sana</label><input id="f-date" type="date" class="input" max="' + todayK() + '" value="' + dateV + '"></div>',
     (edit ? '<button class="btn btn-dghost btn-icon" data-del aria-label="Oʻchirish" title="Oʻchirish">' + ic('trash') + '</button>' : '<button class="btn btn-ghost" data-close>Bekor qilish</button>') +
@@ -660,10 +661,10 @@ function txForm(x, kind0, pre) {
     const cb = e.target.closest('[data-cur]'); if (cb) { cur = cb.dataset.cur; $$('#f-cur [data-cur]', ov).forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.cur === cur))); const a = $('#f-amt', ov); a.value = fmtIn(a.value, cur); paint(); a.focus(); return; }
     const ab = e.target.closest('[data-al]'); if (ab) { alloc = alloc === +ab.dataset.al ? 0 : +ab.dataset.al; aTouched = true; paint(); return; }
     const k = e.target.closest('[data-k]'); if (k) { if (kind !== k.dataset.k) { kind = k.dataset.k; cat = ''; paint(); } return; }
-    const c = e.target.closest('[data-cat]'); if (c) { cat = cat === c.dataset.cat ? '' : c.dataset.cat; paint(); return; }
+    const c = e.target.closest('[data-cat]'); if (c) { cat = cat === c.dataset.cat ? '' : c.dataset.cat; if (!aTouched && kind === 'out') { const m = allocByCat(cat, cur); if (m) alloc = m.id; } paint(); return; }
     if (e.target.closest('[data-save]')) {
       const amount = money($('#f-amt', ov), cur); if (!amount) { toast('Summani kiriting', true); $('#f-amt', ov).focus(); return; }
-      const body = { kind: kind, amount: amount, cur: cur, cat: cat, alloc: kind === 'out' ? alloc || null : null, note: $('#f-note', ov).value, date: $('#f-date', ov).value };
+      const body = { kind: kind, amount: amount, cur: cur, cat: cat, alloc: kind === 'out' ? alloc || 0 : 0, note: $('#f-note', ov).value, date: $('#f-date', ov).value };
       if (edit && !cat) body.cat = kind === x.kind ? x.cat : '';
       const r = edit ? await mut('tx_edit', Object.assign({ id: x.id }, body), 'Saqlandi') : await mut('tx_add', body);
       if (r) { closeModal(); setLastCur(cur); if (!edit) { const cc = catOf(r.cat); toast((kind === 'in' ? 'Kirim: +' : 'Chiqim: −') + mny(amount, cur) + ' · ' + cc.e + ' ' + cc.n); } }
@@ -739,7 +740,7 @@ function debtView(id) {
 /* ---------- oynalar: balans, byudjet ---------- */
 function balanceForm() {
   const u = S.data.user;
-  const ov = modal('Balans', '<p class="fs14 muted" style="line-height:1.5">Hozir qoʻlingizda (karta + naqd) qancha pul bor? Bundan keyingi har bir kirim, chiqim va qarz harakati balansga oʻzi qoʻshiladi yoki ayiriladi.</p>' +
+  const ov = modal('Balans', '<p class="fs14 muted" style="line-height:1.5">Hozir qoʻlingizda (karta + naqd) qancha pul bor? Bundan keyingi har bir kirim, chiqim va qarz harakati balansga oʻzi qoʻshiladi yoki ayiriladi.' + (allocs().length ? ' Oylik rejaga ajratilgan pul bunga kirmaydi.' : '') + '</p>' +
     '<div><label class="label" for="b-amt">Balans (soʻm)</label><input id="b-amt" class="input big-in num" inputmode="numeric" autocomplete="off" placeholder="0" value="' + (u.balanceNow != null ? fmt(Math.max(0, u.balanceNow)) : '') + '"></div>',
     (u.balance != null ? '<button class="btn btn-dghost" data-bclear>Kuzatmaslik</button>' : '<button class="btn btn-ghost" data-close>Bekor qilish</button>') + '<button class="btn btn-primary" data-bsave>' + ic('check', 18) + 'Saqlash</button>', { focus: '#b-amt' });
   bindMoney($('#b-amt', ov));
@@ -772,19 +773,26 @@ function videoModal() {
   ov.addEventListener('click', (e) => { if (e.target === ov || e.target.closest('[data-close]')) try { v.pause(); } catch (er) { /* ignore */ } });
 }
 
-/* ---------- Oylik reja: har oy yo'nalishlarga pul ajratish ---------- */
+/* ---------- Oylik reja (konvert usuli): kassadan yo'nalishga pul ajratiladi, chiqim o'sha puldan ayiriladi ---------- */
 const allocs = () => (S.data && S.data.allocs) || [];
+const funds = () => (S.data && S.data.funds) || [];
 const allocOf = (id) => allocs().find((a) => a.id === id);
 const aLbl = (a) => (a.emoji || '📌') + ' ' + a.name;
-// toifa bog'langan birinchi yo'nalish (shu valyutada)
+// toifa bog'langan birinchi yo'nalish (shu valyutada) — chiqim oynasida o'zi tanlanadi
 const allocByCat = (cat, cur) => allocs().find((a) => a.cat && a.cat === cat && a.cur === cur);
-// chiqim qaysi yo'nalishga hisoblanadi
-const txAlloc = (x) => (x.kind !== 'out' || x.cat === 'qarz' ? null : x.alloc ? allocOf(x.alloc) || null : allocByCat(x.cat, x.cur) || null);
-function allocSpent(a, r) {
-  let s = 0, n = 0;
-  for (const x of S.data.tx) if (x.kind === 'out' && x.cat !== 'qarz' && x.cur === a.cur && inR(x.ts, r) && txAlloc(x) === a) { s += x.amount; n++; }
-  return { s, n };
+// chiqim qaysi yo'nalish pulidan (faqat belgilangan)
+const txAlloc = (x) => (x.kind === 'out' && x.alloc ? allocOf(x.alloc) || null : null);
+// yo'nalish holati r (oy) bo'yicha: start — oy boshidagi qoldiq, fin/fret — ajratildi/qaytarildi, sp — sarflandi, end — oy oxiri (yoki hozir)
+function aState(a, r) {
+  const A = dayStart(r.a), B = dayStart(r.b); let start = 0, fin = 0, fret = 0, sp = 0, n = 0, fN = 0;
+  for (const f of funds()) if (f.alloc === a.id) { if (f.ts < A) start += f.amount; else if (f.ts < B) { if (f.amount > 0) { fin += f.amount; fN++; } else fret -= f.amount; } }
+  for (const x of S.data.tx) if (x.alloc === a.id && x.kind === 'out') { if (x.ts < A) start -= x.amount; else if (x.ts < B) { sp += x.amount; n++; } }
+  const avail = start + fin - fret;
+  return { start, fin, fret, sp, n, fN, avail, end: avail - sp };
 }
+const kassaOn = () => S.data && S.data.user.balanceNow != null;
+// so'mdagi yo'nalishlarda hozir turgan pul
+const envUZS = () => { const r = rangeOf('month', todayK()); return allocs().filter((a) => a.cur === 'UZS').reduce((s, a) => s + Math.max(0, aState(a, r).end), 0); };
 // izoh yo'nalish nomiga mosmi (serverdagi bilan bir xil): «ayolga berdim» ~ «Ayolimga»
 const nzs = (s) => String(s || '').toLowerCase().replace(/[ʻʼ'`‘’]/g, '').replace(/[^a-z0-9а-яёқғўҳ\s-]/g, ' ').replace(/\s+/g, ' ').trim();
 const stemW = (w) => w.replace(/(lariga|larga|imga|ning|ga|ka|qa|ni|im|lar)$/, '');
@@ -806,15 +814,15 @@ function guessEmoji(name) {
 }
 // yo'nalish qatori (oy bo'yicha)
 function allocRow(a, r, cm) {
-  const st = allocSpent(a, r), sp = st.s, left = a.amount - sp, p = Math.round(sp * 100 / a.amount);
-  // «shu tezlikda» ogohlantirishi — faqat asta-sekin sarflanadiganlarga (3+ chiqim), bir martalik berishga emas
-  const t = todayK(), fc = cm ? sp / +t.slice(8, 10) * dim(t) : 0;
-  const tone = left < 0 ? 'neg' : left > 0 && cm && st.n >= 3 && fc > a.amount * 1.02 && p >= 30 ? 'warn' : 'pos';
+  const s = aState(a, r), p = s.avail > 0 ? Math.round(s.sp * 100 / s.avail) : s.sp ? 100 : 0;
+  const tone = s.end < 0 ? 'neg' : s.avail > 0 && s.end <= s.avail * 0.1 ? 'warn' : 'pos';
+  const info = s.end < 0 ? 'Yetmadi: ' + mny(-s.end, a.cur) + ' — ustiga qoʻshing'
+    : cm && !s.fN && !s.avail ? 'Shu oy hali pul ajratilmagan · reja ' + mny(a.amount, a.cur)
+    : (s.start ? 'Oʻtgan oydan ' + mny(s.start, a.cur) + ' · ' : '') + 'ajratildi ' + mny(s.fin - s.fret, a.cur) + ' · sarflandi ' + mny(s.sp, a.cur);
   return '<button class="li" data-alloc="' + a.id + '" style="flex-wrap:wrap"><span class="emo" style="width:40px;height:40px;font-size:1.2rem">' + (a.emoji || '📌') + '</span><span class="grow">' +
-    '<span class="row between" style="gap:.5rem"><span class="fw6 trunc">' + esc(a.name) + '</span><span class="amt fs14">' + mny(sp, a.cur) + ' <span class="faint fw6">/ ' + mny(a.amount, a.cur) + '</span></span></span>' +
-    '<span class="prog" style="display:block;margin-top:6px"><i style="width:' + Math.min(100, Math.max(sp ? 2 : 0, p)) + '%;background:rgb(var(--' + tone + '))"></i></span>' +
-    '<span class="fs12 c-' + tone + '" style="display:block;margin-top:4px">' + (left < 0 ? 'Rejadan oshdi: ' + mny(-left, a.cur) : left === 0 ? 'Toʻliq sarflandi ✅' : 'Qoldi: ' + mny(left, a.cur) + (tone === 'warn' ? ' · shu tezlikda oy oxirida ~' + mny(fc, a.cur) + ' boʻladi' : '')) +
-    (a.cat ? '<span class="faint"> · ' + catOf(a.cat).e + ' ' + esc(catOf(a.cat).n) + ' toifasi ham</span>' : '') + '</span></span></button>';
+    '<span class="row between" style="gap:.5rem"><span class="fw6 trunc">' + esc(a.name) + '</span><span class="amt ' + (s.end < 0 ? 'c-neg' : '') + '">' + mny(s.end, a.cur) + '</span></span>' +
+    '<span class="prog" style="display:block;margin-top:6px"><i style="width:' + Math.min(100, Math.max(s.sp ? 2 : 0, p)) + '%;background:rgb(var(--' + tone + '))"></i></span>' +
+    '<span class="fs12 ' + (s.end < 0 ? 'c-neg' : 'faint') + '" style="display:block;margin-top:4px">' + info + '</span></span></button>';
 }
 // Bosh sahifadagi qisqa karta
 function planCard() {
@@ -827,20 +835,26 @@ function vPlan() {
   const A = allocs(), r = rangeOf('month', S.pAnchor), t = todayK(), cm = mStart(S.pAnchor) === mStart(t);
   const curs = ['UZS', 'USD'].filter((c) => A.some((a) => a.cur === c));
   const sum = curs.map((c) => {
-    const L = A.filter((a) => a.cur === c), plan = L.reduce((s, a) => s + a.amount, 0), sp = L.reduce((s, a) => s + allocSpent(a, r).s, 0);
-    const inc = sums(r, c).inn, f = (n) => mny(n, c), u = c === 'USD' ? '' : SO, free = inc - plan;
+    const L = A.filter((a) => a.cur === c), st = L.map((a) => aState(a, r)), f = (n) => mny(n, c), u = c === 'USD' ? '' : SO;
+    const put = st.reduce((s, x) => s + x.fin - x.fret, 0), sp = st.reduce((s, x) => s + x.sp, 0), have = st.reduce((s, x) => s + x.end, 0), plan = L.reduce((s, a) => s + a.amount, 0);
+    const inc = sums(r, c).inn;
+    const k4 = c === 'UZS' && kassaOn() && cm ? kpi('wallet', 'primary', 'Kassada', fmt(S.data.user.balanceNow), 'rejaga ajratilmagan pul', '', u)
+      : kpi('down', 'pos', 'Shu oy kirim', f(inc), inc ? 'rejaga ajratildi: ' + Math.round(put * 100 / inc) + '%' : 'kirim yozilmagan', '', u);
     return (curs.length > 1 ? '<div class="sect-t" style="padding:0 .25rem">' + (c === 'USD' ? 'Dollarda' : 'Soʻmda') + '</div>' : '') +
-      '<div class="grid2 k3">' + kpi('target', 'primary', 'Ajratildi', f(plan), L.length + ' ta yoʻnalish', '', u) + kpi('up', 'neg', 'Sarflandi', f(sp), plan ? Math.round(sp * 100 / plan) + '% · rejadan' : '', '', u) +
-      kpi('wallet', plan - sp >= 0 ? 'pos' : 'neg', plan - sp >= 0 ? 'Qoldi' : 'Oshib ketdi', f(Math.abs(plan - sp)), cm ? 'oy oxirigacha ' + (dim(t) - +t.slice(8, 10)) + ' kun' : mLabel(S.pAnchor), '', u) +
-      kpi('down', 'pos', 'Shu oy kirim', f(inc), inc ? (free >= 0 ? 'rejaga ajratilmagan: ' + f(free) : 'reja kirimdan ' + f(-free) + ' koʻp') : 'kirim yozilmagan', '', u) + '</div>';
+      '<div class="grid2 k3">' + kpi('target', 'primary', 'Shu oy ajratildi', f(put), 'reja: ' + f(plan) + ' / oy', '', u) + kpi('up', 'neg', 'Sarflandi', f(sp), L.length + ' ta yoʻnalishdan', '', u) +
+      kpi('give', have >= 0 ? 'pos' : 'neg', 'Yoʻnalishlarda bor', f(have), cm ? 'oy oxirigacha ' + (dim(t) - +t.slice(8, 10)) + ' kun' : 'oy oxirida', '', u) + k4 + '</div>';
   }).join('');
+  const unfunded = cm ? A.filter((a) => !aState(a, r).fN) : [];
+  const banner = unfunded.length ? '<div class="card p4" style="display:flex;flex-direction:column;gap:.625rem;border-color:rgb(var(--primary));background:rgb(var(--primary-soft))"><div class="fw7">📥 Oy boshi: rejaga pul ajrating</div>' +
+    '<div class="fs14 muted" style="line-height:1.5">' + unfunded.length + ' ta yoʻnalishga shu oy hali pul ajratilmagan. Ajratilgan pul asosiy kassadan chiqadi va chiqimlar oʻsha puldan ayiriladi.</div>' +
+    '<button class="btn btn-primary" data-fundall>' + ic('plus', 18) + 'Hammasiga ajratish</button></div>' : '';
   const presets = '<div class="alg">' + PRESETS.filter((p) => !A.some((a) => nzs(a.name) === nzs(p.n))).map((p) => '<button class="alb" data-newalloc="' + PRESETS.indexOf(p) + '">' + p.e + ' ' + esc(p.n) + '</button>').join('') + '</div>';
   return '<div class="card p4"><div class="pnav" style="margin:0"><button class="btn btn-ghost btn-icon btn-sm" data-pmshift="-1" aria-label="Oldingi oy">' + ic('left', 18) + '</button><div class="lbl">' + mLabel(S.pAnchor) + '</div><button class="btn btn-ghost btn-icon btn-sm" data-pmshift="1" ' + (cm ? 'disabled' : '') + ' aria-label="Keyingi oy">' + ic('right', 18) + '</button></div></div>' +
-    (A.length ? sum +
-      '<div class="card" style="overflow:hidden"><div class="sect"><div class="sect-t">Yoʻnalishlar</div><button class="btn btn-text btn-sm" data-newalloc="">' + ic('plus', 16) + 'Qoʻshish</button></div>' + A.map((a) => allocRow(a, r, cm)).join('') + '</div>' +
-      '<div class="hint" style="text-align:center;line-height:1.5">Chiqim yozganda «Oylik rejadan» yoʻnalishni tanlang yoki izohga nomini yozing: <b>ayolimga 1 mln</b>.<br>Har oy reja yangidan boshlanadi.</div>'
+    (A.length ? banner + sum +
+      '<div class="card" style="overflow:hidden"><div class="sect"><div class="sect-t">Yoʻnalishlar · qolgan pul</div><button class="btn btn-text btn-sm" data-newalloc="">' + ic('plus', 16) + 'Qoʻshish</button></div>' + A.map((a) => allocRow(a, r, cm)).join('') + '</div>' +
+      '<div class="hint" style="text-align:center;line-height:1.55">Yoʻnalishni bosing: <b>pul qoʻshish</b>, <b>chiqim yozish</b> yoki ortganini <b>kassaga qaytarish</b>.<br>Chiqimda yoʻnalishni tanlang yoki izohga yozing: <b>ayolimga 1 mln</b>. Qolgan pul keyingi oyga oʻtadi.</div>'
     : '<div class="card p4" style="display:flex;flex-direction:column;gap:.875rem"><div class="fw7" style="font-size:1.0625rem">Har oy pulni yoʻnalishlarga ajrating</div>' +
-      '<div class="muted fs14" style="line-height:1.55">Masalan: uy roʻzgʻoriga 3 mln, ayolimga 1 mln, opamga 500 ming, kommunalga 1 mln. Soʻmda yoki dollarda. Chiqim yozganingizda qancha sarflangani va qancha qolgani oʻzi koʻrinadi.</div>' +
+      '<div class="muted fs14" style="line-height:1.55">Masalan: uy roʻzgʻoriga 3 mln, ayolimga 1 mln, opamga 500 ming, kommunalga 1 mln — soʻmda yoki dollarda. Oy boshida ajratasiz: pul asosiy kassadan chiqadi. Chiqim yozsangiz, oʻsha yoʻnalish pulidan ayiriladi; yetmasa — ustiga qoʻshasiz. Shunda qayerga qancha ketishini aniq bilasiz.</div>' +
       '<div class="label" style="margin:0">Tez qoʻshish</div>' + presets +
       '<button class="btn btn-primary" data-newalloc="">' + ic('plus', 18) + 'Yoʻnalish qoʻshish</button></div>');
 }
@@ -849,9 +863,10 @@ function allocForm(a, pre) {
   let cur = a ? a.cur : lastCur(), emoji = a ? a.emoji || '📌' : pre.e || '', cat = a ? a.cat : pre.c || '', eTouched = !!emoji;
   const ov = modal(edit ? 'Yoʻnalishni tahrirlash' : 'Yangi yoʻnalish',
     '<div><label class="label" for="a-name">Nomi</label><input id="a-name" class="input" maxlength="40" autocomplete="off" placeholder="masalan: Uy roʻzgʻori, Ayolimga, Opamga" value="' + esc(a ? a.name : pre.n || '') + '"></div>' +
-    '<div><div class="lrow"><label class="label" for="a-amt">Har oy ajratiladi</label>' + curSeg('a-cur', cur) + '</div><input id="a-amt" class="input big-in num" inputmode="decimal" autocomplete="off" placeholder="0" value="' + (a ? inVal(a.amount, a.cur) : '') + '"></div>' +
+    '<div><div class="lrow"><label class="label" for="a-amt">Har oy ajratiladi (reja)</label>' + curSeg('a-cur', cur) + '</div><input id="a-amt" class="input big-in num" inputmode="decimal" autocomplete="off" placeholder="0" value="' + (a ? inVal(a.amount, a.cur) : '') + '"></div>' +
+    (edit ? '' : '<label class="row" style="gap:.625rem;align-items:flex-start;cursor:pointer"><input type="checkbox" class="switch" id="a-now" checked><span class="fs14"><b>Hozir ajratish</b><span class="faint" style="display:block;margin-top:2px">Shu summa asosiy kassadan chiqib, bu yoʻnalishga oʻtadi.</span></span></label>') +
     '<div><div class="label">Belgi</div><div class="emog" id="a-emo"></div></div>' +
-    '<div><div class="label">Toifa bilan bogʻlash <span class="faint fw6">(ixtiyoriy)</span></div><div class="hint" style="margin:0 0 .5rem">Tanlansa — shu toifadagi chiqimlar ham (masalan, svet va gaz → Kommunal) bu yoʻnalishga oʻzi hisoblanadi.</div><div id="a-cats"></div></div>',
+    '<div><div class="label">Toifa bilan bogʻlash <span class="faint fw6">(ixtiyoriy)</span></div><div class="hint" style="margin:0 0 .5rem">Tanlansa — shu toifadagi chiqim yozilganda (masalan, svet va gaz → Kommunal) bu yoʻnalish oʻzi tanlanadi.</div><div id="a-cats"></div></div>',
     (edit ? '<button class="btn btn-dghost btn-icon" data-adel aria-label="Oʻchirish" title="Oʻchirish">' + ic('trash') + '</button>' : '<button class="btn btn-ghost" data-close>Bekor qilish</button>') +
     '<button class="btn btn-primary" data-asave>' + ic('check', 18) + 'Saqlash</button>', { focus: edit || pre.n ? '#a-amt' : '#a-name' });
   const paint = () => {
@@ -866,33 +881,108 @@ function allocForm(a, pre) {
     const em = e.target.closest('[data-emo]'); if (em) { emoji = em.dataset.emo; eTouched = true; paint(); return; }
     const c = e.target.closest('[data-cat]'); if (c) { cat = cat === c.dataset.cat ? '' : c.dataset.cat; paint(); return; }
     if (e.target.closest('[data-asave]')) {
-      const name = $('#a-name', ov).value.trim(), amount = money($('#a-amt', ov), cur);
+      const name = $('#a-name', ov).value.trim(), amount = money($('#a-amt', ov), cur), now = !edit && $('#a-now', ov).checked;
       if (!name) { toast('Nomini yozing', true); $('#a-name', ov).focus(); return; }
       if (!amount) { toast('Summani kiriting', true); $('#a-amt', ov).focus(); return; }
-      if (edit && a.cur !== cur && allocs().length && !(await confirmBox('Valyuta oʻzgaradi', 'Bu yoʻnalishga yozilgan ' + (a.cur === 'USD' ? 'dollar' : 'soʻm') + 'dagi chiqimlar undan ajratiladi (oʻchmaydi). Davom etasizmi?', 'Ha, oʻzgartirish'))) return;
-      const r = await mut('alloc_save', { id: a ? a.id : null, name: name, amount: amount, cur: cur, emoji: emoji || guessEmoji(name), cat: cat }, edit ? 'Saqlandi' : 'Oylik rejaga qoʻshildi');
-      if (r) { closeModal(); setLastCur(cur); if (S.tab !== 'plan' && S.tab !== 'home') go('plan'); else render(); }
+      if (edit && a.cur !== cur && !(await confirmBox('Valyuta oʻzgaradi', 'Bu yoʻnalishga yozilgan ' + (a.cur === 'USD' ? 'dollar' : 'soʻm') + 'dagi chiqimlar undan ajratiladi (oʻchmaydi). Davom etasizmi?', 'Ha, oʻzgartirish'))) return;
+      const r = await mut('alloc_save', { id: a ? a.id : null, name: name, amount: amount, cur: cur, emoji: emoji || guessEmoji(name), cat: cat });
+      if (!r) return;
+      if (now) await mut('fund', { alloc: r.id, amount: amount });
+      closeModal(); setLastCur(cur); toast(edit ? 'Saqlandi' : now ? mny(amount, cur) + unitOf(cur) + ' ajratildi — kassadan chiqdi' : 'Oylik rejaga qoʻshildi');
+      if (S.tab !== 'plan' && S.tab !== 'home') go('plan'); else render();
       return;
     }
-    if (e.target.closest('[data-adel]')) { closeModal(); if (await confirmBox('Yoʻnalishni oʻchirish', '<b>' + esc(aLbl(a)) + '</b> oylik rejadan olib tashlansinmi? Yozilgan chiqimlar oʻchmaydi.', 'Oʻchirish', true)) await mut('alloc_del', { id: a.id }, 'Oʻchirildi'); }
+    if (e.target.closest('[data-adel]')) { closeModal(); if (await confirmBox('Yoʻnalishni oʻchirish', '<b>' + esc(aLbl(a)) + '</b> oylik rejadan olib tashlansinmi? Unda turgan pul kassaga qaytadi, yozilgan chiqimlar oʻchmaydi (kassadan deb hisoblanadi).', 'Oʻchirish', true)) await mut('alloc_del', { id: a.id }, 'Oʻchirildi'); }
+  });
+}
+// pul qo'shish (kassadan) yoki qaytarish (kassaga)
+function fundForm(a, back) {
+  const s = aState(a, rangeOf('month', todayK())); let dir = back ? 'ret' : 'add';
+  const sugg = () => dir === 'ret' ? (s.end > 0 ? [['Hammasini', s.end]] : [])
+    : [['Reja summasi', a.amount]].concat(s.end < 0 ? [['Yetmaganini', -s.end]] : s.end < a.amount && s.end > 0 ? [['Rejagacha', a.amount - s.end]] : []);
+  const ov = modal(esc(aLbl(a)),
+    '<div class="seg full" role="group"><button type="button" data-fd="add">' + ic('plus', 16) + 'Pul qoʻshish</button><button type="button" data-fd="ret">' + ic('down', 16) + 'Kassaga qaytarish</button></div>' +
+    '<div class="fs14 muted">Hozir yoʻnalishda: <b class="num ' + (s.end < 0 ? 'c-neg' : '') + '">' + mny(s.end, a.cur) + unitOf(a.cur) + '</b>' + (a.cur === 'UZS' && kassaOn() ? ' · kassada: <b class="num">' + fmt(S.data.user.balanceNow) + ' ' + SO + '</b>' : '') + '</div>' +
+    '<div><label class="label" for="g-amt" id="g-l"></label><input id="g-amt" class="input big-in num" inputmode="decimal" autocomplete="off" placeholder="0"></div>' +
+    '<div class="alg" id="g-sg"></div>',
+    '<button class="btn btn-ghost" data-close>Bekor qilish</button><button class="btn btn-primary" data-gok>' + ic('check', 18) + 'Saqlash</button>', { focus: '#g-amt' });
+  const inp = $('#g-amt', ov);
+  const paint = () => {
+    $$('[data-fd]', ov).forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.fd === dir)));
+    $('#g-l', ov).textContent = (dir === 'add' ? 'Qancha qoʻshasiz? (kassadan chiqadi)' : 'Qancha qaytarasiz? (kassaga qaytadi)') + (a.cur === 'USD' ? ' — $' : '');
+    $('#g-sg', ov).innerHTML = sugg().map(([l, v]) => '<button type="button" class="alb" data-gv="' + v + '">' + l + ': ' + mny(v, a.cur) + '</button>').join('');
+  };
+  paint(); bindMoney(inp, () => a.cur);
+  if (!back && s.end < 0) inp.value = inVal(-s.end, a.cur); else if (!back && !s.fN && s.end <= 0) inp.value = inVal(a.amount, a.cur);
+  ov.addEventListener('click', async (e) => {
+    const d = e.target.closest('[data-fd]'); if (d) { dir = d.dataset.fd; inp.value = ''; paint(); inp.focus(); return; }
+    const g = e.target.closest('[data-gv]'); if (g) { inp.value = inVal(+g.dataset.gv, a.cur); return; }
+    if (e.target.closest('[data-gok]')) {
+      const v = money(inp, a.cur); if (!v) { toast('Summani kiriting', true); inp.focus(); return; }
+      const r = await mut('fund', { alloc: a.id, amount: dir === 'ret' ? -v : v });
+      if (r) { toast(dir === 'ret' ? mny(v, a.cur) + unitOf(a.cur) + ' kassaga qaytdi' : mny(v, a.cur) + unitOf(a.cur) + ' ajratildi — kassadan chiqdi'); allocView(a.id); }
+    }
+  });
+}
+// oy boshi: hammasiga birdan ajratish
+function fundAllForm() {
+  const r = rangeOf('month', todayK()); let mode = 'fill';
+  const L = allocs().map((a) => ({ a: a, s: aState(a, r) }));
+  const sel = new Set(L.filter((x) => !x.s.fN).map((x) => x.a.id));
+  // fill: reja summasigacha (qoldiq hisobga olinadi, yetmagan bo'lsa — o'sha ham); plan: to'liq reja summasi
+  const amtOf = (x) => Math.max(0, mode === 'plan' ? x.a.amount : x.a.amount - x.s.end);
+  const ov = modal('Oy boshi: rejaga ajratish',
+    '<div class="seg full" role="group"><button type="button" data-fm="fill">Rejagacha toʻldirish</button><button type="button" data-fm="plan">Reja summasini qoʻshish</button></div>' +
+    '<div class="hint" style="margin:0" id="fa-h"></div><div class="card" style="overflow:hidden" id="fa-l"></div><div class="fs14" id="fa-t"></div>',
+    '<button class="btn btn-ghost" data-close>Bekor qilish</button><button class="btn btn-primary" data-faok>' + ic('check', 18) + 'Ajratish</button>');
+  const paint = () => {
+    $$('[data-fm]', ov).forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.fm === mode)));
+    $('#fa-h', ov).textContent = mode === 'fill' ? 'Oʻtgan oydan qolgan pul yoʻnalishda qoladi — faqat reja summasigacha yetmagani qoʻshiladi.' : 'Har bir yoʻnalishga toʻliq reja summasi qoʻshiladi (qolgan pul ustiga).';
+    $('#fa-l', ov).innerHTML = L.map((x) => { const v = amtOf(x); return '<label class="li" style="cursor:pointer"><input type="checkbox" data-fa="' + x.a.id + '"' + (sel.has(x.a.id) ? ' checked' : '') + ' style="width:20px;height:20px;accent-color:rgb(var(--primary))"><span class="emo" style="width:34px;height:34px;font-size:1.05rem">' + (x.a.emoji || '📌') + '</span><span class="grow"><span class="fw6 trunc" style="display:block">' + esc(x.a.name) + '</span><span class="fs12 faint">' + (x.s.fN ? 'shu oy ajratilgan · ' : '') + 'hozir: ' + mny(x.s.end, x.a.cur) + '</span></span><span class="amt fs14">' + (v ? '+' + mny(v, x.a.cur) : '—') + '</span></label>'; }).join('');
+    const tot = { UZS: 0, USD: 0 }; L.forEach((x) => { if (sel.has(x.a.id)) tot[x.a.cur] += amtOf(x); });
+    $('#fa-t', ov).innerHTML = 'Jami: <b class="num">' + [tot.UZS ? fmt(tot.UZS) + ' ' + SO : '', tot.USD ? usd(tot.USD) : ''].filter(Boolean).join(' + ') + (tot.UZS || tot.USD ? '' : '0') + '</b>' +
+      (tot.UZS && kassaOn() ? '<span class="faint" style="display:block;margin-top:2px">Kassada qoladi: ' + fmt(S.data.user.balanceNow - tot.UZS) + ' ' + SO + '</span>' : '');
+  };
+  paint();
+  ov.addEventListener('change', (e) => { const c = e.target.closest('[data-fa]'); if (!c) return; if (c.checked) sel.add(+c.dataset.fa); else sel.delete(+c.dataset.fa); paint(); });
+  ov.addEventListener('click', async (e) => {
+    const m = e.target.closest('[data-fm]'); if (m) { mode = m.dataset.fm; paint(); return; }
+    if (e.target.closest('[data-faok]')) {
+      const items = L.filter((x) => sel.has(x.a.id) && amtOf(x) > 0).map((x) => ({ alloc: x.a.id, amount: amtOf(x) }));
+      if (!items.length) { toast('Ajratadigan summa yoʻq', true); return; }
+      const r = await mut('fund_all', { items: items }); if (r) { closeModal(); toast(items.length + ' ta yoʻnalishga pul ajratildi ✅'); }
+    }
   });
 }
 function allocView(id) {
   const a = allocOf(id); if (!a) { toast('Topilmadi', true); return; }
-  const r = rangeOf('month', S.tab === 'plan' ? S.pAnchor : todayK()), sp = allocSpent(a, r).s, left = a.amount - sp, p = Math.round(sp * 100 / a.amount);
-  const list = S.data.tx.filter((x) => inR(x.ts, r) && txAlloc(x) === a).sort((x, y) => y.ts - x.ts);
+  const r = rangeOf('month', S.tab === 'plan' ? S.pAnchor : todayK()), s = aState(a, r), cm = mStart(r.a) === mStart(todayK());
+  const p = s.avail > 0 ? Math.round(s.sp * 100 / s.avail) : s.sp ? 100 : 0;
+  // oxirgi 3 to'liq oy o'rtacha sarfi — rejani to'g'ri qo'yish uchun
+  let avg = 0, am = 0; for (let i = 1; i <= 3; i++) { const m = rangeOf('month', addM(mStart(todayK()), -i)), x = aState(a, m); if (x.sp || x.fN) { avg += x.sp; am++; } }
+  avg = am ? avg / am : 0;
+  const hist = [].concat(
+    funds().filter((f) => f.alloc === id && inR(f.ts, r)).map((f) => ({ ts: f.ts, h: '<div class="li" style="padding:.5rem .75rem"><span class="grow fs14">' + (f.amount > 0 ? '📥 Ajratildi (kassadan)' : '📤 Kassaga qaytarildi') + '<span class="faint fs12" style="display:block">' + dmy(f.ts) + ' ' + hhmm(f.ts) + (f.note ? ' · ' + esc(f.note) : '') + '</span></span><span class="amt fs14 ' + (f.amount > 0 ? 'c-pos' : 'faint') + '">' + (f.amount > 0 ? '+' : '−') + mny(Math.abs(f.amount), a.cur) + '</span><button class="btn btn-text btn-icon btn-sm" data-fdel="' + f.id + '" aria-label="Bekor qilish" title="Bekor qilish">' + ic('x', 16) + '</button></div>' })),
+    S.data.tx.filter((x) => x.alloc === id && x.kind === 'out' && inR(x.ts, r)).map((x) => ({ ts: x.ts, h: '<div class="li" style="padding:.5rem .75rem"><span class="grow fs14">' + esc(x.note || catOf(x.cat).n) + '<span class="faint fs12" style="display:block">' + dmy(x.ts) + ' ' + hhmm(x.ts) + ' · ' + catOf(x.cat).e + ' ' + esc(catOf(x.cat).n) + '</span></span><span class="amt fs14 c-neg">−' + mny(x.amount, x.cur) + '</span></div>' }))
+  ).sort((x, y) => y.ts - x.ts);
+  const box = (l, v, c) => '<div class="card" style="padding:.625rem .75rem"><div class="fs12 faint fw6">' + l + '</div><div class="amt ' + (c || '') + '">' + v + '</div></div>';
   const ov = modal(esc(aLbl(a)),
-    '<div class="fs13 faint">' + mLabel(r.a) + ' · har oy ' + mny(a.amount, a.cur) + unitOf(a.cur) + (a.cat ? ' · ' + catOf(a.cat).e + ' ' + esc(catOf(a.cat).n) + ' toifasi ham hisoblanadi' : '') + '</div>' +
-    '<div class="grid2" style="grid-template-columns:repeat(3,minmax(0,1fr));gap:.5rem">' +
-      '<div class="card" style="padding:.625rem .75rem"><div class="fs12 faint fw6">Ajratildi</div><div class="amt">' + mny(a.amount, a.cur) + '</div></div>' +
-      '<div class="card" style="padding:.625rem .75rem"><div class="fs12 faint fw6">Sarflandi</div><div class="amt c-neg">' + mny(sp, a.cur) + '</div></div>' +
-      '<div class="card" style="padding:.625rem .75rem"><div class="fs12 faint fw6">' + (left >= 0 ? 'Qoldi' : 'Oshdi') + '</div><div class="amt ' + (left >= 0 ? 'c-pos' : 'c-neg') + '">' + mny(Math.abs(left), a.cur) + '</div></div></div>' +
-    '<div class="prog"><i style="width:' + Math.min(100, Math.max(2, p)) + '%;background:rgb(var(--' + (left >= 0 ? 'pos' : 'neg') + '))"></i></div>' +
-    '<div><div class="label">Shu oydagi chiqimlar (' + list.length + ')</div><div class="card" style="overflow:hidden">' + (list.length ? list.map((x) => '<div class="li" style="padding:.5rem .75rem"><span class="grow fs14">' + esc(x.note || catOf(x.cat).n) + '<span class="faint fs12" style="display:block">' + dmy(x.ts) + ' ' + hhmm(x.ts) + ' · ' + catOf(x.cat).e + ' ' + esc(catOf(x.cat).n) + '</span></span><span class="amt fs14 c-neg">−' + mny(x.amount, x.cur) + '</span></div>').join('') : '<div class="empty">Bu oyda hali chiqim yoʻq</div>') + '</div></div>',
-    '<button class="btn btn-ghost" data-aedit>' + ic('gear', 18) + 'Tahrirlash</button><button class="btn btn-primary" data-aspend>' + ic('plus', 18) + 'Chiqim yozish</button>');
-  ov.addEventListener('click', (e) => {
+    '<div class="fs13 faint">' + mLabel(r.a) + ' · reja: ' + mny(a.amount, a.cur) + unitOf(a.cur) + ' / oy' + (a.cat ? ' · ' + catOf(a.cat).e + ' ' + esc(catOf(a.cat).n) + ' toifasi bogʻlangan' : '') + '</div>' +
+    '<div class="grid2" style="grid-template-columns:repeat(2,minmax(0,1fr));gap:.5rem">' +
+      box('Oʻtgan oydan', mny(s.start, a.cur), s.start < 0 ? 'c-neg' : '') + box('Shu oy ajratildi', mny(s.fin - s.fret, a.cur), 'c-pos') +
+      box('Sarflandi', mny(s.sp, a.cur), 'c-neg') + box(s.end >= 0 ? 'Qoldi' : 'Yetmadi', mny(Math.abs(s.end), a.cur), s.end >= 0 ? 'c-pos' : 'c-neg') + '</div>' +
+    '<div class="prog"><i style="width:' + Math.min(100, Math.max(2, p)) + '%;background:rgb(var(--' + (s.end >= 0 ? 'pos' : 'neg') + '))"></i></div>' +
+    (avg ? '<div class="fs13 muted">📊 Oxirgi ' + am + ' oyda oʻrtacha sarf: <b class="num">' + mny(avg, a.cur) + '</b> / oy' + (Math.abs(avg - a.amount) > a.amount * 0.1 ? ' — reja (' + mny(a.amount, a.cur) + ') ' + (avg > a.amount ? 'yetmayapti' : 'koʻp') + '. «Tahrirlash»da oʻzgartiring.' : ' — reja toʻgʻri ✅') + '</div>' : '') +
+    (cm && s.end > 0 ? '<button class="btn btn-text btn-sm" data-aret style="align-self:flex-start">' + ic('down', 16) + 'Qolgan pulni kassaga qaytarish</button>' : '') +
+    '<div><div class="label">Harakatlar (' + hist.length + ')</div><div class="card" style="overflow:hidden">' + (hist.length ? hist.map((x) => x.h).join('') : '<div class="empty">Bu oyda hali harakat yoʻq</div>') + '</div></div>',
+    '<button class="btn btn-ghost btn-icon" data-aedit aria-label="Tahrirlash" title="Tahrirlash">' + ic('gear', 18) + '</button>' +
+    (cm ? '<button class="btn btn-soft" data-afund style="color:rgb(var(--pos));background:rgb(var(--pos-soft))">' + ic('plus', 18) + 'Pul qoʻshish</button><button class="btn btn-primary" data-aspend>' + ic('up', 18) + 'Chiqim</button>' : '<button class="btn btn-ghost" data-close>Yopish</button>'));
+  ov.addEventListener('click', async (e) => {
     if (e.target.closest('[data-aedit]')) { closeModal(); allocForm(a); }
-    if (e.target.closest('[data-aspend]')) { closeModal(); txForm(null, 'out', { alloc: a.id, cur: a.cur }); }
+    else if (e.target.closest('[data-afund]')) { closeModal(); fundForm(a); }
+    else if (e.target.closest('[data-aret]')) { closeModal(); fundForm(a, true); }
+    else if (e.target.closest('[data-aspend]')) { closeModal(); txForm(null, 'out', { alloc: a.id, cur: a.cur }); }
+    else { const d = e.target.closest('[data-fdel]'); if (d) { closeModal(); if (await confirmBox('Bekor qilish', 'Bu ajratish/qaytarish oʻchirilsinmi? Pul kassaga (yoki yoʻnalishga) qaytadi.', 'Ha, bekor qilish', true)) { const ok = await mut('fund_del', { id: +d.dataset.fdel }, 'Bekor qilindi'); if (ok) allocView(id); } else allocView(id); } }
   });
 }
 
