@@ -3,7 +3,8 @@
 import { sql, send, tg, esc, fmt } from './tg.ts';
 import { CATS, catOf, cl, nz, parse, detect, isIncome, otherOf, sh, bar, dmy, wUser, wEnsure, sums, homeView, dayView, monthView, historyView, budgetView, budgetNote, money, soOf, type WUser } from './wcore.ts';
 import { type Cur, isUsdText, parseUsd, usd } from '../hisobchi/cur.ts';
-import { todayK, addK } from './tg.ts';
+import { todayK, addK, dayStart } from './tg.ts';
+import { matchAlloc, allocState, allocLine } from '../hisobchi/alloc.ts';
 
 export const WKB = {
   keyboard: [[{ text: '➖ Xarajat' }, { text: '➕ Kirim' }], [{ text: '📊 Bugun hisobi' }, { text: '📆 Shu oy' }], [{ text: '🎯 Byudjet' }, { text: '📒 Qarz daftari' }], [{ text: '🕘 Tarix' }, { text: '👛 Hamyon' }], [{ text: '⬅️ Asosiy menyu' }]],
@@ -53,7 +54,7 @@ function catGrid(id: number, kind: string, cur: string) {
 }
 async function txView(chat: number, id: number, grid = false) {
   const u = await wUser(chat);
-  const r: any = (await sql`select id, kind, amount::float8 amount, cur, cat, note, ts from public.w_tx where id = ${id} and chat = ${chat}`)[0];
+  const r: any = (await sql`select id, kind, amount::float8 amount, cur, cat, note, alloc, ts from public.w_tx where id = ${id} and chat = ${chat}`)[0];
   if (!r || !u) return null;
   const t = today(), [d, m] = await Promise.all([sums(chat, t, addK(t, 1)), sums(chat, t.slice(0, 8) + '01', addK(t, 1))]);
   const unknown = r.cat === otherOf(r.kind);
@@ -62,6 +63,13 @@ async function txView(chat: number, id: number, grid = false) {
   if (r.cur === 'USD') L.push('💵 Bugun dollar: ' + (d.uOut ? '−' + usd(d.uOut) : '') + (d.uOut && d.uIn ? ' · ' : '') + (d.uIn ? '+' + usd(d.uIn) : '') + ' · Shu oy: −' + usd(m.uOut));
   else L.push('📅 Bugun: −' + fmt(d.out) + (d.inn ? ' · +' + fmt(d.inn) : '') + ' · Shu oy: −' + fmt(m.out));
   if (r.kind === 'out' && r.cur !== 'USD') { const b = await budgetNote(u, r.cat); if (b) L.push(b); }
+  // «Oylik reja» (Hisobchi ilovasida): shu chiqim qaysi yo'nalishdan va qancha qoldi
+  if (r.kind === 'out') {
+    const aid = r.alloc ? +r.alloc : (((await sql`select id from public.w_alloc where chat = ${chat} and cat = ${r.cat} and cur = ${r.cur} order by sort, id limit 1`)[0] as any)?.id || 0);
+    const ms = t.slice(0, 8) + '01', me = addK(ms, 32).slice(0, 8) + '01';
+    const st = aid ? await allocState(sql, chat, +aid, new Date(dayStart(ms)), new Date(dayStart(me))) : null;
+    if (st) L.push(allocLine(st, fmt));
+  }
   if (unknown || grid) L.push('', '🗂 <b>Toifani tanlang</b> 👇');
   const rows: any[] = [];
   if (unknown || grid) rows.push(...catGrid(r.id, r.kind, r.cat));
@@ -218,7 +226,8 @@ export async function walletText(token: string, chat: number, text: string, u: W
   const kind: 'out' | 'in' = step.s === 'in' ? 'in' : step.s === 'out' ? 'out' : q.sign === '+' || (q.sign !== '-' && isIncome(q.note)) ? 'in' : 'out';
   const cat = detect(q.note, kind, u.learn || {}) || otherOf(kind);
   if (step.s) await setStep(chat, {});
-  const r: any = (await sql`insert into public.w_tx (chat, kind, amount, cur, cat, note) values (${chat}, ${kind}, ${q.amount}, ${cur}, ${cat}, ${q.note || null}) returning id`)[0];
+  const alloc = kind === 'out' ? await matchAlloc(sql, chat, q.note, cur) : null;
+  const r: any = (await sql`insert into public.w_tx (chat, kind, amount, cur, cat, note, alloc) values (${chat}, ${kind}, ${q.amount}, ${cur}, ${cat}, ${q.note || null}, ${alloc}) returning id`)[0];
   const v = await txView(chat, +r.id);
   if (v) await send(token, chat, v.text + (q.x1000 ? '\n<i>(' + fmt(q.amount / 1000) + ' → ' + fmt(q.amount) + SO + ' deb oldim)</i>' : ''), { reply_markup: v.markup });
   return true;
